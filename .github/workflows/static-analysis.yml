@@ -1,0 +1,11 @@
+name: Static analysis
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  static:
+    uses: laranail/.github/.github/workflows/static-analysis.yml@main

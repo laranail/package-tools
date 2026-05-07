@@ -1,0 +1,18 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+    excludePaths:
+        - vendor
+        - tests/_output (?)
+        - tests/fixtures
+    ignoreErrors:
+        # Allow trait methods to reference $this->property dynamically;
+        # Larastan's static analysis can't always see across trait/aggregator
+        # boundaries.
+        - '#Access to an undefined property .*::\$#'
+    treatPhpDocTypesAsCertain: false

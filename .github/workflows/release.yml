@@ -1,0 +1,14 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - 'v*.*.*-*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: laranail/.github/.github/workflows/release.yml@main

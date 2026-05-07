@@ -1,0 +1,1159 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Commands\\InstallCommand\:\:askToStarRepoOnGitHub\(\) has parameter \$vendorSlashRepoName with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Commands/InstallCommand.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Commands\\InstallCommand\:\:\$endWith \(Closure\|null\) does not accept callable\(\)\: mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Commands/InstallCommand.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Commands\\InstallCommand\:\:\$publishes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Commands/InstallCommand.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Commands\\InstallCommand\:\:\$startWith \(Closure\|null\) does not accept callable\(\)\: mixed\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: src/Commands/InstallCommand.php
+
+		-
+			message: '#^Parameter \#1 \$string of method Illuminate\\Console\\Command\:\:line\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Commands/PackageAuditCommand.php
+
+		-
+			message: '#^Parameter \#1 \$string of method Illuminate\\Console\\Command\:\:line\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Commands/PackageDoctorCommand.php
+
+		-
+			message: '#^Cannot cast array\|bool\|float\|int\|string\|null to string\.$#'
+			identifier: cast.string
+			count: 4
+			path: src/Commands/PackageIdeHelperCommand.php
+
+		-
+			message: '#^Cannot cast array\|bool\|float\|int\|string\|null to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Commands/PackageSbomCommand.php
+
+		-
+			message: '#^Parameter \#1 \$string of method Illuminate\\Console\\Command\:\:line\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Commands/PackageSbomCommand.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Commands\\HasProgressBar is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Commands/HasProgressBar.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasAssetGroups is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasAssetGroups.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasCachedNamespaces is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasCachedNamespaces.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasEventSystem is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasEventSystem.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasModuleAssets is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasModuleAssets.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasViewComposerRegistry is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasViewComposerRegistry.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\ManagesComposer is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/ManagesComposer.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 4
+			path: src/Exceptions/InvalidPackage.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Exceptions\\InvalidPath\:\:invalidPackageStructure\(\) has parameter \$missingItems with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Exceptions/InvalidPath.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 15
+			path: src/Exceptions/InvalidPath.php
+
+		-
+			message: '#^Call to an undefined method Simtabi\\Laranail\\PackageTools\\Services\\Asset\\AssetRegistry\:\:all\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to an undefined method Simtabi\\Laranail\\PackageTools\\Services\\Component\\AnonymousComponentLoader\:\:loadAnonymous\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Package.php
+
+		-
+			message: '#^Call to an undefined static method Illuminate\\Support\\Arr\:\:merge\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: src/Package.php
+
+		-
+			message: '#^Call to function is_bool\(\) with bool will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''getPath'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''hasCommand'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''hasViewComposer'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''packageBasePath'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''resolveModulePath'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function property_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''configVendor'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Package.php
+
+		-
+			message: '#^Call to function property_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''name'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Cannot cast object\|string to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^If condition is always false\.$#'
+			identifier: if.alwaysFalse
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:cleanupAllAssets\(\) should return array\<string, bool\> but returns array\<null\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:cleanupAssets\(\) should return bool but returns null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:deepMerge\(\) has parameter \$source with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:deepMerge\(\) has parameter \$target with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:deepMerge\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:findConflicts\(\) has parameter \$source with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:findConflicts\(\) has parameter \$target with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:getComposerData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:getHelperFiles\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:getPublishPaths\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:getRegisteredHooks\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:getValidationErrors\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasBladeDirectives\(\) has parameter \$directives with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasCommands\(\) has parameter \$commandClassNames with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasConfigFile\(\) has parameter \$configFileName with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasConsoleCommands\(\) has parameter \$commandClassNames with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasInstallCommand\(\) has parameter \$callable with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasLivewireComponents\(\) has parameter \$components with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasMigrations\(\) has parameter \$migrationFileNames with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasRoutes\(\) has parameter \$routeFileNames with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasViewComponents\(\) has parameter \$viewComponentNames with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasViewComposer\(\) has parameter \$view with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:hasViewComposer\(\) has parameter \$viewComposer with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:normalizePublishTagName\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:publishAssets\(\) has parameter \$paths with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:publishAssets\(\) invoked with 4 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 6
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:publishes\(\) has parameter \$paths with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:registerMiddlewareGroups\(\) has parameter \$groups with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:sharesDataWithAllViews\(\) has parameter \$value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:shouldRunInConsoleEnvironment\(\) has parameter \$environments with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:updateComposerJson\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:validateComposerJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:validatePackageStructure\(\) has parameter \$expectedDirs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:validateSafeMerge\(\) has parameter \$source with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:validateSafeMerge\(\) has parameter \$target with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Package\:\:withProgress\(\) has parameter \$items with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Component\\ComponentRegistry\:\:register\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 3
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigFileResolver\:\:resolve\(\) invoked with 2 parameters, 1 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Event\\MiddlewareRegistry\:\:get\(\) invoked with 3 parameters, 1\-2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Event\\MiddlewareRegistry\:\:register\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 3
+			path: src/Package.php
+
+		-
+			message: '#^Missing parameter \$paths \(array\) in call to method Simtabi\\Laranail\\PackageTools\\Package\:\:publishAssets\(\)\.$#'
+			identifier: argument.missing
+			count: 3
+			path: src/Package.php
+
+		-
+			message: '#^Parameter \#1 \$callback of static method Illuminate\\Database\\Eloquent\\Factories\\Factory\<Illuminate\\Database\\Eloquent\\Model\>\:\:guessFactoryNamesUsing\(\) expects callable\(class\-string\<Illuminate\\Database\\Eloquent\\Model\>\)\: class\-string\<Illuminate\\Database\\Eloquent\\Factories\\Factory\>, Closure\(string\)\: \(class\-string\|null\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Parameter \#1 \$paths of method Simtabi\\Laranail\\PackageTools\\Package\:\:publishAssets\(\) expects array, string given\.$#'
+			identifier: argument.type
+			count: 5
+			path: src/Package.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Support\\Str\:\:trim\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$assetPaths \(array\<string, array\>\) in isset\(\) is not nullable\.$#'
+			identifier: isset.property
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$assetPaths type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$bladeDirectives type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$commands type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$componentErrors type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$componentNamespaces \(array\<string, string\>\) in isset\(\) is not nullable\.$#'
+			identifier: isset.property
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$configFileNames type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$consoleCommands type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$livewireComponents type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$migrationFileNames type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$publishPaths \(array\<string, array\>\) in isset\(\) is not nullable\.$#'
+			identifier: isset.property
+			count: 2
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$publishPaths \(array\<string, array\>\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$publishPaths type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$publishPathsToClean \(array\<string, bool\>\) in isset\(\) is not nullable\.$#'
+			identifier: isset.property
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$publishPathsToClean \(array\<string, bool\>\) on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.property
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$routeFileNames type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$sharedViewData type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$validationErrors type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$viewComponents type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$viewComposers type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Package\:\:\$vueComponents type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Result of method Simtabi\\Laranail\\PackageTools\\Services\\Asset\\AssetRegistry\:\:cleanup\(\) \(void\) is used\.$#'
+			identifier: method.void
+			count: 2
+			path: src/Package.php
+
+		-
+			message: '#^Unknown parameter \$cleanBeforePublish in call to method Simtabi\\Laranail\\PackageTools\\Package\:\:publishAssets\(\)\.$#'
+			identifier: argument.unknown
+			count: 3
+			path: src/Package.php
+
+		-
+			message: '#^Unknown parameter \$destination in call to method Simtabi\\Laranail\\PackageTools\\Package\:\:publishAssets\(\)\.$#'
+			identifier: argument.unknown
+			count: 3
+			path: src/Package.php
+
+		-
+			message: '#^Unknown parameter \$source in call to method Simtabi\\Laranail\\PackageTools\\Package\:\:publishAssets\(\)\.$#'
+			identifier: argument.unknown
+			count: 3
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Simtabi\\Laranail\\PackageTools\\Package and ''getNamespacedPublis…'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 7
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Simtabi\\Laranail\\PackageTools\\Package and ''translationNamespace'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Cannot access offset ''router'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Providers\\PackageServiceProvider\:\:stripTimestampPrefix\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Parameter \#1 \$filename of static method Simtabi\\Laranail\\PackageTools\\Providers\\PackageServiceProvider\:\:stripTimestampPrefix\(\) expects string, Illuminate\\Support\\Stringable\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Parameter \#1 \$string of static method Illuminate\\Support\\Str\:\:of\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Call to protected method publishes\(\) of class Illuminate\\Support\\ServiceProvider\.$#'
+			identifier: method.protected
+			count: 2
+			path: src/Services/Asset/AssetPublisher.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Asset\\AssetPublisher\:\:\$published type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Asset/AssetPublisher.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Asset\\AssetRegistry\:\:\$cleanupTargets type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Asset/AssetRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Asset\\AssetRegistry\:\:\$registered type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Asset/AssetRegistry.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Audit\\OsvAuditService\:\:audit\(\) should return array\{scanned\: int, vulnerable_count\: int, advisories\: list\<array\{package\: string, version\: string, vulns\: list\<array\{id\: string, summary\: string, severity\?\: string, url\?\: string\}\>\}\>\} but returns array\{scanned\: int\<1, max\>, vulnerable_count\: int\<0, max\>, advisories\: list\<array\{package\: string, version\: string, vulns\: array\<array\{id\: string, summary\: string, severity\: string\|null, url\: non\-falsy\-string\|null\}\>\}\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Services/Audit/OsvAuditService.php
+
+		-
+			message: '#^Cannot access offset ''blade\.compiler'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Services/Component/AnonymousComponentLoader.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Component\\AnonymousComponentLoader\:\:\$loaded type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Component/AnonymousComponentLoader.php
+
+		-
+			message: '#^Call to function is_string\(\) with non\-falsy\-string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Services/Component/ComponentNamespaceResolver.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Component\\ComponentNamespaceResolver\:\:resolve\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Component/ComponentNamespaceResolver.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Component\\ComponentRegistry\:\:\$bladeComponents type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Component/ComponentRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Component\\ComponentRegistry\:\:\$livewireComponents type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Component/ComponentRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Component\\ComponentRegistry\:\:\$vueComponents type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Component/ComponentRegistry.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Component\\ComponentValidator\:\:validateComponentArray\(\) has parameter \$components with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Component/ComponentValidator.php
+
+		-
+			message: '#^Call to an undefined static method Simtabi\\Laranail\\PackageTools\\Support\\PathResolver\:\:normalize\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: src/Services/Config/ConfigFileResolver.php
+
+		-
+			message: '#^Call to function is_string\(\) with non\-falsy\-string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Services/Config/ConfigFileResolver.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:appendStrategy\(\) has parameter \$base with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:appendStrategy\(\) has parameter \$merge with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:appendStrategy\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:deepMerge\(\) has parameter \$base with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:deepMerge\(\) has parameter \$merge with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:deepMerge\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:mergeWithStrategy\(\) has parameter \$base with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:mergeWithStrategy\(\) has parameter \$merge with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:mergeWithStrategy\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:replaceStrategy\(\) has parameter \$base with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:replaceStrategy\(\) has parameter \$merge with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigMerger\:\:replaceStrategy\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigMerger.php
+
+		-
+			message: '#^Cannot access offset ''config'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 10
+			path: src/Services/Config/ConfigService.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigService\:\:\$mergedConfigs type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigService.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\ConfigValidator\:\:validateStructure\(\) has parameter \$config with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/ConfigValidator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Config\\PatternResolver\:\:resolve\(\) has parameter \$variables with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/PatternResolver.php
+
+		-
+			message: '#^Offset 1 on array\{list\<string\>, list\<non\-empty\-string\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 2
+			path: src/Services/Config/PatternResolver.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Config\\PatternResolver\:\:\$availableVariables type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Config/PatternResolver.php
+
+		-
+			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/Discovery/AttributeDiscoverer.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Doctor\\DoctorResult\:\:fail\(\) has parameter \$detail with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Doctor/DoctorResult.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Doctor\\DoctorResult\:\:pass\(\) has parameter \$detail with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Doctor/DoctorResult.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Doctor\\DoctorResult\:\:skip\(\) has parameter \$detail with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Doctor/DoctorResult.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Doctor\\DoctorResult\:\:warn\(\) has parameter \$detail with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Doctor/DoctorResult.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Environment\\EnvFileParser\:\:interpolate\(\) has parameter \$resolved with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Environment/EnvFileParser.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Environment\\EnvFileParser\:\:normaliseValue\(\) has parameter \$resolved with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Environment/EnvFileParser.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Event\\EventRegistry\:\:getListeners\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Event/EventRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Event\\EventRegistry\:\:\$listeners type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Event/EventRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Event\\EventRegistry\:\:\$subscribers type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Event/EventRegistry.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Event\\MiddlewareRegistry\:\:registerGroup\(\) has parameter \$middleware with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Event/MiddlewareRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Event\\MiddlewareRegistry\:\:\$aliases type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Event/MiddlewareRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Event\\MiddlewareRegistry\:\:\$middleware type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Event/MiddlewareRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Event\\MiddlewareRegistry\:\:\$middlewareGroups type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Event/MiddlewareRegistry.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Package\\ComposerService\:\:getComposerData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Package/ComposerService.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Package\\ComposerService\:\:updateComposerJson\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Package/ComposerService.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Package\\ComposerService\:\:validate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Package/ComposerService.php
+
+		-
+			message: '#^Parameter \#2 \$contents of static method Illuminate\\Support\\Facades\\File\:\:put\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/Package/ComposerService.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Package\\PackageValidator\:\:validatePackageData\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Package/PackageValidator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Package\\PackageValidator\:\:validatePackageData\(\) has parameter \$rules with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Package/PackageValidator.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Package\\PackageValidator\:\:\$errors type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Package/PackageValidator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Sbom\\SbomGenerator\:\:buildPackageComponents\(\) has parameter \$lock with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Sbom/SbomGenerator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Utility\\ConsoleHelper\:\:table\(\) has parameter \$rows with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Utility/ConsoleHelper.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\Utility\\PathValidator\:\:sanitize\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Services/Utility/PathValidator.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\Utility\\PathValidator\:\:\$errors type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/Utility/PathValidator.php
+
+		-
+			message: '#^Cannot access offset ''blade\.compiler'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Services/View/ViewComponentLoader.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewComponentLoader\:\:loadNamespace\(\) has parameter \$components with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewComponentLoader.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewComponentLoader\:\:\$loaded type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewComponentLoader.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewComposerRegistry\:\:registerComposer\(\) has parameter \$views with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewComposerRegistry.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewComposerRegistry\:\:registerCreator\(\) has parameter \$views with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewComposerRegistry.php
+
+		-
+			message: '#^Parameter \#2 \$callback of static method Illuminate\\Support\\Facades\\View\:\:composer\(\) expects Closure\|string, \(callable\(\)\: mixed\)\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/View/ViewComposerRegistry.php
+
+		-
+			message: '#^Parameter \#2 \$callback of static method Illuminate\\Support\\Facades\\View\:\:creator\(\) expects Closure\|string, \(callable\(\)\: mixed\)\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/View/ViewComposerRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewComposerRegistry\:\:\$composers type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewComposerRegistry.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewComposerRegistry\:\:\$sharedData type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewComposerRegistry.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewValidator\:\:validateViewData\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewValidator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewValidator\:\:validateViewData\(\) has parameter \$rules with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewValidator.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Services\\View\\ViewValidator\:\:\$errors type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Services/View/ViewValidator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\ConfigDetector\:\:getComposerData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/ConfigDetector.php
+
+		-
+			message: '#^Property Simtabi\\Laranail\\PackageTools\\Support\\ConfigDetector\:\:\$composerData type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/ConfigDetector.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\FluentPackageHelper\:\:route\(\) has parameter \$parameters with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/FluentPackageHelper.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\FluentPackageHelper\:\:trans\(\) has parameter \$replace with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/FluentPackageHelper.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\FluentPackageHelper\:\:view\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/FluentPackageHelper.php
+
+		-
+			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Support/FluentPackageHelper.php
+
+		-
+			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Support/PathResolver.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\PathResolver\:\:autoDetectLevelsUp\(\) has parameter \$markers with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/PathResolver.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\PathResolver\:\:packageRootFromProviderWithValidation\(\) has parameter \$expectedDirs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/PathResolver.php
+
+		-
+			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Support/PathResolver.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\RuntimeConfigurator\:\:getDisabledTools\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/RuntimeConfigurator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\RuntimeConfigurator\:\:getOriginal\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/RuntimeConfigurator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\RuntimeConfigurator\:\:getPending\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/RuntimeConfigurator.php
+
+		-
+			message: '#^Method Simtabi\\Laranail\\PackageTools\\Support\\RuntimeConfigurator\:\:setMany\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Support/RuntimeConfigurator.php
+
+		-
+			message: '#^Possibly invalid array key type float\|int\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: src/Support/RuntimeConfigurator.php
