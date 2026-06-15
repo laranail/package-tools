@@ -16,7 +16,7 @@ v1.0 differentiators.
 
 ## Targets
 
-- PHP `^8.3 || ^8.4`
+- PHP `^8.3 || ^8.4 || ^8.5`
 - Laravel `^13.0`
 - Pest `^3.0`, Testbench `^11.0`, Larastan `^3.0`
 

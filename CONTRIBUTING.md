@@ -26,7 +26,7 @@ composer test
 
 ## Coding standards
 
-- PHP `^8.3` (we recommend 8.4 features where they materially shrink code).
+- PHP `^8.3` (we recommend 8.4+ features where they materially shrink code).
 - `declare(strict_types=1);` on every PHP file.
 - `#[\Override]` on every overriding method.
 - Pint is the sole formatter (see `pint.json`).
