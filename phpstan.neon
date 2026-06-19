@@ -1,0 +1,23 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+    excludePaths:
+        - vendor
+        - tests/_output (?)
+        - tests/fixtures
+    ignoreErrors:
+        # HasErrorStorage and HasGuzzleConfig are public-API traits — they
+        # exist to be `use`-d by external package authors. PHPStan only
+        # scans src/ and can't observe consumers, so it would always
+        # report "trait used zero times" for these two. tests/Unit/Support
+        # /Concerns/ has Pest coverage proving they behave correctly.
+        - '#Trait Simtabi\\Laranail\\PackageTools\\Support\\Concerns\\(HasErrorStorage|HasGuzzleConfig) is used zero times#'
+        # Generic array value types in docblocks are not enforced.
+        -
+            identifier: missingType.iterableValue
+    treatPhpDocTypesAsCertain: false

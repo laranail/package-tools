@@ -1,0 +1,29 @@
+{
+    "_readme": ["fixture lock for SBOM tests"],
+    "content-hash": "deadbeefcafebabe",
+    "packages": [
+        {
+            "name": "illuminate/support",
+            "version": "v13.0.0",
+            "description": "The Illuminate Support package.",
+            "homepage": "https://laravel.com",
+            "license": ["MIT"]
+        },
+        {
+            "name": "psr/log",
+            "version": "3.0.0",
+            "description": "Common interface for logging libraries",
+            "license": ["MIT"]
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "pestphp/pest",
+            "version": "v3.5.0",
+            "description": "An elegant PHP testing framework",
+            "license": ["MIT"]
+        }
+    ],
+    "platform": {"php": "^8.3"},
+    "platform-dev": []
+}

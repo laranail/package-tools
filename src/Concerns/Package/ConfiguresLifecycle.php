@@ -1,0 +1,21 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+
+/**
+ * Lifecycle domain aggregator.
+ *
+ * Hosts the `registeringPackage`, `packageRegistered`, `bootingPackage`,
+ * `packageBooted` hooks consumers override, plus boot-time discovery, batch
+ * loading, doctor checks, and validation.
+ */
+trait ConfiguresLifecycle
+{
+    use DiscoversWithAttributes;
+    use HasBatchResourceLoading;
+    use HasDoctorChecks;
+    use HasEnhancedValidation;
+    use HasLifecycleHooks;
+}

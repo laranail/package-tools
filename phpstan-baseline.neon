@@ -1,0 +1,145 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Commands\\HasProgressBar is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Commands/HasProgressBar.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasAssetGroups is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasAssetGroups.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasCachedNamespaces is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasCachedNamespaces.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasEventSystem is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasEventSystem.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasModuleAssets is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasModuleAssets.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasViewComposerRegistry is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/HasViewComposerRegistry.php
+
+		-
+			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\ManagesComposer is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/Package/ManagesComposer.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 4
+			path: src/Exceptions/InvalidPackage.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 15
+			path: src/Exceptions/InvalidPath.php
+
+		-
+			message: '#^Call to function is_bool\(\) with bool will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''getPath'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''hasCommand'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''hasViewComposer'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''packageBasePath'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''resolveModulePath'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function property_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''configVendor'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: src/Package.php
+
+		-
+			message: '#^Call to function property_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''name'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Parameter \#1 \$callback of static method Illuminate\\Database\\Eloquent\\Factories\\Factory\<Illuminate\\Database\\Eloquent\\Model\>\:\:guessFactoryNamesUsing\(\) expects callable\(class\-string\<Illuminate\\Database\\Eloquent\\Model\>\)\: class\-string\<Illuminate\\Database\\Eloquent\\Factories\\Factory\>, Closure\(string\)\: \(class\-string\|null\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Package.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Simtabi\\Laranail\\PackageTools\\Package and ''getNamespacedPublis…'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 7
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Simtabi\\Laranail\\PackageTools\\Package and ''translationNamespace'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Cannot access offset ''router'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Providers/PackageServiceProvider.php
+
+		-
+			message: '#^Cannot access offset ''blade\.compiler'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Services/Component/AnonymousComponentLoader.php
+
+		-
+			message: '#^Cannot access offset ''config'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 10
+			path: src/Services/Config/ConfigService.php
+
+		-
+			message: '#^Cannot access offset ''blade\.compiler'' on Illuminate\\Contracts\\Foundation\\Application\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Services/View/ViewComponentLoader.php
