@@ -44,7 +44,7 @@ trait HasViews
             return $this->viewNamespace;
         }
 
-        if (! property_exists($this, 'configVendor') || $this->configVendor === null) {
+        if ($this->configVendor === null) {
             throw new RuntimeException(
                 'View namespace requires vendor/package format. ' .
                 'Please use $package->setName("vendor/package") instead of just "package".'

@@ -6,9 +6,6 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 /**
  * Config domain aggregator.
- *
- * HasCachedNamespaces stays out: four of its methods collide with
- * HasConfigNamespace.
  */
 trait ConfiguresConfig
 {

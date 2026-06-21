@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\Component;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
+use Illuminate\View\Compilers\BladeCompiler;
 use Simtabi\Laranail\Package\Tools\Contracts\LoaderInterface;
 
 /**
@@ -34,7 +35,8 @@ class AnonymousComponentLoader implements LoaderInterface
         $prefix = str_replace('/', '-', trim($prefix, '/'));
 
         // Register anonymous component path
-        $this->app['blade.compiler']->anonymousComponentPath($path, $prefix);
+        $this->app->make(BladeCompiler::class)
+            ->anonymousComponentPath($path, $prefix);
 
         $this->loaded[$prefix] = $path;
     }

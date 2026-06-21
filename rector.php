@@ -11,7 +11,12 @@ return RectorConfig::configure()
         __DIR__ . '/src',
         __DIR__ . '/tests',
     ])
-    ->withSkipPath(__DIR__ . '/vendor')
+    // Skip vendor and test fixtures (fixtures are intentional test data —
+    // Rector's dead-code rules would strip empty fixture methods/params).
+    ->withSkip([
+        __DIR__ . '/vendor',
+        __DIR__ . '/tests/fixtures',
+    ])
     ->withPhpSets(php83: true)
     ->withSets([
         SetList::CODE_QUALITY,

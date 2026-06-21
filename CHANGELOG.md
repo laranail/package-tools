@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-21
+
+This release consolidates duplicate/unwired builder traits into their wired
+siblings (no public builder method removed) and, in doing so, wires up several
+capabilities that were previously dead, plus a real bugfix.
+
+### Added
+
+- **Event auto-discovery + bulk helpers** — `discoverEventListeners(dir, namespace)`
+  maps listeners to events by the typed first parameter of `handle()`/`__invoke()`;
+  `registerEventListeners()` / `registerEventSubscribers()` register in bulk.
+- **Richer view composers** — `registerViewComposer()` now accepts a `callable`;
+  added `registerViewComposers()`, `registerGlobalViewComposer()`,
+  `registerViewCreator()`, `registerViewComposerWithDependencies()`.
+- **Asset conveniences** — typed `publishModuleJs/Css/Media/Vendors()` +
+  `publishAllModuleAssets()`, and a declarative group registry
+  (`declareAssetGroup(s)`, `declareStandardAssetGroups()`,
+  `declareCustomAssetGroup()`, `getDeclaredAssetGroups()`).
+- **Command auto-discovery** — `autoLoadCommands()` registers
+  `Illuminate\Console\Command` subclasses found under `src/Commands`.
+- Namespace getters are now memoized (`warmNamespaceCache()` / `clearNamespaceCache()`).
+
+### Fixed
+
+- **Factory resolution no longer breaks the host app** — the package's global
+  `Factory::guessFactoryNamesUsing` resolver returned `null` for models outside
+  the package (breaking the app's own factories); it now falls back to Laravel's
+  conventional factory name.
+- **Previously-dead wiring activated** — enhanced view composers (registry, global
+  composers, creators) and the asset registry / declarative groups are now
+  actually registered/published at boot; they were never invoked before.
+
+### Changed
+
+- **Consolidated duplicate traits** (no public builder method lost): events unified
+  in a new `ConfiguresEvents`/`HasEventManagement` (removed from the middleware
+  trait); namespace caching folded into `HasConfigNamespace`; view-composer and
+  asset-group/module capabilities folded into `HasEnhancedViewComposers` /
+  `HasAssetPublisher`. Removed the now-redundant unwired duplicate traits
+  `HasEventSystem`, `HasCachedNamespaces`, `HasViewComposerRegistry`,
+  `HasAssetGroups`, `HasModuleAssets`.
+
+### Internal
+
+- Replaced container array-access with typed `make()`, removed dead defensive
+  guards, and shrank the PHPStan baseline from 18 entries to 2.
+
 ## [0.4.1] - 2026-06-21
 
 ### Added

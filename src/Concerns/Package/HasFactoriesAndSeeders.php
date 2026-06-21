@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
@@ -82,7 +83,11 @@ trait HasFactoriesAndSeeders
             $fullPath = $this->resolveFactoryPath($path);
 
             if (File::isDirectory($fullPath)) {
-                Factory::guessFactoryNamesUsing(function (string $modelName) use ($fullPath): ?string {
+                /**
+                 * @param class-string<Model> $modelName
+                 * @return class-string<Factory<Model>>
+                 */
+                $resolver = function (string $modelName) use ($fullPath): string {
                     $factoryBasename = class_basename($modelName);
                     $factoryName = $factoryBasename . 'Factory';
                     $factoryFile = $fullPath . DIRECTORY_SEPARATOR . $factoryName . '.php';
@@ -93,13 +98,20 @@ trait HasFactoriesAndSeeders
                         $namespace = $this->guessFactoryNamespace();
                         $factoryClass = $namespace . '\\' . $factoryName;
 
-                        if (class_exists($factoryClass)) {
+                        if (class_exists($factoryClass) && is_subclass_of($factoryClass, Factory::class)) {
                             return $factoryClass;
                         }
                     }
 
-                    return null;
-                });
+                    // Not a package factory — fall back to Laravel's
+                    // conventional resolution so the host app keeps working.
+                    /** @var class-string<Factory<Model>> $fallback */
+                    $fallback = Factory::$namespace . class_basename($modelName) . 'Factory';
+
+                    return $fallback;
+                };
+
+                Factory::guessFactoryNamesUsing($resolver);
             }
         }
     }
@@ -178,11 +190,7 @@ trait HasFactoriesAndSeeders
      */
     protected function resolveFactoryPath(string $path): string
     {
-        if (method_exists($this, 'getPath')) {
-            return $this->getPath($path);
-        }
-
-        return $this->basePath . DIRECTORY_SEPARATOR . $path;
+        return $this->getPath($path);
     }
 
     /**
@@ -190,14 +198,12 @@ trait HasFactoriesAndSeeders
      */
     protected function guessFactoryNamespace(): string
     {
-        if (property_exists($this, 'name')) {
-            $parts = explode('/', $this->name);
-            if (count($parts) === 2) {
-                $vendor = ucfirst($parts[0]);
-                $package = str_replace(['-', '_'], '', ucwords($parts[1], '-_'));
+        $parts = explode('/', $this->name);
+        if (count($parts) === 2) {
+            $vendor = ucfirst($parts[0]);
+            $package = str_replace(['-', '_'], '', ucwords($parts[1], '-_'));
 
-                return "{$vendor}\\{$package}\\Database\\Factories";
-            }
+            return "{$vendor}\\{$package}\\Database\\Factories";
         }
 
         return 'Database\\Factories';

@@ -8,6 +8,8 @@ use Symfony\Component\Console\Helper\ProgressBar;
 
 /**
  * Adds progress bars to commands.
+ *
+ * @api Consumer-facing extension trait — `use`-d by external command classes.
  */
 trait HasProgressBar
 {

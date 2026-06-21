@@ -119,6 +119,66 @@ class HasEnhancedViewComposersTest extends TestCase
         $this->assertEmpty($this->getViewComposerRegistry());
     }
 
+    #[Test]
+    public function it_accepts_a_callable_composer(): void
+    {
+        $callable = fn (): null => null;
+
+        $this->registerViewComposer('dashboard', $callable, autoPrefix: false);
+
+        $composers = $this->getViewComposerRegistry();
+
+        $this->assertArrayHasKey('dashboard', $composers);
+        $this->assertSame($callable, $composers['dashboard'][0]);
+    }
+
+    #[Test]
+    public function it_registers_view_composers_in_bulk(): void
+    {
+        $this->registerViewComposers([
+            'dashboard' => 'DashboardComposer',
+            'profile' => 'ProfileComposer',
+        ], autoPrefix: false);
+
+        $composers = $this->getViewComposerRegistry();
+
+        $this->assertContains('DashboardComposer', $composers['dashboard']);
+        $this->assertContains('ProfileComposer', $composers['profile']);
+    }
+
+    #[Test]
+    public function it_registers_a_global_view_composer(): void
+    {
+        $this->registerGlobalViewComposer('GlobalComposer');
+
+        $composers = $this->getViewComposerRegistry();
+
+        $this->assertArrayHasKey('*', $composers);
+        $this->assertContains('GlobalComposer', $composers['*']);
+        $this->assertArrayNotHasKey('test::*', $composers);
+    }
+
+    #[Test]
+    public function it_registers_a_view_creator(): void
+    {
+        $this->registerViewCreator('dashboard', 'DashboardCreator', autoPrefix: false);
+
+        $creators = $this->getViewCreatorRegistry();
+
+        $this->assertArrayHasKey('dashboard', $creators);
+        $this->assertContains('DashboardCreator', $creators['dashboard']);
+    }
+
+    #[Test]
+    public function it_auto_prefixes_view_creators(): void
+    {
+        $this->registerViewCreator('dashboard', 'DashboardCreator');
+
+        $creators = $this->getViewCreatorRegistry();
+
+        $this->assertArrayHasKey('test::dashboard', $creators);
+    }
+
     // Helper for trait
     protected function getViewNamespace(): string
     {

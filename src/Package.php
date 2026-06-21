@@ -15,6 +15,7 @@ use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComponents;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComposer;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresConfig;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresDatabase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresEvents;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresHelpers;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresLifecycle;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresMiddleware;
@@ -36,6 +37,7 @@ class Package
     use ConfiguresComposer;
     use ConfiguresConfig;
     use ConfiguresDatabase;
+    use ConfiguresEvents;
     use ConfiguresHelpers;
     use ConfiguresLifecycle;
     use ConfiguresMiddleware;
@@ -178,6 +180,10 @@ class Package
             // Vendor/package format is required; single names are rejected.
             throw InvalidPackage::vendorRequired($trimmedName);
         }
+
+        // Name/vendor just mutated — drop any memoized namespaces so they
+        // recompute against the new values.
+        $this->clearNamespaceCache();
 
         return $this;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use Simtabi\Laranail\Package\Tools\Contracts\ServiceInterface;
@@ -18,6 +19,14 @@ class ConfigService implements ServiceInterface
     protected array $mergedConfigs = [];
 
     public function __construct(protected Application $app) {}
+
+    /**
+     * Resolve the framework config repository as a typed contract.
+     */
+    protected function config(): Repository
+    {
+        return $this->app->make(Repository::class);
+    }
 
     /**
      * Merge configuration from a file into a key
@@ -37,10 +46,10 @@ class ConfigService implements ServiceInterface
             return;
         }
 
-        $existing = $this->app['config']->get($key, []);
+        $existing = $this->config()->get($key, []);
         $merged = array_merge($config, $existing);
 
-        $this->app['config']->set($key, $merged);
+        $this->config()->set($key, $merged);
         $this->mergedConfigs[$key] = $path;
     }
 
@@ -68,10 +77,10 @@ class ConfigService implements ServiceInterface
             return;
         }
 
-        $existing = $this->app['config']->get($globalKey, []);
+        $existing = $this->config()->get($globalKey, []);
         $merged = array_merge_recursive($existing, $config);
 
-        $this->app['config']->set($globalKey, $merged);
+        $this->config()->set($globalKey, $merged);
     }
 
     /**
@@ -106,7 +115,7 @@ class ConfigService implements ServiceInterface
      */
     public function set(string $key, mixed $value): void
     {
-        $this->app['config']->set($key, $value);
+        $this->config()->set($key, $value);
     }
 
     /**
@@ -117,7 +126,7 @@ class ConfigService implements ServiceInterface
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        return $this->app['config']->get($key, $default);
+        return $this->config()->get($key, $default);
     }
 
     /**
@@ -127,11 +136,11 @@ class ConfigService implements ServiceInterface
      */
     public function forget(string $key): void
     {
-        $items = $this->app['config']->all();
+        $items = $this->config()->all();
         Arr::forget($items, $key);
 
         foreach ($items as $itemKey => $itemValue) {
-            $this->app['config']->set($itemKey, $itemValue);
+            $this->config()->set($itemKey, $itemValue);
         }
     }
 
@@ -142,7 +151,7 @@ class ConfigService implements ServiceInterface
      */
     public function has(string $key): bool
     {
-        return $this->app['config']->has($key);
+        return $this->config()->has($key);
     }
 
     /**
@@ -160,7 +169,7 @@ class ConfigService implements ServiceInterface
      */
     public function isReady(): bool
     {
-        return isset($this->app['config']);
+        return $this->app->bound('config');
     }
 
     /**

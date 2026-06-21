@@ -7,9 +7,10 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 /**
  * Asset domain aggregator.
  *
- * HasAssetGroups and HasModuleAssets stay out: they collide with
- * HasAssetPublisher (`$assetGroups`, `getAssetGroups()`,
- * `publishModuleAssets()`).
+ * The former HasAssetGroups (declarative group registry) and HasModuleAssets
+ * (typed module conveniences) traits were folded into HasAssetPublisher to
+ * resolve their collisions (`$assetGroups`, `getAssetGroups()`,
+ * `publishModuleAssets()`); they no longer exist as standalone traits.
  */
 trait ConfiguresAssets
 {

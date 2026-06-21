@@ -2,9 +2,10 @@
 
 ## Supported versions
 
-| Version | Status         |
-|---------|----------------|
-| 0.x     | Active support |
+| Version  | Status               |
+|----------|----------------------|
+| 0.5.x    | Active support       |
+| < 0.5.0  | Security fixes only  |
 
 Security fixes are released on the latest `0.x` tag.
 

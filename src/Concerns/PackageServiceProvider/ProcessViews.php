@@ -20,9 +20,7 @@ trait ProcessViews
         $this->loadViewsFrom($vendorViews, $viewNamespace);
 
         if ($this->app->runningInConsole()) {
-            $publishTag = method_exists($this->package, 'getNamespacedPublishTag')
-                ? $this->package->getNamespacedPublishTag('views')
-                : "{$viewNamespace}-views";
+            $publishTag = $this->package->getNamespacedPublishTag('views');
 
             $this->publishes([$vendorViews => $appViews], $publishTag);
         }

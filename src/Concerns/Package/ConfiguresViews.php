@@ -6,9 +6,6 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 /**
  * Views domain aggregator.
- *
- * HasViewComposerRegistry stays unwired: its `registerViewComposer` collides
- * with HasEnhancedViewComposers.
  */
 trait ConfiguresViews
 {

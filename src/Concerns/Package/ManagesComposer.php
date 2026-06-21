@@ -11,6 +11,8 @@ use Symfony\Component\Process\Process;
 
 /**
  * Adds/removes composer repositories and installs/uninstalls packages.
+ *
+ * @api Consumer-facing extension trait — `use`-d by external package authors.
  */
 trait ManagesComposer
 {

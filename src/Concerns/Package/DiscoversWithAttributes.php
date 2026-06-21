@@ -122,11 +122,7 @@ trait DiscoversWithAttributes
      */
     protected function resolveDefaultDiscoveryDirectory(): string
     {
-        if (method_exists($this, 'packageBasePath')) {
-            return $this->packageBasePath('src');
-        }
-
-        return getcwd() . '/src';
+        return $this->packageBasePath('src');
     }
 
     /**
@@ -150,9 +146,7 @@ trait DiscoversWithAttributes
      */
     protected function registerDiscoveredCommand(string $commandClass): void
     {
-        if (method_exists($this, 'hasCommand')) {
-            $this->hasCommand($commandClass);
-        }
+        $this->hasCommand($commandClass);
     }
 
     /**
@@ -182,18 +176,9 @@ trait DiscoversWithAttributes
      */
     protected function registerDiscoveredViewComposer(string $composerClass, string|array $views): void
     {
-        if (method_exists($this, 'hasViewComposer')) {
-            foreach ((array) $views as $view) {
-                $this->hasViewComposer($view, $composerClass);
-            }
-
-            return;
+        foreach ((array) $views as $view) {
+            $this->hasViewComposer($view, $composerClass);
         }
-
-        $this->discoveredViewComposers[] = [
-            'composer' => $composerClass,
-            'views' => (array) $views,
-        ];
     }
 
     /**

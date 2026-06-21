@@ -96,16 +96,14 @@ trait HasAdvancedPaths
      */
     protected function buildBasePath(string $basePath = 'platform'): string
     {
-        if (method_exists($this, 'resolveModulePath')) {
-            $reflection = new ReflectionClass($this);
-            $classFile = $reflection->getFileName();
+        $reflection = new ReflectionClass($this);
+        $classFile = $reflection->getFileName();
 
-            if ($classFile !== false) {
-                try {
-                    return $this->resolveModulePath($classFile, $basePath);
-                } catch (RuntimeException) {
-                    // Fall through to namespace-based approach
-                }
+        if ($classFile !== false) {
+            try {
+                return $this->resolveModulePath($classFile, $basePath);
+            } catch (RuntimeException) {
+                // Fall through to namespace-based approach
             }
         }
 

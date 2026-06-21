@@ -34,9 +34,7 @@ trait ProcessMigrations
             if ($this->app->runningInConsole()) {
                 $appMigration = $this->generateMigrationName($migrationFileName, $now->addSecond());
 
-                $publishTag = method_exists($this->package, 'getNamespacedPublishTag')
-                    ? $this->package->getNamespacedPublishTag('migrations')
-                    : "{$this->package->shortName()}-migrations";
+                $publishTag = $this->package->getNamespacedPublishTag('migrations');
 
                 $this->publishes(
                     [$vendorMigration => $appMigration],
@@ -71,9 +69,7 @@ trait ProcessMigrations
             }
 
             if ($this->app->runningInConsole()) {
-                $publishTag = method_exists($this->package, 'getNamespacedPublishTag')
-                    ? $this->package->getNamespacedPublishTag('migrations')
-                    : "{$this->package->shortName()}-migrations";
+                $publishTag = $this->package->getNamespacedPublishTag('migrations');
 
                 $this->publishes(
                     [$filePath => $appMigration],

@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\ServiceProvider;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\HasAssetPublisher;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
@@ -244,6 +248,200 @@ class HasAssetPublisherTest extends TestCase
         $this->publishModuleAssets('fonts');
 
         $this->assertTrue($this->hasAssetType('fonts'));
+    }
+
+    #[Test]
+    public function it_declares_an_asset_group_with_default_paths(): void
+    {
+        $this->declareAssetGroup('js');
+
+        $declared = $this->getDeclaredAssetGroups();
+
+        $this->assertArrayHasKey('js', $declared);
+        $this->assertSame('public/js', $declared['js']['source']);
+        $this->assertSame('vendor/test-package/js', $declared['js']['target']);
+    }
+
+    #[Test]
+    public function it_declares_an_asset_group_with_config_overrides(): void
+    {
+        $this->declareAssetGroup('admin', ['source' => 'admin/js', 'target' => 'admin']);
+
+        $declared = $this->getDeclaredAssetGroups();
+
+        $this->assertSame('public/admin/js', $declared['admin']['source']);
+        $this->assertSame('vendor/test-package/admin', $declared['admin']['target']);
+    }
+
+    #[Test]
+    public function it_declares_standard_asset_groups(): void
+    {
+        $this->declareStandardAssetGroups();
+
+        $declared = $this->getDeclaredAssetGroups();
+
+        $this->assertCount(4, $declared);
+        $this->assertArrayHasKey('js', $declared);
+        $this->assertArrayHasKey('css', $declared);
+        $this->assertArrayHasKey('images', $declared);
+        $this->assertArrayHasKey('fonts', $declared);
+        $this->assertSame('public/images', $declared['images']['source']);
+        $this->assertSame('vendor/test-package/images', $declared['images']['target']);
+    }
+
+    #[Test]
+    public function it_declares_a_custom_asset_group(): void
+    {
+        $this->declareCustomAssetGroup('themes', 'resources/themes', 'themes-dist');
+
+        $declared = $this->getDeclaredAssetGroups();
+
+        $this->assertSame('public/resources/themes', $declared['themes']['source']);
+        $this->assertSame('vendor/test-package/themes-dist', $declared['themes']['target']);
+    }
+
+    #[Test]
+    public function it_keeps_declared_groups_separate_from_keys_map_groups(): void
+    {
+        $this->declareAssetGroup('js');
+        $this->publishAssetGroup('frontend', [
+            'resources/js' => 'vendor/blog/js',
+        ]);
+
+        // Declared groups hold resolved source/target only.
+        $declared = $this->getDeclaredAssetGroups();
+        $this->assertArrayHasKey('js', $declared);
+        $this->assertArrayNotHasKey('frontend', $declared);
+
+        // Keys-map groups hold "group:source" keys only.
+        $keysMap = $this->getAssetGroups();
+        $this->assertArrayHasKey('frontend', $keysMap);
+        $this->assertArrayNotHasKey('js', $keysMap);
+    }
+
+    #[Test]
+    public function it_publishes_module_js_via_typed_convenience(): void
+    {
+        $this->publishModuleJs();
+
+        $registry = $this->getAssetRegistry();
+
+        $this->assertArrayHasKey('public/js', $registry);
+        $this->assertSame('vendor/test-package/js', $registry['public/js']['destination']);
+    }
+
+    #[Test]
+    public function it_publishes_module_css_via_typed_convenience(): void
+    {
+        $this->publishModuleCss();
+
+        $this->assertArrayHasKey('public/css', $this->getAssetRegistry());
+    }
+
+    #[Test]
+    public function it_publishes_module_media_via_typed_convenience(): void
+    {
+        $this->publishModuleMedia();
+
+        $registry = $this->getAssetRegistry();
+
+        $this->assertArrayHasKey('public/media', $registry);
+        $this->assertSame('vendor/test-package/media', $registry['public/media']['destination']);
+    }
+
+    #[Test]
+    public function it_publishes_module_vendors_via_typed_convenience(): void
+    {
+        $this->publishModuleVendors();
+
+        $registry = $this->getAssetRegistry();
+
+        $this->assertArrayHasKey('public/vendors', $registry);
+        $this->assertSame('vendor/test-package/vendors', $registry['public/vendors']['destination']);
+    }
+
+    #[Test]
+    public function it_publishes_all_module_assets_via_typed_convenience(): void
+    {
+        $this->publishAllModuleAssets();
+
+        $registry = $this->getAssetRegistry();
+
+        $this->assertArrayHasKey('public', $registry);
+    }
+
+    #[Test]
+    public function it_passes_clean_flag_through_typed_conveniences(): void
+    {
+        $this->publishModuleJs(clean: true);
+
+        $this->assertTrue($this->shouldCleanAsset('public/js'));
+    }
+
+    #[Test]
+    public function it_clears_declared_asset_groups_too(): void
+    {
+        $this->publishAssets('resources/assets', 'vendor/blog');
+        $this->publishAssetGroup('frontend', [
+            'resources/js' => 'vendor/blog/js',
+        ]);
+        $this->declareStandardAssetGroups();
+
+        $this->clearAssetRegistry();
+
+        $this->assertEmpty($this->getAssetRegistry());
+        $this->assertEmpty($this->getAssetGroups());
+        $this->assertEmpty($this->getDeclaredAssetGroups());
+    }
+
+    #[Test]
+    public function it_surfaces_registry_and_declared_groups_as_publishes_on_boot(): void
+    {
+        $basePath = $this->createTempDirectory('asset-boot');
+        File::ensureDirectoryExists($basePath . '/public/js');
+
+        $provider = new class($this->app, $basePath) extends PackageServiceProvider
+        {
+            public function __construct($app, private readonly string $tempBasePath)
+            {
+                parent::__construct($app);
+            }
+
+            public function configurePackage(Package $package): void
+            {
+                $package->setName('test-vendor/boot-package')
+                    ->setPathFrom($this->tempBasePath)
+                    ->hasAssets()
+                    ->publishModuleJs()
+                    ->declareAssetGroup('js');
+            }
+
+            public function bootAssetsForTest(): void
+            {
+                $this->bootPackageAssets();
+            }
+        };
+
+        $provider->register();
+        $provider->bootAssetsForTest();
+
+        // Registry entry (public/js => vendor/boot-package/js) surfaces under its tag.
+        $registryPublishes = ServiceProvider::pathsToPublish(null, 'assets-js');
+        $this->assertContains(
+            public_path('vendor/boot-package/js'),
+            array_values($registryPublishes)
+        );
+        $this->assertContains(
+            $basePath . '/public/js',
+            array_keys($registryPublishes)
+        );
+
+        // Declared group (existing source dir) surfaces under "{shortName}-{name}".
+        $groupPublishes = ServiceProvider::pathsToPublish(null, 'boot-package-js');
+        $this->assertContains(
+            public_path('vendor/boot-package/js'),
+            array_values($groupPublishes)
+        );
     }
 
     // Helper method for trait

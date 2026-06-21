@@ -10,13 +10,13 @@ trait ProcessViewComposers
 {
     protected function bootPackageViewComposers(): self
     {
-        if (empty($this->package->viewComposers)) {
-            return $this;
-        }
-
+        // Legacy composers registered directly on the Package via HasViewComposers.
         foreach ($this->package->viewComposers as $viewName => $viewComposer) {
             View::composer($viewName, $viewComposer);
         }
+
+        // Enhanced registry/global composers and creators (HasEnhancedViewComposers).
+        $this->package->bootPackageViewComposers();
 
         return $this;
     }

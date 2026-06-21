@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Package\Tools\Services\Discovery\AttributeDiscoverer;
 
 /**
  * Loads multiple package resources in one call.
@@ -117,12 +119,39 @@ trait HasBatchResourceLoading
     }
 
     /**
-     * Auto-load commands if directory exists
+     * Auto-load commands by scanning the package's command directory for
+     * Illuminate\Console\Command subclasses and registering each via
+     * hasCommands().
+     *
+     * No-ops when the directory is missing or the package's root namespace
+     * can't be resolved (host doesn't expose getNamespace()).
+     *
+     * @param string|null $dir Command directory; defaults to src/Commands.
      */
-    protected function autoLoadCommands(): static
+    protected function autoLoadCommands(?string $dir = null): static
     {
-        // Commands are typically registered in service provider
-        // This is a placeholder for auto-discovery
+        $dir ??= $this->packageBasePath('src/Commands');
+
+        if (! File::isDirectory($dir)) {
+            return $this;
+        }
+
+        $namespace = method_exists($this, 'getNamespace')
+            ? $this->getNamespace() . '\\Commands'
+            : '';
+
+        if ($namespace === '') {
+            return $this;
+        }
+
+        $commands = iterator_to_array(
+            (new AttributeDiscoverer)->discoverSubclasses($dir, $namespace, Command::class)
+        );
+
+        if ($commands !== []) {
+            $this->hasCommands(...$commands);
+        }
+
         return $this;
     }
 
@@ -140,4 +169,9 @@ trait HasBatchResourceLoading
     abstract public function hasTranslations(): static;
 
     abstract public function hasRoute(string $routeFileName): static;
+
+    /**
+     * @param string|array<int, string> ...$commandClassNames
+     */
+    abstract public function hasCommands(...$commandClassNames): static;
 }

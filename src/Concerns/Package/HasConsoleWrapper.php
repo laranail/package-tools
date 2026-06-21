@@ -36,11 +36,7 @@ trait HasConsoleWrapper
             return $expectReturn ? $default : null;
         }
 
-        $shouldProceed = match (true) {
-            is_callable($andWhen) => $andWhen(),
-            is_bool($andWhen) => $andWhen,
-            default => true
-        };
+        $shouldProceed = is_callable($andWhen) ? $andWhen() : $andWhen;
 
         if (! $shouldProceed) {
             return $expectReturn ? $default : null;
@@ -138,11 +134,7 @@ trait HasConsoleWrapper
             return false;
         }
 
-        $shouldProceed = match (true) {
-            is_callable($andWhen) => $andWhen(),
-            is_bool($andWhen) => $andWhen,
-            default => true
-        };
+        $shouldProceed = is_callable($andWhen) ? $andWhen() : $andWhen;
 
         if (! $shouldProceed) {
             return false;

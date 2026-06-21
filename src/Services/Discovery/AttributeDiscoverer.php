@@ -72,6 +72,54 @@ final class AttributeDiscoverer
     }
 
     /**
+     * Yield the FQCN of every instantiable class under $directory that is a
+     * subclass of $parentClass.
+     *
+     * Reuses the same file walk + class-name derivation as discover(), but
+     * filters on inheritance instead of attributes. Abstract classes,
+     * interfaces, traits, and unrelated classes are skipped.
+     *
+     * @param string $directory Absolute path to scan recursively.
+     * @param string $rootNamespace PSR-4 root for $directory (e.g. "App\\").
+     * @param class-string $parentClass Ancestor class to match against.
+     * @return Generator<int, class-string>
+     */
+    public function discoverSubclasses(string $directory, string $rootNamespace, string $parentClass): Generator
+    {
+        if (! is_dir($directory)) {
+            throw new RuntimeException(
+                "AttributeDiscoverer: directory does not exist: {$directory}"
+            );
+        }
+
+        $rootNamespace = rtrim($rootNamespace, '\\') . '\\';
+        $directory = rtrim($directory, '/');
+
+        foreach ($this->phpFiles($directory) as $file) {
+            $className = $this->classNameFromFile($file, $directory, $rootNamespace);
+            if ($className === null) {
+                continue;
+            }
+
+            // class_exists() also autoloads the symbol and narrows it to a
+            // valid ReflectionClass target.
+            if (! class_exists($className)) {
+                continue;
+            }
+
+            $rc = new ReflectionClass($className);
+            if (! $rc->isInstantiable()) {
+                continue;
+            }
+            if (! $rc->isSubclassOf($parentClass)) {
+                continue;
+            }
+
+            yield $className;
+        }
+    }
+
+    /**
      * Walk $directory and yield every *.php file (depth-first).
      *
      * @return Generator<SplFileInfo>

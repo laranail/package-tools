@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Providers;
 
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -200,10 +201,9 @@ abstract class PackageServiceProvider extends ServiceProvider
      */
     protected function bootPackageDeferredHooks(): static
     {
-        $router = $this->app['router'] ?? null;
-        if ($router !== null) {
-            $this->package->bootPackageMiddleware($router);
-        }
+        $this->package->bootPackageMiddleware(
+            $this->app->make(Router::class)
+        );
 
         $this->package->bootPackageEventListeners();
         $this->package->bootPackageEventSubscribers();

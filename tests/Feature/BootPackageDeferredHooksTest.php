@@ -58,6 +58,21 @@ final class BootPackageDeferredHooksTest extends TestCase
         $this->assertTrue(Event::hasListeners('package-tools.subscribed.event'));
     }
 
+    public function test_booted_event_listener_fires_on_dispatch(): void
+    {
+        $this->assertTrue(Event::hasListeners('package-tools.test.event'));
+
+        StubListener::$fired = false;
+
+        // Dispatching resolves through the listener pipeline and actually runs
+        // the registered listener's handle().
+        $results = Event::dispatch('package-tools.test.event');
+
+        $this->assertIsArray($results);
+        $this->assertTrue(StubListener::$fired, 'The booted listener should fire on dispatch.');
+        $this->assertContains('handled', $results);
+    }
+
     public function test_factory_paths_register_at_boot(): void
     {
         $package = $this->app->make(TestPackageProvider::class)->package;
@@ -101,7 +116,17 @@ final class StubGlobalMiddleware
     }
 }
 
-final class StubListener {}
+final class StubListener
+{
+    public static bool $fired = false;
+
+    public function handle(): string
+    {
+        self::$fired = true;
+
+        return 'handled';
+    }
+}
 
 final class StubSubscriber
 {

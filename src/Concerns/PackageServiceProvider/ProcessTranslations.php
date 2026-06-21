@@ -12,9 +12,7 @@ trait ProcessTranslations
             return $this;
         }
 
-        $translationNamespace = method_exists($this->package, 'translationNamespace')
-            ? $this->package->translationNamespace()
-            : $this->package->shortName();
+        $translationNamespace = $this->package->translationNamespace();
 
         $vendorTranslations = $this->package->basePath('/resources/lang');
         $appTranslations = (function_exists('lang_path'))
@@ -27,9 +25,7 @@ trait ProcessTranslations
         $this->loadJsonTranslationsFrom($appTranslations);
 
         if ($this->app->runningInConsole()) {
-            $publishTag = method_exists($this->package, 'getNamespacedPublishTag')
-                ? $this->package->getNamespacedPublishTag('translations')
-                : "{$translationNamespace}-translations";
+            $publishTag = $this->package->getNamespacedPublishTag('translations');
 
             $this->publishes(
                 [$vendorTranslations => $appTranslations],

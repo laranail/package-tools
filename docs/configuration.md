@@ -47,6 +47,11 @@ public surface a consumer calls. Names and signatures are exact.
 | `setPathFrom(string\|object $source, ?int $levelsUp = null)` | Set the package base path from a path string, a provider object (`$this`), or a class name. `levelsUp` defaults to 3 (provider in `src/Providers/`). The provider calls this automatically; override only for unusual layouts. |
 | `setPublishTagId(string $id)` / `buildPublishTag(string $name, string $separator = '::')` | Set the base publish-tag id and build namespaced publish tags (`laranail::config`). Allowed separators: `::`, `:`, `-`. |
 
+`buildPublishTag()` needs a base tag and there is **no shipped default**: set one
+via `setPublishTagId('…')` on the package, or provide a
+`laranail.package.publishing_tag_name` config value. Without either, it throws a
+`RuntimeException`.
+
 ### Config
 
 | Method | Purpose |
@@ -67,12 +72,22 @@ Beyond flat files, config files in sub-folders resolve to dotted keys
 an `__namespace` key — see **[Namespaced & nested config](tools/config-namespacing.md)**
 for the folder→key mapping, precedence, publishing and merge semantics.
 
+The four namespace getters (`getDottedNamespace()`, `getDashedNamespace()`,
+`getDoubleColonNamespace()`, `getSlashNamespace()`) are memoized. Call
+`warmNamespaceCache()` from `register()` to pre-compute them all up front, and
+`clearNamespaceCache()` after changing the package name or vendor.
+
 ### Views, components & assets
 
 | Method | Purpose |
 |---|---|
 | `hasViews(?string $namespace = null)` | Register the package view namespace. |
 | `hasViewComposer(string\|array $view, Closure\|string $viewComposer)` | Bind a view composer. |
+| `registerViewComposer(string\|array $views, string\|callable $composer, bool $autoPrefix = true)` | Bind a composer (now accepts a `string` class **or** `callable`); view names are auto-prefixed with the package namespace unless disabled. |
+| `registerViewComposers(array $composers, bool $autoPrefix = true)` | Bind many composers from a `[views => composer]` map. |
+| `registerGlobalViewComposer(string\|callable $composer)` | Bind a composer that fires for **all** views (via `'*'`, unprefixed). |
+| `registerViewCreator(string\|array $views, string\|callable $creator, bool $autoPrefix = true)` | Bind a view *creator* (fires earlier than a composer). |
+| `registerViewComposerWithDependencies(string\|array $views, string $composer, array $dependencies = [])` | Bind a composer whose constructor dependencies are resolved from the container. |
 | `sharesDataWithAllViews(string $name, mixed $value)` | Share a value with every package view. |
 | `hasViewComponent(string $prefix, string $viewComponentName)` / `hasViewComponents(string $prefix, string ...$names)` | Register class-based Blade components. |
 | `hasAnonymousComponents(string $path, ?string $prefix = null)` / `discoverAnonymousComponents(string $baseDir = 'resources/views/components')` | Register or auto-discover anonymous Blade components. |
@@ -84,6 +99,11 @@ for the folder→key mapping, precedence, publishing and merge semantics.
 | `hasAssets()` | Register the package assets directory for publishing. |
 | `publishAssets(string $source, string $destination, bool $cleanBeforePublish = false, ?string $tag = null)` | Register a source → destination asset publish path. |
 | `publishAssetGroup(string $groupName, array $assets, bool $cleanBeforePublish = false)` / `publishAssetGroups(array $groups, ...)` | Publish named asset groups. |
+| `publishModuleJs(bool $clean = false)` / `publishModuleCss(...)` / `publishModuleMedia(...)` / `publishModuleVendors(...)` / `publishAllModuleAssets(...)` | Typed conveniences over `publishModuleAssets()` for the standard asset types. |
+| `declareAssetGroup(string $name, array $config = [])` / `declareAssetGroups(array $groups)` | Declaratively register a named group resolved to `[source, target]` (source defaults to `public/{name}`, target to `vendor/{kebab}/{name}`); the provider publishes declared groups at boot. |
+| `declareStandardAssetGroups()` | Declare the standard `js`, `css`, `images`, `fonts` groups. |
+| `declareCustomAssetGroup(string $name, string $source, string $target)` | Declare a group with explicit source/target paths. |
+| `getDeclaredAssetGroups()` | Return the declared asset groups (`[name => [source, target]]`). |
 
 ### Routes, translations, middleware & events
 
@@ -94,6 +114,8 @@ for the folder→key mapping, precedence, publishing and merge semantics.
 | `registerRouteMiddleware(string $name, string $class)` / `registerGlobalMiddleware(string $class)` | Register middleware. |
 | `registerMiddlewareAlias(string $alias, string $class)` / `registerMiddlewareGroup(string $group, array $middleware)` | Register middleware aliases and groups. |
 | `registerEventListener(string $event, string $listener)` / `registerEventSubscriber(string $subscriber)` | Register event listeners and subscribers. |
+| `registerEventListeners(array $listeners)` / `registerEventSubscribers(array $subscribers)` | Register many at once (`$listeners` accepts `[event => listener]` or `[event => [l1, l2]]`). |
+| `discoverEventListeners(string $directory = 'src/Listeners', string $namespace = '')` | Auto-discover listeners in a directory; each event is inferred from the typed first parameter of the listener's `handle()` / `__invoke()`. |
 
 ### Database
 
@@ -159,6 +181,7 @@ $package->hasPackageSeeders(
 | `hasCommand(string $commandClassName)` / `hasCommands(string\|array ...$names)` | Register Artisan commands. |
 | `hasConsoleCommand(string $commandClassName)` / `hasConsoleCommands(...)` | Register console-only commands. |
 | `hasInstallCommand(callable $callable)` | Register an interactive install command (e.g. `->publishConfigFile()->askToRunMigrations()`). |
+| `autoLoadCommands(?string $dir = null)` | Auto-discover `Illuminate\Console\Command` subclasses under `src/Commands` (override `$dir`) and register each via `hasCommands()`. No-ops if the directory is missing or the package namespace can't be resolved. |
 
 The closure passed to `hasInstallCommand()` receives the install command
 and can chain these steps (`src/Commands/Concerns/`):

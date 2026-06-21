@@ -20,9 +20,7 @@ trait ProcessBladeComponents
             $vendorComponents = $this->package->basePath('/src/Components');
             $appComponents = base_path("app/View/Components/vendor/{$this->package->shortName()}");
 
-            $publishTag = method_exists($this->package, 'getNamespacedPublishTag')
-                ? $this->package->getNamespacedPublishTag('components')
-                : "{$this->package->shortName()}-components";
+            $publishTag = $this->package->getNamespacedPublishTag('components');
 
             $this->publishes([$vendorComponents => $appComponents], $publishTag);
         }

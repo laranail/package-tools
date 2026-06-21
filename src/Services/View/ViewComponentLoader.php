@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\View;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
+use Illuminate\View\Compilers\BladeCompiler;
 use Simtabi\Laranail\Package\Tools\Contracts\LoaderInterface;
 
 /**
@@ -67,7 +68,8 @@ class ViewComponentLoader implements LoaderInterface
         }
 
         $normalizedPrefix = str_replace('/', '-', $prefix);
-        $this->app['blade.compiler']->anonymousComponentPath($path, $normalizedPrefix);
+        $this->app->make(BladeCompiler::class)
+            ->anonymousComponentPath($path, $normalizedPrefix);
 
         $this->loaded[$normalizedPrefix] = $path;
     }

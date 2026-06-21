@@ -24,6 +24,23 @@ trait HasConfigNamespace
 {
     public ?string $configVendor = null;
 
+    /** @var array<string, string> Cache for computed namespace strings */
+    private array $namespaceCache = [];
+
+    /**
+     * Get or compute a cached namespace.
+     *
+     * The generator runs only on a cache miss; because `??=` assigns its
+     * result, a generator that throws (e.g. on a null vendor) never caches.
+     *
+     * @param string $key Cache key
+     * @param callable(): string $generator Function to generate value if not cached
+     */
+    private function getCachedNamespace(string $key, callable $generator): string
+    {
+        return $this->namespaceCache[$key] ??= $generator();
+    }
+
     /**
      * Get the full namespaced config key, e.g. 'vendor.package'.
      */
@@ -56,16 +73,18 @@ trait HasConfigNamespace
      */
     public function getDottedNamespace(): string
     {
-        if ($this->configVendor === null) {
-            throw new RuntimeException(
-                'Dotted namespace requires vendor/package format. ' .
-                'Please use $package->setName("vendor/package") instead of just "package".'
-            );
-        }
+        return $this->getCachedNamespace('dotted', function (): string {
+            if ($this->configVendor === null) {
+                throw new RuntimeException(
+                    'Dotted namespace requires vendor/package format. ' .
+                    'Please use $package->setName("vendor/package") instead of just "package".'
+                );
+            }
 
-        return Str::of($this->configVendor)
-            ->append('.', $this->name)
-            ->toString();
+            return Str::of($this->configVendor)
+                ->append('.', $this->name)
+                ->toString();
+        });
     }
 
     /**
@@ -76,16 +95,18 @@ trait HasConfigNamespace
      */
     public function getDashedNamespace(): string
     {
-        if ($this->configVendor === null) {
-            throw new RuntimeException(
-                'Dashed namespace requires vendor/package format. ' .
-                'Please use $package->setName("vendor/package") instead of just "package".'
-            );
-        }
+        return $this->getCachedNamespace('dashed', function (): string {
+            if ($this->configVendor === null) {
+                throw new RuntimeException(
+                    'Dashed namespace requires vendor/package format. ' .
+                    'Please use $package->setName("vendor/package") instead of just "package".'
+                );
+            }
 
-        return Str::of($this->configVendor)
-            ->append('-', $this->name)
-            ->toString();
+            return Str::of($this->configVendor)
+                ->append('-', $this->name)
+                ->toString();
+        });
     }
 
     /**
@@ -96,16 +117,18 @@ trait HasConfigNamespace
      */
     public function getDoubleColonNamespace(): string
     {
-        if ($this->configVendor === null) {
-            throw new RuntimeException(
-                'Double-colon namespace requires vendor/package format. ' .
-                'Please use $package->setName("vendor/package") instead of just "package".'
-            );
-        }
+        return $this->getCachedNamespace('doubleColon', function (): string {
+            if ($this->configVendor === null) {
+                throw new RuntimeException(
+                    'Double-colon namespace requires vendor/package format. ' .
+                    'Please use $package->setName("vendor/package") instead of just "package".'
+                );
+            }
 
-        return Str::of($this->configVendor)
-            ->append('::', $this->name)
-            ->toString();
+            return Str::of($this->configVendor)
+                ->append('::', $this->name)
+                ->toString();
+        });
     }
 
     /**
@@ -116,16 +139,18 @@ trait HasConfigNamespace
      */
     public function getSlashNamespace(): string
     {
-        if ($this->configVendor === null) {
-            throw new RuntimeException(
-                'Slash namespace requires vendor/package format. ' .
-                'Please use $package->setName("vendor/package") instead of just "package".'
-            );
-        }
+        return $this->getCachedNamespace('slash', function (): string {
+            if ($this->configVendor === null) {
+                throw new RuntimeException(
+                    'Slash namespace requires vendor/package format. ' .
+                    'Please use $package->setName("vendor/package") instead of just "package".'
+                );
+            }
 
-        return Str::of($this->configVendor)
-            ->append('/', $this->name)
-            ->toString();
+            return Str::of($this->configVendor)
+                ->append('/', $this->name)
+                ->toString();
+        });
     }
 
     /**
@@ -163,5 +188,43 @@ trait HasConfigNamespace
         return Str::of($this->getDoubleColonNamespace())
             ->append('-', $suffix)
             ->toString();
+    }
+
+    /**
+     * Clear the namespace cache.
+     *
+     * Use after changing the package name or vendor.
+     */
+    public function clearNamespaceCache(): static
+    {
+        $this->namespaceCache = [];
+
+        return $this;
+    }
+
+    /**
+     * Get all cached namespaces.
+     *
+     * @return array<string, string>
+     */
+    public function getCachedNamespaces(): array
+    {
+        return $this->namespaceCache;
+    }
+
+    /**
+     * Pre-compute all namespace formats.
+     *
+     * Call from the service provider's register() method to avoid lazy
+     * computation later.
+     */
+    public function warmNamespaceCache(): static
+    {
+        $this->getDottedNamespace();
+        $this->getDashedNamespace();
+        $this->getDoubleColonNamespace();
+        $this->getSlashNamespace();
+
+        return $this;
     }
 }

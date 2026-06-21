@@ -9,15 +9,22 @@ use RuntimeException;
 
 /**
  * Asset publishing with a registry, optional directory cleanup, batch
- * publishing, standard asset types, and groups.
+ * publishing, standard asset types, keys-map groups, typed module
+ * conveniences, and a declarative group registry.
+ *
+ * Folds in the former HasAssetGroups (declarative groups) and
+ * HasModuleAssets (typed conveniences) traits.
  */
 trait HasAssetPublisher
 {
     /** @var array<string, array{source: string, destination: string, clean: bool, tag: string|null}> Asset registry */
     protected array $assetRegistry = [];
 
-    /** @var array<string, array<string>> Asset groups registry */
+    /** @var array<string, array<string>> Asset groups registry (keys-map: group => list of "group:source" keys) */
     protected array $assetGroups = [];
+
+    /** @var array<string, array{source: string, target: string}> Declarative asset group registry (group => resolved paths) */
+    protected array $declaredAssetGroups = [];
 
     /** @var array<string> Standard asset type mappings */
     protected array $standardAssetTypes = [
@@ -198,6 +205,130 @@ trait HasAssetPublisher
     }
 
     /**
+     * Publish module JavaScript assets.
+     */
+    public function publishModuleJs(bool $clean = false): static
+    {
+        return $this->publishModuleAssets('js', $clean);
+    }
+
+    /**
+     * Publish module CSS assets.
+     */
+    public function publishModuleCss(bool $clean = false): static
+    {
+        return $this->publishModuleAssets('css', $clean);
+    }
+
+    /**
+     * Publish module media assets (images, videos, etc.).
+     */
+    public function publishModuleMedia(bool $clean = false): static
+    {
+        return $this->publishModuleAssets('media', $clean);
+    }
+
+    /**
+     * Publish module vendor assets (third-party libraries).
+     */
+    public function publishModuleVendors(bool $clean = false): static
+    {
+        return $this->publishModuleAssets('vendors', $clean);
+    }
+
+    /**
+     * Publish all module assets.
+     */
+    public function publishAllModuleAssets(bool $clean = false): static
+    {
+        return $this->publishModuleAssets('all', $clean);
+    }
+
+    /**
+     * Declare a named asset group resolved to source/target paths.
+     *
+     * Distinct from the keys-map {@see publishAssetGroup()}: this stores a
+     * resolved [source, target] pair that the service provider publishes at
+     * boot. Source defaults to `public/{name}`; target to
+     * `vendor/{kebab}/{name}`.
+     *
+     * @param string $name Group name (e.g. 'js', 'css', 'images', 'fonts')
+     * @param array{source?: string, target?: string} $config Optional overrides
+     *
+     * @example
+     * ```php
+     * $package->declareAssetGroup('js');
+     * $package->declareAssetGroup('admin', ['source' => 'admin/js', 'target' => 'admin']);
+     * ```
+     */
+    public function declareAssetGroup(string $name, array $config = []): static
+    {
+        $source = $config['source'] ?? $name;
+        $target = $config['target'] ?? $name;
+
+        $packageName = $this->getPackageKebabName();
+
+        $this->declaredAssetGroups[$name] = [
+            'source' => "public/{$source}",
+            'target' => "vendor/{$packageName}/{$target}",
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Declare multiple asset groups.
+     *
+     * @param array<string, array{source?: string, target?: string}> $groups [name => config]
+     */
+    public function declareAssetGroups(array $groups): static
+    {
+        foreach ($groups as $name => $config) {
+            $this->declareAssetGroup($name, $config);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Declare the standard asset groups (js, css, images, fonts).
+     */
+    public function declareStandardAssetGroups(): static
+    {
+        return $this->declareAssetGroups([
+            'js' => [],
+            'css' => [],
+            'images' => [],
+            'fonts' => [],
+        ]);
+    }
+
+    /**
+     * Declare an asset group with explicit source and target paths.
+     *
+     * @param string $name Group name
+     * @param string $source Source path relative to the package public directory
+     * @param string $target Target path relative to the application public directory
+     */
+    public function declareCustomAssetGroup(string $name, string $source, string $target): static
+    {
+        return $this->declareAssetGroup($name, [
+            'source' => $source,
+            'target' => $target,
+        ]);
+    }
+
+    /**
+     * Get the declared asset groups.
+     *
+     * @return array<string, array{source: string, target: string}>
+     */
+    public function getDeclaredAssetGroups(): array
+    {
+        return $this->declaredAssetGroups;
+    }
+
+    /**
      * Check if an asset should be cleaned before publishing
      *
      * @param string $source Source path
@@ -330,6 +461,7 @@ trait HasAssetPublisher
     {
         $this->assetRegistry = [];
         $this->assetGroups = [];
+        $this->declaredAssetGroups = [];
 
         return $this;
     }
