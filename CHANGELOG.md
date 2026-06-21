@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING — PHP floor raised to `^8.4`** (was `^8.3`). `laranail/console` 1.x
+  requires PHP `^8.4.1`, so package-tools can no longer support PHP 8.3; the CI
+  matrix is now `8.4 / 8.5`.
 - `Services\Database\SeederConsoleFormatter` migrated to the `laranail/console`
   1.x umbrella (its `ConsoleUIFormatter`/`Widgets`); `laranail/console` is now
   required at `^1.0` and resolves from Packagist (the dev vcs bridge is gone).

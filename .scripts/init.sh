@@ -3,7 +3,7 @@
 # The only shell script in the repo; everything else runs through Composer.
 #
 # Behavior (idempotent, exits non-zero on any check failure):
-#   1. Verify php >= 8.3 and composer are on PATH.
+#   1. Verify php >= 8.4 and composer are on PATH.
 #   2. composer install (or --no-dev when INIT_PROD=1).
 #   3. Discover host Laravel .env if present; never auto-create.
 #   4. Smoke-check lint and tests (non-fatal warnings).
@@ -32,8 +32,8 @@ command -v composer >/dev/null || { err "composer not found on PATH"; exit 2; }
 
 php_version=$(php -r 'echo PHP_VERSION;')
 php_major_minor=$(printf '%s' "$php_version" | cut -d. -f1-2)
-if [ "$(printf '%s\n8.3' "$php_major_minor" | sort -V | head -1)" != "8.3" ]; then
-    err "PHP 8.3+ required (found $php_version)"
+if [ "$(printf '%s\n8.4' "$php_major_minor" | sort -V | head -1)" != "8.4" ]; then
+    err "PHP 8.4+ required (found $php_version)"
     exit 2
 fi
 ok "php $php_version"

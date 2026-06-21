@@ -31,7 +31,7 @@ Artisan commands, abstract HTTP controllers, and a testing harness.
 
 ## Requirements
 
-- PHP `^8.3` (8.3, 8.4 and 8.5 are supported; CI tests the full `8.3 / 8.4 / 8.5` matrix)
+- PHP `^8.4` (8.4 and 8.5 are supported; CI tests the full `8.4 / 8.5` matrix). The floor is 8.4 because `laranail/console` (a dependency) requires PHP `^8.4.1`.
 - Laravel `^13.0`
 - For development: Pest `^3.0`, Testbench `^11.0`, Larastan `^3.0`
 
@@ -158,7 +158,7 @@ The same pages live under [`docs/`](docs/):
 ## Local development
 
 ```bash
-bash .scripts/init.sh   # verify PHP >= 8.3, run composer install, smoke-check
+bash .scripts/init.sh   # verify PHP >= 8.4, run composer install, smoke-check
 composer setup          # alias for .scripts/init.sh
 composer test           # run the Pest suite
 composer test-coverage  # run with coverage

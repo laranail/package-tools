@@ -30,7 +30,7 @@
     "docs": "https://opensource.simtabi.com/package-tools/docs/"
   },
   "require": {
-    "php": "^8.3 || ^8.4 || ^8.5",
+    "php": "^8.4 || ^8.5",
     "illuminate/contracts": "^13.0",
     "illuminate/database": "^13.0",
     "illuminate/support": "^13.0",

@@ -157,9 +157,9 @@ Every configuration method on `Package` returns `static`, not `self` or
 closure lifecycle hooks (`onBeforeBoot`, `onAfterBoot`, …) follow the
 same rule.
 
-### PHP 8.3+ / Laravel 13 target
+### PHP 8.4+ / Laravel 13 target
 
-The package targets PHP `^8.3` (tested on 8.3, 8.4, 8.5) and Laravel
+The package targets PHP `^8.4` (tested on 8.4, 8.5) and Laravel
 `^13.0`. This is a deliberate floor, not a constraint inherited from
 elsewhere: it lets the code use readonly classes, typed constants, and
 current attribute/reflection APIs without back-compat shims, and keeps

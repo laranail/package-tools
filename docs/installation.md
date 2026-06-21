@@ -4,7 +4,7 @@
 
 | Requirement | Constraint |
 |---|---|
-| PHP | `^8.3` (8.3, 8.4, 8.5 supported; CI runs on 8.5) |
+| PHP | `^8.4` (8.4, 8.5 supported; `laranail/console` requires `^8.4.1`) |
 | Laravel | `^13.0` (`illuminate/contracts`, `illuminate/support`, `illuminate/filesystem`) |
 | Other runtime | `symfony/process` `^7.0` |
 
