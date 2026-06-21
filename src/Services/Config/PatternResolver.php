@@ -82,13 +82,7 @@ class PatternResolver implements ResolverInterface
         preg_match_all('/\{(\w+)\}/', $pattern, $matches);
         $usedVariables = $matches[1];
 
-        foreach ($usedVariables as $variable) {
-            if (! in_array($variable, $this->availableVariables, true)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($usedVariables, fn ($variable): bool => in_array($variable, $this->availableVariables, true));
     }
 
     /**
@@ -126,12 +120,6 @@ class PatternResolver implements ResolverInterface
             return false;
         }
 
-        foreach ($variables as $variable) {
-            if (in_array($variable, $this->availableVariables, true)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($variables, fn ($variable): bool => in_array($variable, $this->availableVariables, true));
     }
 }
