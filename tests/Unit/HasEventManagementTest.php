@@ -126,7 +126,7 @@ class HasEventManagementTest extends TestCase
     public function it_discovers_event_listeners_from_directory(): void
     {
         $this->discoverEventListeners(
-            'Fixtures/Listeners',
+            'fixtures/Listeners',
             'Simtabi\\Laranail\\Package\\Tools\\Tests\\Fixtures\\Listeners',
         );
 
@@ -140,7 +140,8 @@ class HasEventManagementTest extends TestCase
 
     /**
      * Point package base path at the tests/ directory so
-     * packageBasePath('Fixtures/Listeners') resolves to the fixtures dir.
+     * packageBasePath('fixtures/Listeners') resolves to the fixtures dir
+     * (lowercase — the path is case-sensitive on Linux CI).
      */
     protected function packageBasePath(string $path = ''): string
     {

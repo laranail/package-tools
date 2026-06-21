@@ -22,7 +22,9 @@ final class AutoLoadCommandsTest extends TestCase
 
     private function fixtureCommandsDir(): string
     {
-        return __DIR__ . '/../../Fixtures/AutoLoad/Commands';
+        // Lowercase 'fixtures' — the filesystem path is case-sensitive on Linux CI
+        // (the class namespace stays capitalised; it resolves via the classmap).
+        return __DIR__ . '/../../fixtures/AutoLoad/Commands';
     }
 
     private function makePackage(): Package
