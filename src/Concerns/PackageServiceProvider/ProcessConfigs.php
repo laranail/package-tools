@@ -115,8 +115,18 @@ trait ProcessConfigs
 
             $publishTag = $this->package->getNamespacedPublishTag('config');
 
+            // Publish to the path Laravel loads back under the same key the
+            // config was merged into. With namespacing on, the merge key is
+            // dotted (vendor.package), so the override must live at the matching
+            // nested path (config/vendor/package.php). A flat config/package.php
+            // would load as config('package') and be invisible to the merged
+            // config('vendor.package').
+            $publishRelativePath = $this->package->hasConfigNamespacing()
+                ? str_replace('.', '/', $this->package->getNamespacedConfigKey($configFileName))
+                : $configFileName;
+
             $this->publishes(
-                [$vendorConfig => config_path("{$configFileName}.php")],
+                [$vendorConfig => config_path("{$publishRelativePath}.php")],
                 $publishTag
             );
         }

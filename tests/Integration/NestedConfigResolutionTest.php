@@ -151,6 +151,40 @@ class NestedConfigResolutionTest extends TestCase
         );
     }
 
+    #[Test]
+    public function flat_namespaced_config_publishes_under_a_namespace_matching_path(): void
+    {
+        $provider = $this->makeProvider(function (Package $package): void {
+            $package->hasConfigFile('widget');
+        });
+
+        $provider->register();
+        $provider->boot();
+
+        $destinations = [];
+        foreach (ServiceProvider::pathsToPublish($provider::class) as $destination) {
+            $destinations[] = str_replace('\\', '/', $destination);
+        }
+
+        // The flat config merges under the vendor.package key (acme.widget), so
+        // its published override must land at config/acme/widget.php to load
+        // back under config('acme.widget') — not at the flat config/widget.php,
+        // which Laravel would load as config('widget') and never reach the
+        // merged key.
+        $namespaced = array_filter(
+            $destinations,
+            static fn (string $dest): bool => str_ends_with($dest, 'config/acme/widget.php')
+        );
+
+        $flat = array_filter(
+            $destinations,
+            static fn (string $dest): bool => str_ends_with($dest, 'config/widget.php')
+        );
+
+        $this->assertCount(1, $namespaced, 'Flat namespaced config should publish to config/<vendor>/<package>.php.');
+        $this->assertCount(0, $flat, 'Flat namespaced config must not publish to the flat config/<package>.php.');
+    }
+
     /**
      * Build an anonymous PackageServiceProvider whose package points at the
      * nested-config fixture, then runs the given configuration closure.
