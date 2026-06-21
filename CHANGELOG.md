@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-06-21
+
+### Fixed
+
+- `Services\Database\SeederConsoleFormatter`: seeder names now render in full
+  (`PostSeeder` → `Post`, was `Pos` — an off-by-one in the suffix trim);
+  correct pluralisation in the summary ("1 failure", not "1 failures"); status
+  glyphs and tree branches degrade to ASCII on non-Unicode terminals via
+  console's capability-aware `Symbols` (was hardcoded Unicode).
+- Requires `laranail/console ^1.2.1`, which fixes a signal-handling NPE when a
+  command is constructed outside a running Application (this had broken
+  larastan static analysis on CI).
+
 ## [0.3.1] - 2026-06-21
 
 ### Fixed
