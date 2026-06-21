@@ -20,8 +20,8 @@ namespace Acme\Hello\Http;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Simtabi\Laranail\PackageTools\Attributes\AsRoute;
-use Simtabi\Laranail\PackageTools\Http\Controllers\WebController;
+use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
+use Simtabi\Laranail\Package\Tools\Http\Controllers\WebController;
 
 #[AsRoute(method: 'GET', uri: '/hello/widgets', name: 'hello.widgets.index')]
 #[AsRoute(method: 'POST', uri: '/hello/widgets', name: 'hello.widgets.store', middleware: ['web'])]

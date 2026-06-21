@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Asset;
+namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Contracts\RegistryInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
 
 /**
  * Tracks published assets and manages cleanup.

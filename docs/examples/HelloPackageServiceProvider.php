@@ -37,8 +37,8 @@ use Acme\Hello\Doctor\StorageWritableCheck;
 use Acme\Hello\Http\GreetingComposer;
 use Acme\Hello\Support\Greeter;
 use Illuminate\Support\Facades\Log;
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\PackageServiceProvider;
 
 final class HelloPackageServiceProvider extends PackageServiceProvider
 {

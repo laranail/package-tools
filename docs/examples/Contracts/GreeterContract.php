@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 namespace Acme\Hello\Contracts;
 
-use Simtabi\Laranail\PackageTools\Attributes\AsFacade;
+use Simtabi\Laranail\Package\Tools\Attributes\AsFacade;
 
 #[AsFacade(alias: 'Greeter', accessor: GreeterContract::class)]
 interface GreeterContract

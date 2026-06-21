@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Config;
+namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
 /**
  * Strategies for merging configuration arrays.

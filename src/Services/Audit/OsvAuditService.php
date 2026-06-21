@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Audit;
+namespace Simtabi\Laranail\Package\Tools\Services\Audit;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;

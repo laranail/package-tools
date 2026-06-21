@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Feature\Commands;
+namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Providers\LaranailToolsServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackageIdeHelperCommandTest extends TestCase
 {
@@ -34,14 +34,14 @@ final class PackageIdeHelperCommandTest extends TestCase
 
     protected function getPackageProviders($app): array
     {
-        return [LaranailToolsServiceProvider::class];
+        return [PackageToolsServiceProvider::class];
     }
 
     public function test_generates_facades_for_annotated_contracts(): void
     {
         $exit = Artisan::call('laranail::package-tools.ide-helper', [
             '--source' => 'Contracts',
-            '--source-namespace' => 'Simtabi\\Laranail\\PackageTools\\Tests\\Fixtures\\Facade',
+            '--source-namespace' => 'Simtabi\\Laranail\\Package\\Tools\\Tests\\Fixtures\\Facade',
             '--output' => 'Facades',
             '--facade-namespace' => 'App\\Facades',
         ]);

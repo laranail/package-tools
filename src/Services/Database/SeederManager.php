@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Database;
+namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Seeder;
-use Simtabi\Laranail\PackageTools\ValueObjects\SeederExecutionStats;
+use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 
 /**
  * Standalone seeding entry point — lets any consumer register and run

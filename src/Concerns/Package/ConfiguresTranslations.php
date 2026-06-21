@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 /**
  * Translations domain aggregator. Wraps the single leaf trait; kept for

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Integration;
+namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Closure;
 use Illuminate\Support\ServiceProvider;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\Providers\PackageServiceProvider;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * End-to-end Testbench coverage of folder-tree / namespaced config

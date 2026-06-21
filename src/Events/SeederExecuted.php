@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Events;
+namespace Simtabi\Laranail\Package\Tools\Events;
 
 /**
  * Dispatched after an individual seeder runs successfully.

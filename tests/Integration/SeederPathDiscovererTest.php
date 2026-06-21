@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Integration;
+namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederPathDiscoverer;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
 
 final class SeederPathDiscovererTest extends TestCase
 {

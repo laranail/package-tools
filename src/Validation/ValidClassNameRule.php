@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Validation;
+namespace Simtabi\Laranail\Package\Tools\Validation;
 
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\View;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\View;
 
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\View\ViewValidator;
+use Simtabi\Laranail\Package\Tools\Services\View\ViewValidator;
 
 final class ViewValidatorTest extends TestCase
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Asset;
+namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Support\PathResolver;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 /**
  * Resolves asset groups from configuration.

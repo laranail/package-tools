@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\ValueObjects;
+namespace Simtabi\Laranail\Package\Tools\ValueObjects;
 
 use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;

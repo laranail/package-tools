@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Facade;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Facade;
 
 use Orchestra\Testbench\TestCase;
 use ReflectionClass;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Services\Facade\FacadeAutoGenerator;
+use Simtabi\Laranail\Package\Tools\Services\Facade\FacadeAutoGenerator;
 
 final class FacadeAutoGeneratorTest extends TestCase
 {
@@ -60,7 +60,7 @@ final class FacadeAutoGeneratorTest extends TestCase
         $code = file_get_contents($this->outputDir . '/Greeter.php');
 
         $this->assertStringContainsString(
-            'return \\Simtabi\\Laranail\\PackageTools\\Tests\\Fixtures\\Facade\\Contracts\\GreeterContract::class;',
+            'return \\Simtabi\\Laranail\\Package\\Tools\\Tests\\Fixtures\\Facade\\Contracts\\GreeterContract::class;',
             $code,
         );
     }
@@ -123,7 +123,7 @@ final class FacadeAutoGeneratorTest extends TestCase
     {
         return (new FacadeAutoGenerator)->generate(
             sourceDirectory: $this->sourceDir,
-            sourceNamespace: 'Simtabi\\Laranail\\PackageTools\\Tests\\Fixtures\\Facade',
+            sourceNamespace: 'Simtabi\\Laranail\\Package\\Tools\\Tests\\Fixtures\\Facade',
             outputDirectory: $this->outputDir,
             facadeNamespace: 'App\\Facades',
         );

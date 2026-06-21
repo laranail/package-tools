@@ -4,7 +4,7 @@ Container-bound services that consumers resolve directly — system
 inspection, HTTP-client option building, and an install-time error bag.
 
 Three runtime services are bound automatically by
-`LaranailToolsServiceProvider` (no consumer wiring), plus two consumer
+`PackageToolsServiceProvider` (no consumer wiring), plus two consumer
 traits that proxy to them.
 
 | Binding | Lifetime | Implementation |
@@ -15,7 +15,7 @@ traits that proxy to them.
 
 ## SystemService
 
-`Simtabi\Laranail\PackageTools\Services\System\SystemService` is a
+`Simtabi\Laranail\Package\Tools\Services\System\SystemService` is a
 read-only inspector for the host PHP / Laravel / server context (no
 shell-outs, no network calls). Bound request-scoped because its output
 depends on `$_SERVER`. Resolve via `SystemServiceInterface`.
@@ -33,7 +33,7 @@ Intended for install commands, doctor checks, and diagnostic tooling —
 not production hot-paths.
 
 ```php
-use Simtabi\Laranail\PackageTools\Services\System\Contracts\SystemServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
 
 final class EnvironmentDoctorCheck implements DoctorCheck
 {
@@ -55,7 +55,7 @@ request-scoped binding is honoured.
 
 ## HttpConfigurationService
 
-`Simtabi\Laranail\PackageTools\Services\Http\HttpConfigurationService`
+`Simtabi\Laranail\Package\Tools\Services\Http\HttpConfigurationService`
 (contract `…\Http\Contracts\HttpConfigurationServiceInterface`) is a
 fluent builder for HTTP-client option arrays. It is vendor-neutral — it
 pulls in no HTTP client of its own — and its output array is keyed
@@ -93,14 +93,14 @@ input.
 
 ### HasGuzzleConfig
 
-`Simtabi\Laranail\PackageTools\Support\Concerns\HasGuzzleConfig` is a
+`Simtabi\Laranail\Package\Tools\Support\Concerns\HasGuzzleConfig` is a
 thin accessor trait. `httpConfig()` resolves the singleton
 `HttpConfigurationServiceInterface` from the container, so a host class
 (provider, install command, job) can grab a preconfigured options array
 without wiring a binding:
 
 ```php
-use Simtabi\Laranail\PackageTools\Support\Concerns\HasGuzzleConfig;
+use Simtabi\Laranail\Package\Tools\Support\Concerns\HasGuzzleConfig;
 
 final class FetchUsersJob
 {
@@ -116,7 +116,7 @@ final class FetchUsersJob
 
 ## ErrorStorageService
 
-`Simtabi\Laranail\PackageTools\Support\ErrorStorage\ErrorStorageService`
+`Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService`
 (contract `…\ErrorStorage\Contracts\ErrorStorageServiceInterface`) is an
 in-memory key/message error bag. It has no eviction policy and is not
 safe to share across long-lived processes — hence the per-resolution
@@ -139,7 +139,7 @@ messages.
 
 ### HasErrorStorage
 
-`Simtabi\Laranail\PackageTools\Support\Concerns\HasErrorStorage` proxies
+`Simtabi\Laranail\Package\Tools\Support\Concerns\HasErrorStorage` proxies
 a host class to the container-bound `ErrorStorageService`, keeping
 install commands and providers free of resolve-and-delegate boilerplate.
 It exposes `setErrors()`, `getErrors()`, `hasErrors()`, `clearErrors()`,
@@ -150,7 +150,7 @@ survives across calls despite the per-resolution binding; tests can swap
 the implementation by binding a singleton before constructing the host.
 
 ```php
-use Simtabi\Laranail\PackageTools\Support\Concerns\HasErrorStorage;
+use Simtabi\Laranail\Package\Tools\Support\Concerns\HasErrorStorage;
 
 final class HelloInstaller
 {
@@ -172,7 +172,7 @@ final class HelloInstaller
 ## See also
 
 - [installation.md](../installation.md) — how the three bindings are
-  registered by `LaranailToolsServiceProvider`.
+  registered by `PackageToolsServiceProvider`.
 - [configuration.md](../configuration.md#runtime-environment-variables) —
   the `PKG_HTTP_*` env table, mirrored above.
 - [services.md](../services.md) — the `System`, `Http`, and `ErrorStorage`

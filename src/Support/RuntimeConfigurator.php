@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Support;
+namespace Simtabi\Laranail\Package\Tools\Support;
 
 use Barryvdh\Debugbar\Facades\Debugbar;
 use Clockwork\Support\Laravel\ClockworkServiceProvider;

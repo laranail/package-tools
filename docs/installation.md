@@ -23,14 +23,14 @@ The package's `composer.json` declares its provider under
 "extra": {
     "laravel": {
         "providers": [
-            "Simtabi\\Laranail\\PackageTools\\Providers\\LaranailToolsServiceProvider"
+            "Simtabi\\Laranail\\Package\\Tools\\Providers\\PackageToolsServiceProvider"
         ]
     }
 }
 ```
 
 Laravel package discovery registers
-`Simtabi\Laranail\PackageTools\Providers\LaranailToolsServiceProvider`
+`Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider`
 automatically. No manual wiring is needed. On registration the provider:
 
 - registers the `DoctorService` singleton,
@@ -52,8 +52,8 @@ abstract `PackageServiceProvider` and describing the package fluently
 inside `configurePackage(Package $package)`:
 
 ```php
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\PackageServiceProvider;
 
 final class FooServiceProvider extends PackageServiceProvider
 {

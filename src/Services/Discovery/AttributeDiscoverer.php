@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Discovery;
+namespace Simtabi\Laranail\Package\Tools\Services\Discovery;
 
 use FilesystemIterator;
 use Generator;

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Attributes;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Attributes;
 
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use Simtabi\Laranail\PackageTools\Attributes\AsArtisanCommand;
-use Simtabi\Laranail\PackageTools\Attributes\AsFacade;
-use Simtabi\Laranail\PackageTools\Attributes\AsRoute;
-use Simtabi\Laranail\PackageTools\Attributes\AsViewComposer;
+use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
+use Simtabi\Laranail\Package\Tools\Attributes\AsFacade;
+use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
+use Simtabi\Laranail\Package\Tools\Attributes\AsViewComposer;
 
 #[AsArtisanCommand(signature: 'foo:run', description: 'Run the foo task')]
 final class CommandFixture {}

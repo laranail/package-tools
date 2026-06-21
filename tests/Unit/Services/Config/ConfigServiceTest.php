@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Config;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Config;
 
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigService;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigService;
 
 final class ConfigServiceTest extends TestCase
 {

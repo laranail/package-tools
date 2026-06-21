@@ -15,8 +15,8 @@ declare(strict_types=1);
 namespace Acme\Hello\Doctor;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorCheck;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorResult;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
 
 final class HelloHealthCheck implements DoctorCheck
 {

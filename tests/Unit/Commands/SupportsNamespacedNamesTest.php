@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Commands;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Commands;
 
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Commands\Command;
+use Simtabi\Laranail\Package\Tools\Commands\Command;
 
 final class SupportsNamespacedNamesTest extends TestCase
 {

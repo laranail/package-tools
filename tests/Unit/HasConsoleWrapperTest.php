@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use Exception;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\PackageTools\Concerns\Package\HasConsoleWrapper;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasConsoleWrapper;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * HasConsoleWrapperTest - Test console wrapper functionality

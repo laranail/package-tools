@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Package;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Package;
 
 use InvalidArgumentException;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Package\PackageAnalyzer;
+use Simtabi\Laranail\Package\Tools\Services\Package\PackageAnalyzer;
 
 final class PackageAnalyzerTest extends TestCase
 {

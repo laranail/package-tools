@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Exceptions;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Exceptions;
 
 use Exception;
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Exceptions\InvalidPackage;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
 
 /**
  * InvalidPackageTest - Tests for InvalidPackage exception

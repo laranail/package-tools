@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-21
+
+### Changed
+
+- **BREAKING — PHP namespace renamed** `Simtabi\Laranail\PackageTools` →
+  `Simtabi\Laranail\Package\Tools`. Every consumer `use` import must be updated
+  (the composer/package slug `laranail/package-tools` and the
+  `laranail::package-tools.*` command names are unchanged).
+- **BREAKING — service provider renamed** `…\Providers\LaranailToolsServiceProvider`
+  → `…\Providers\PackageToolsServiceProvider`. Auto-discovery handles this; only
+  apps that register the provider manually (or reference its FQN) need to update.
+  The `PackageSeeder` facade and the abstract `PackageServiceProvider` base are
+  unchanged apart from the namespace prefix.
+
 ## [0.3.2] - 2026-06-21
 
 ### Fixed

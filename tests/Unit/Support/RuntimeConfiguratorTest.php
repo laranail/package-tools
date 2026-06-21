@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Support;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
-use Simtabi\Laranail\PackageTools\Support\RuntimeConfigurator;
+use Simtabi\Laranail\Package\Tools\Support\RuntimeConfigurator;
 
 /**
  * Regression coverage for RuntimeConfigurator::formatBytes(). The power

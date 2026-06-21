@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Component;
+namespace Simtabi\Laranail\Package\Tools\Services\Component;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Contracts\LoaderInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\LoaderInterface;
 
 /**
  * Loads and registers anonymous (file-based) Blade components.

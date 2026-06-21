@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Simtabi\Laranail\PackageTools\Attributes\AsArtisanCommand;
-use Simtabi\Laranail\PackageTools\Attributes\AsRoute;
-use Simtabi\Laranail\PackageTools\Attributes\AsViewComposer;
-use Simtabi\Laranail\PackageTools\Services\Discovery\AttributeDiscoverer;
+use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
+use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
+use Simtabi\Laranail\Package\Tools\Attributes\AsViewComposer;
+use Simtabi\Laranail\Package\Tools\Services\Discovery\AttributeDiscoverer;
 
 /**
  * Adds `Package::discoversWithAttributes()`. Scans the package's src/ for

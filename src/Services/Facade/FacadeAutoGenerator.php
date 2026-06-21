@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Facade;
+namespace Simtabi\Laranail\Package\Tools\Services\Facade;
 
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
@@ -12,8 +12,8 @@ use ReflectionNamedType;
 use ReflectionType;
 use ReflectionUnionType;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Attributes\AsFacade;
-use Simtabi\Laranail\PackageTools\Services\Discovery\AttributeDiscoverer;
+use Simtabi\Laranail\Package\Tools\Attributes\AsFacade;
+use Simtabi\Laranail\Package\Tools\Services\Discovery\AttributeDiscoverer;
 
 /**
  * Walks classes annotated with `#[AsFacade]` and emits Laravel Facade

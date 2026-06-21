@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Http\Contracts;
+namespace Simtabi\Laranail\Package\Tools\Services\Http\Contracts;
 
 /**
  * Contract for the fluent Guzzle/Laravel HTTP-client configuration builder.

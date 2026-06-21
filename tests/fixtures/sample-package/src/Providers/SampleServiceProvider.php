@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Fixtures\SamplePackage\Providers;
+namespace Simtabi\Laranail\Package\Tools\Tests\Fixtures\SamplePackage\Providers;
 
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
  * Fixture provider living at <package-root>/src/Providers, mirroring the

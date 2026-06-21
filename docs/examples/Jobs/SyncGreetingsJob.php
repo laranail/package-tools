@@ -21,11 +21,11 @@ declare(strict_types=1);
 namespace Acme\Hello\Jobs;
 
 use Illuminate\Support\Facades\Http;
-use Simtabi\Laranail\PackageTools\Services\Http\Contracts\HttpConfigurationServiceInterface;
-use Simtabi\Laranail\PackageTools\Services\System\Contracts\SystemServiceInterface;
-use Simtabi\Laranail\PackageTools\Support\Concerns\HasErrorStorage;
-use Simtabi\Laranail\PackageTools\Support\Concerns\HasGuzzleConfig;
-use Simtabi\Laranail\PackageTools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
+use Simtabi\Laranail\Package\Tools\Support\Concerns\HasErrorStorage;
+use Simtabi\Laranail\Package\Tools\Support\Concerns\HasGuzzleConfig;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
 
 final class SyncGreetingsJob
 {

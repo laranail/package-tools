@@ -50,8 +50,8 @@ Extend `PackageServiceProvider` and describe your package in
 `configurePackage()`:
 
 ```php
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\PackageServiceProvider;
 
 final class FooServiceProvider extends PackageServiceProvider
 {
@@ -106,10 +106,10 @@ see [CONTRIBUTING.md](CONTRIBUTING.md#artisan-command-naming)).
 ## Attribute discovery
 
 ```php
-use Simtabi\Laranail\PackageTools\Attributes\AsArtisanCommand;
-use Simtabi\Laranail\PackageTools\Attributes\AsRoute;
-use Simtabi\Laranail\PackageTools\Attributes\AsViewComposer;
-use Simtabi\Laranail\PackageTools\Attributes\AsFacade;
+use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
+use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
+use Simtabi\Laranail\Package\Tools\Attributes\AsViewComposer;
+use Simtabi\Laranail\Package\Tools\Attributes\AsFacade;
 
 #[AsArtisanCommand(signature: 'foo:run', description: 'Run the foo task')]
 class FooCommand extends Command {}

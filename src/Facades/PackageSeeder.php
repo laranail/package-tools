@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Facades;
+namespace Simtabi\Laranail\Package\Tools\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederBuilder;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederManager;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederRegistry;
-use Simtabi\Laranail\PackageTools\ValueObjects\SeederExecutionStats;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederBuilder;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 
 /**
  * @method static SeederManager autoSeed(string $key, array $seeders, ?string $namespace = null, array $options = [])

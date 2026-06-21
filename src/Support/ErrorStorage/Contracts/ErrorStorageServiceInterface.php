@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Support\ErrorStorage\Contracts;
+namespace Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts;
 
 /**
  * Lightweight error bag used by package install commands and

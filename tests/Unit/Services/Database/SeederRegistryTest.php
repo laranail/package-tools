@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Database;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Database;
 
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
 
 final class SeederRegistryTest extends TestCase
 {

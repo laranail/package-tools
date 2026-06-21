@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Http;
+namespace Simtabi\Laranail\Package\Tools\Services\Http;
 
 use InvalidArgumentException;
-use Simtabi\Laranail\PackageTools\Services\Http\Contracts\HttpConfigurationServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
 
 /**
  * Fluent builder for HTTP-client option arrays.

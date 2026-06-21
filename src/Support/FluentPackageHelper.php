@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Support;
+namespace Simtabi\Laranail\Package\Tools\Support;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\View as ViewFactory;

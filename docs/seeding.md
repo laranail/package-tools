@@ -46,7 +46,7 @@ src/Services/Database/
 ## Standalone: the `PackageSeeder` facade
 
 ```php
-use Simtabi\Laranail\PackageTools\Facades\PackageSeeder;
+use Simtabi\Laranail\Package\Tools\Facades\PackageSeeder;
 
 // Register a bundle to run automatically when `php artisan db:seed` runs:
 PackageSeeder::autoSeed('Acme\\Blog', [
@@ -70,7 +70,7 @@ everything registered), and `registry()`.
 ## Fluent `SeederBuilder`
 
 ```php
-use Simtabi\Laranail\PackageTools\Services\Database\SeederBuilder;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederBuilder;
 
 $stats = app(SeederBuilder::class)
     ->from(database_path('seeders'))   // discover from path(s)
@@ -88,7 +88,7 @@ seeders run on the next `DatabaseSeeder` resolve) instead of executing.
 ## Results: `SeederExecutionStats`
 
 `execute()` / `SeederExecutor::run()` return a typed, immutable
-`Simtabi\Laranail\PackageTools\ValueObjects\SeederExecutionStats`:
+`Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats`:
 
 | Member | Description |
 |---|---|
@@ -116,15 +116,15 @@ Per-batch events require the `fire_events` option (default off).
 ## Console output
 
 `SeederExecutor` accepts an optional
-`Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleFormatterInterface`.
+`Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface`.
 Pass one (with an `OutputStyle` set) to get tree-structured, colourised
 progress output, styled via the `ConsoleUIFormatter` from
 [`laranail/console`](https://github.com/laranail/console) — a
 required dependency of this package, so it is always available:
 
 ```php
-use Simtabi\Laranail\PackageTools\Services\Database\SeederConsoleFormatter;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederExecutor;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 
 $formatter = new SeederConsoleFormatter();
 $formatter->setOutput($this->output); // in a command

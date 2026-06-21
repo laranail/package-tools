@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Services\Event\EventRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Event\EventRegistry;
 
 /**
  * Registers event listeners and subscribers for a package.

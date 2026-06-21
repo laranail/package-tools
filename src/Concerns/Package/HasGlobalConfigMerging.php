@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigService;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigService;
 
 /**
  * Merges package config into Laravel's global config array.

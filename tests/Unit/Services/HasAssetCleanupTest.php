@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services;
 
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\PackageTools\Concerns\Package\HasAssetCleanup;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasAssetCleanup;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * Bug 2: cleanupAllAssets() iterates the registry through getRegistered(), and

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Doctor;
+namespace Simtabi\Laranail\Package\Tools\Services\Doctor;
 
 enum DoctorStatus: string
 {

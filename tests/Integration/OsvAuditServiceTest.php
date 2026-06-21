@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Integration;
+namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Support\Facades\Http;
 use Orchestra\Testbench\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Services\Audit\OsvAuditService;
+use Simtabi\Laranail\Package\Tools\Services\Audit\OsvAuditService;
 
 final class OsvAuditServiceTest extends TestCase
 {

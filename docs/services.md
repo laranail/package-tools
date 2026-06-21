@@ -1,7 +1,7 @@
 # Services Reference
 
 `laranail/package-tools` ships a set of focused, single-responsibility
-service and support classes under `Simtabi\Laranail\PackageTools\`. They
+service and support classes under `Simtabi\Laranail\Package\Tools\`. They
 back the fluent `Package` builder, the `laranail::package-tools.*` commands, and the
 abstract `PackageServiceProvider`, and are also usable directly from a
 consuming package via the container (`app(...)`) or constructor
@@ -162,7 +162,7 @@ Services are plain classes — resolve them from the container or inject
 them. For example, the runtime system inspector:
 
 ```php
-use Simtabi\Laranail\PackageTools\Services\System\Contracts\SystemServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
 
 class MyCheck
 {

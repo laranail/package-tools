@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Component;
+namespace Simtabi\Laranail\Package\Tools\Services\Component;
 
 use Illuminate\Support\Str;
-use Simtabi\Laranail\PackageTools\Contracts\ResolverInterface;
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigService;
-use Simtabi\Laranail\PackageTools\Services\Config\PatternResolver;
+use Simtabi\Laranail\Package\Tools\Contracts\ResolverInterface;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigService;
+use Simtabi\Laranail\Package\Tools\Services\Config\PatternResolver;
 
 /**
  * Resolves and normalizes component namespaces and prefixes using

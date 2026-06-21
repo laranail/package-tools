@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Integration;
+namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ManagesComposer;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ManagesComposer;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * EnableDisablePackageTest - Integration tests for enable/disable functionality

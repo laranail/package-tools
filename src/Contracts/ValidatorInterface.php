@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Contracts;
+namespace Simtabi\Laranail\Package\Tools\Contracts;
 
 /**
  * Contract for services that validate inputs and configurations.

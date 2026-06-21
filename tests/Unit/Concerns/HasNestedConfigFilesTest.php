@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Concerns;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
 use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\PackageTools\Package;
+use Simtabi\Laranail\Package\Tools\Package;
 
 /**
  * Tests for the HasNestedConfigFiles builder concern: it registers

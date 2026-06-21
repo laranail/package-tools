@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Integration;
+namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Database\Seeder;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederExecutor;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederRegistry;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederResolverHook;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederResolverHook;
 
 final class SeederResolverHookTest extends TestCase
 {

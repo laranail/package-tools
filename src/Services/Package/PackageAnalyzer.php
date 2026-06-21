@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Package;
+namespace Simtabi\Laranail\Package\Tools\Services\Package;
 
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
-use Simtabi\Laranail\PackageTools\Contracts\AnalyzerInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\AnalyzerInterface;
 
 /**
  * Analyzes package structure, complexity, and metrics.

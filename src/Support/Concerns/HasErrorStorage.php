@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Support\Concerns;
+namespace Simtabi\Laranail\Package\Tools\Support\Concerns;
 
-use Simtabi\Laranail\PackageTools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
 
 /**
  * Trait that proxies a host class to the container-bound

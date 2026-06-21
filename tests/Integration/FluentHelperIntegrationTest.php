@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Integration;
+namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Contracts\View\View;
 use InvalidArgumentException;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Support\FluentPackageHelper;
+use Simtabi\Laranail\Package\Tools\Support\FluentPackageHelper;
 
 /**
  * FluentHelperIntegrationTest - Integration tests for fluent helper API

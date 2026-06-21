@@ -17,7 +17,7 @@ declare(strict_types=1);
 namespace Acme\Hello\Console;
 
 use Illuminate\Console\Command;
-use Simtabi\Laranail\PackageTools\Attributes\AsArtisanCommand;
+use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
 
 #[AsArtisanCommand(signature: 'hello:greet', description: 'Greet someone by name')]
 final class GreetCommand extends Command

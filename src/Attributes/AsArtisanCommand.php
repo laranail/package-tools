@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Attributes;
+namespace Simtabi\Laranail\Package\Tools\Attributes;
 
 use Attribute;
 

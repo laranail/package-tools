@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Commands\Concerns;
+namespace Simtabi\Laranail\Package\Tools\Commands\Concerns;
 
 use Closure;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;

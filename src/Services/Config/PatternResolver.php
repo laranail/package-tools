@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Config;
+namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
 use Illuminate\Support\Str;
-use Simtabi\Laranail\PackageTools\Contracts\ResolverInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\ResolverInterface;
 
 /**
  * Resolves patterns with {variable} placeholders for namespaces, tags,

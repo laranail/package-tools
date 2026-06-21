@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Database;
+namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Simtabi\Laranail\PackageTools\ValueObjects\SeederExecutionStats;
+use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 
 /**
  * Fluent builder for configuring and running seeders.

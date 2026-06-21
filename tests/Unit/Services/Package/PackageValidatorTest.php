@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Package;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Package;
 
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Package\PackageValidator;
+use Simtabi\Laranail\Package\Tools\Services\Package\PackageValidator;
 
 final class PackageValidatorTest extends TestCase
 {

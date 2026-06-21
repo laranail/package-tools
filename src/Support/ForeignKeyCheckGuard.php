@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Support;
+namespace Simtabi\Laranail\Package\Tools\Support;
 
 use Closure;
 use Illuminate\Support\Facades\Schema;

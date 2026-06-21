@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Commands;
+namespace Simtabi\Laranail\Package\Tools\Commands;
 
 use Illuminate\Console\Command as BaseCommand;
-use Simtabi\Laranail\PackageTools\Commands\Concerns\SupportsNamespacedNames;
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsNamespacedNames;
 
 /**
  * Base Artisan command for laranail packages.

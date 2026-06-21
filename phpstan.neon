@@ -16,7 +16,7 @@ parameters:
         # scans src/ and can't observe consumers, so it would always
         # report "trait used zero times" for these two. tests/Unit/Support
         # /Concerns/ has Pest coverage proving they behave correctly.
-        - '#Trait Simtabi\\Laranail\\PackageTools\\Support\\Concerns\\(HasErrorStorage|HasGuzzleConfig) is used zero times#'
+        - '#Trait Simtabi\\Laranail\\Package\\Tools\\Support\\Concerns\\(HasErrorStorage|HasGuzzleConfig) is used zero times#'
         # Generic array value types in docblocks are not enforced.
         -
             identifier: missingType.iterableValue

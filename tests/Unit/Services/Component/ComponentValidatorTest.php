@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Component;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Component;
 
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Component\ComponentValidator;
+use Simtabi\Laranail\Package\Tools\Services\Component\ComponentValidator;
 
 final class InstantiableComponent
 {

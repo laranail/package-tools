@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Support\ErrorStorage;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support\ErrorStorage;
 
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Support\ErrorStorage\ErrorStorageService;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
 
 final class ErrorStorageServiceTest extends TestCase
 {

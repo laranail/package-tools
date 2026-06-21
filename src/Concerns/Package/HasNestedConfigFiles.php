@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigFileResolver;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
 
 /**
  * Loads config files from nested directories, mounting each at a dotted

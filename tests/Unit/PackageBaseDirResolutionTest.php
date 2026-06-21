@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use Illuminate\Contracts\Foundation\Application;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\Tests\Fixtures\SamplePackage\Providers\SampleServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Tests\Fixtures\SamplePackage\Providers\SampleServiceProvider;
 
 final class PackageBaseDirResolutionTest extends TestCase
 {

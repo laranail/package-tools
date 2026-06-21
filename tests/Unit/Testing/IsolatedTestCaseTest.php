@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Testing;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Testing;
 
 use Illuminate\Support\Facades\Schema;
-use Simtabi\Laranail\PackageTools\Testing\IsolatedTestCase;
+use Simtabi\Laranail\Package\Tools\Testing\IsolatedTestCase;
 
 /**
  * Concrete subclass we can actually instantiate as a test (the base

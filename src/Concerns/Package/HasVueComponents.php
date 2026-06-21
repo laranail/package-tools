@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Services\Component\ComponentRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Component\ComponentRegistry;
 
 /**
  * Registers Vue.js components for publishing.

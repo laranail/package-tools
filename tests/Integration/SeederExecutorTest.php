@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Integration;
+namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Event;
 use Orchestra\Testbench\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Events\SeedingFinished;
-use Simtabi\Laranail\PackageTools\Events\SeedingStarted;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederExecutor;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Events\SeedingFinished;
+use Simtabi\Laranail\Package\Tools\Events\SeedingStarted;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
 
 final class SeederExecutorTest extends TestCase
 {

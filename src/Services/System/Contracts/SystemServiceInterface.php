@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\System\Contracts;
+namespace Simtabi\Laranail\Package\Tools\Services\System\Contracts;
 
 /**
  * Contract for the lightweight system inspector exposed by package-tools.

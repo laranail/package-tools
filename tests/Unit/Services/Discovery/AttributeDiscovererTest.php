@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Discovery;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Discovery;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Attributes\AsArtisanCommand;
-use Simtabi\Laranail\PackageTools\Attributes\AsRoute;
-use Simtabi\Laranail\PackageTools\Services\Discovery\AttributeDiscoverer;
+use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
+use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
+use Simtabi\Laranail\Package\Tools\Services\Discovery\AttributeDiscoverer;
 
 final class AttributeDiscovererTest extends TestCase
 {
@@ -30,7 +30,7 @@ final class AttributeDiscovererTest extends TestCase
         $this->writeFile('Foo.php', <<<'PHP'
             <?php
             namespace Stub\Discovery;
-            use Simtabi\Laranail\PackageTools\Attributes\AsArtisanCommand;
+            use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
 
             #[AsArtisanCommand(signature: 'foo:run')]
             final class Foo {}
@@ -61,7 +61,7 @@ final class AttributeDiscovererTest extends TestCase
         $this->writeFile('Sub/Nested/Deep.php', <<<'PHP'
             <?php
             namespace Stub\Discovery\Sub\Nested;
-            use Simtabi\Laranail\PackageTools\Attributes\AsArtisanCommand;
+            use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
 
             #[AsArtisanCommand(signature: 'deep:run')]
             final class Deep {}
@@ -84,7 +84,7 @@ final class AttributeDiscovererTest extends TestCase
         $this->writeFile('Multi.php', <<<'PHP'
             <?php
             namespace Stub\Discovery;
-            use Simtabi\Laranail\PackageTools\Attributes\AsRoute;
+            use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
 
             #[AsRoute(method: 'GET',  uri: '/a')]
             #[AsRoute(method: 'POST', uri: '/a', name: 'a.post')]

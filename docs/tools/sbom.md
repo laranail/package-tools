@@ -4,7 +4,7 @@ CycloneDX SBOM generator. Reads the host project's `composer.json` + `composer.l
 CycloneDX 1.5 JSON Software Bill of Materials. Pure-PHP — every byte is
 computed in-process, with no shelling out, so the output is reproducible
 and CI-friendly. Backed by
-`Simtabi\Laranail\PackageTools\Services\Sbom\SbomGenerator`.
+`Simtabi\Laranail\Package\Tools\Services\Sbom\SbomGenerator`.
 
 ```bash
 php artisan laranail::package-tools.sbom [--output=sbom.json] [--print]

@@ -17,8 +17,8 @@ declare(strict_types=1);
 |
 | The SeederExecutor runs every registered bundle when the host app seeds.
 | With fire_events on, it dispatches:
-|   Simtabi\Laranail\PackageTools\Events\SeedingStarted  (once, before any run)
-|   Simtabi\Laranail\PackageTools\Events\SeedingFinished (once, with success/failure counts)
+|   Simtabi\Laranail\Package\Tools\Events\SeedingStarted  (once, before any run)
+|   Simtabi\Laranail\Package\Tools\Events\SeedingFinished (once, with success/failure counts)
 |
 | To discover seeders by directory instead of listing them, use:
 |   ->discoverPackageSeedersIn(__DIR__, namespace: 'Acme\\Hello\\Database\\Seeders')

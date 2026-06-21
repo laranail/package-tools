@@ -2,7 +2,7 @@
 
 Opinionated Testbench base class for testing a package in isolation.
 
-`Simtabi\Laranail\PackageTools\Testing\IsolatedTestCase` is an
+`Simtabi\Laranail\Package\Tools\Testing\IsolatedTestCase` is an
 opinionated Testbench wrapper for package test suites:
 `abstract class IsolatedTestCase extends Orchestra\Testbench\TestCase`.
 
@@ -27,7 +27,7 @@ consumers state the entry point explicitly by overriding
 `getPackageProviders($app)`:
 
 ```php
-use Simtabi\Laranail\PackageTools\Testing\IsolatedTestCase;
+use Simtabi\Laranail\Package\Tools\Testing\IsolatedTestCase;
 
 final class FooFeatureTest extends IsolatedTestCase
 {
@@ -63,7 +63,7 @@ command registration:
 ```php
 use Acme\Hello\HelloPackageServiceProvider;
 use Illuminate\Support\Facades\Artisan;
-use Simtabi\Laranail\PackageTools\Testing\IsolatedTestCase;
+use Simtabi\Laranail\Package\Tools\Testing\IsolatedTestCase;
 
 final class HelloPackageTest extends IsolatedTestCase
 {

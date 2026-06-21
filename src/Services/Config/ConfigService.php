@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Config;
+namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
-use Simtabi\Laranail\PackageTools\Contracts\ServiceInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\ServiceInterface;
 
 /**
  * Merges, sets, gets, and forgets configuration values.

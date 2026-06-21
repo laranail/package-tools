@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Commands;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Commands;
 
 use Symfony\Component\Console\Helper\ProgressBar;
 

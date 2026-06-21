@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests;
+namespace Simtabi\Laranail\Package\Tools\Tests;
 
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use Orchestra\Testbench\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
  * PackageTestCase - Base test case for testing packages built with Laranail Packager

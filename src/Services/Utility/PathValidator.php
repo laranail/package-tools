@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Utility;
+namespace Simtabi\Laranail\Package\Tools\Services\Utility;
 
-use Simtabi\Laranail\PackageTools\Contracts\ValidatorInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\ValidatorInterface;
 
 /**
  * Validates paths for security and cross-platform compatibility.

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\View;
+namespace Simtabi\Laranail\Package\Tools\Services\View;
 
 use Closure;
 use Illuminate\Support\Facades\View;
-use Simtabi\Laranail\PackageTools\Contracts\RegistryInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
 
 /**
  * Registers view composers for data injection.

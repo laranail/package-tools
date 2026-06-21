@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider;
+namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
 trait ProcessAssets
 {

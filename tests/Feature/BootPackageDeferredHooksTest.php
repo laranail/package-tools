@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Feature;
+namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Closure;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Event;
 use Orchestra\Testbench\TestCase;
 use Override;
 use ReflectionClass;
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
  * Locks in the regression fix for the audit-identified gap:

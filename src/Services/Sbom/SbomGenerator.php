@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Sbom;
+namespace Simtabi\Laranail\Package\Tools\Services\Sbom;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Utility;
+namespace Simtabi\Laranail\Package\Tools\Services\Utility;
 
-use Simtabi\Laranail\PackageTools\Contracts\ResolverInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\ResolverInterface;
 
 /**
  * Resolves and transforms namespaces between formats.

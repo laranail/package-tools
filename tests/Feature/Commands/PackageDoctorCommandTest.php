@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Feature\Commands;
+namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
 use Illuminate\Support\Facades\Artisan;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Providers\LaranailToolsServiceProvider;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorCheck;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorResult;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
 
 final class PackageDoctorCommandTest extends TestCase
 {
     protected function getPackageProviders($app): array
     {
-        return [LaranailToolsServiceProvider::class];
+        return [PackageToolsServiceProvider::class];
     }
 
     public function test_doctor_passes_when_no_checks_registered(): void

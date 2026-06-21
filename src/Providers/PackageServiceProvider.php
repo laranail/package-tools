@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Providers;
+namespace Simtabi\Laranail\Package\Tools\Providers;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
@@ -10,24 +10,24 @@ use Illuminate\Support\Str;
 use Override;
 use ReflectionClass;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\LoadsHelpers;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessAssets;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessBladeComponents;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessBladeDirectives;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessCommands;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessConfigs;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessInertia;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessLivewireComponents;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessMigrations;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessRoutes;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessServiceProviders;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessTranslations;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessViewComposers;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessViews;
-use Simtabi\Laranail\PackageTools\Concerns\PackageServiceProvider\ProcessViewSharedData;
-use Simtabi\Laranail\PackageTools\Exceptions\InvalidPackage;
-use Simtabi\Laranail\PackageTools\Exceptions\InvalidPath;
-use Simtabi\Laranail\PackageTools\Package;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\LoadsHelpers;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessAssets;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessBladeComponents;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessBladeDirectives;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessCommands;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessConfigs;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessInertia;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLivewireComponents;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessMigrations;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessRoutes;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessServiceProviders;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessTranslations;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViewComposers;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViews;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViewSharedData;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Simtabi\Laranail\Package\Tools\Package;
 
 /**
  * Base service provider for Laravel packages. Manages the package

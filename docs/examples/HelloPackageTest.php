@@ -23,7 +23,7 @@ namespace Acme\Hello\Tests;
 use Acme\Hello\HelloPackageServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Schema;
-use Simtabi\Laranail\PackageTools\Testing\IsolatedTestCase;
+use Simtabi\Laranail\Package\Tools\Testing\IsolatedTestCase;
 
 final class HelloPackageTest extends IsolatedTestCase
 {

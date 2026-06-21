@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Sbom;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Sbom;
 
 use Orchestra\Testbench\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Services\Sbom\SbomGenerator;
+use Simtabi\Laranail\Package\Tools\Services\Sbom\SbomGenerator;
 
 final class SbomGeneratorTest extends TestCase
 {

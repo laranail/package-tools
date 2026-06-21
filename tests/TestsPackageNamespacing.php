@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests;
+namespace Simtabi\Laranail\Package\Tools\Tests;
 
 /**
  * TestsPackageNamespacing - Trait for testing package namespace functionality

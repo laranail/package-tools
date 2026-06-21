@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\ValueObjects\SeederExecutionStats;
+use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 
 final class SeederExecutionStatsTest extends TestCase
 {

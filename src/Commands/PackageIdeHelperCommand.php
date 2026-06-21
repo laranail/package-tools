@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Commands;
+namespace Simtabi\Laranail\Package\Tools\Commands;
 
 use Illuminate\Support\Str;
-use Simtabi\Laranail\PackageTools\Services\Facade\FacadeAutoGenerator;
+use Simtabi\Laranail\Package\Tools\Services\Facade\FacadeAutoGenerator;
 use Throwable;
 
 /**

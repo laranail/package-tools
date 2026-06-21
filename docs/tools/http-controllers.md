@@ -3,7 +3,7 @@
 Optional abstract base controllers for package HTTP and JSON endpoints.
 
 Two optional abstract base controllers for package controllers, under
-`Simtabi\Laranail\PackageTools\Http\Controllers\`. They are plain base
+`Simtabi\Laranail\Package\Tools\Http\Controllers\`. They are plain base
 classes — extend them in a package's own controllers; nothing
 auto-registers them.
 
@@ -20,7 +20,7 @@ first line:
 - `Illuminate\Foundation\Validation\ValidatesRequests`
 
 ```php
-use Simtabi\Laranail\PackageTools\Http\Controllers\WebController;
+use Simtabi\Laranail\Package\Tools\Http\Controllers\WebController;
 
 class WidgetController extends WebController
 {
@@ -59,7 +59,7 @@ you call `respondWithError()` directly, set the status code first (via
 `setStatusCode()`) so you don't send a `200`-with-error response.
 
 ```php
-use Simtabi\Laranail\PackageTools\Http\Controllers\ApiController;
+use Simtabi\Laranail\Package\Tools\Http\Controllers\ApiController;
 use Illuminate\Http\JsonResponse;
 
 class WidgetApiController extends ApiController

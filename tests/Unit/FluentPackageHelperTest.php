@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use InvalidArgumentException;
-use Simtabi\Laranail\PackageTools\Support\FluentPackageHelper;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\FluentPackageHelper;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 class FluentPackageHelperTest extends TestCase
 {

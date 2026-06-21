@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Support\Concerns;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support\Concerns;
 
-use Simtabi\Laranail\PackageTools\Services\Http\Contracts\HttpConfigurationServiceInterface;
-use Simtabi\Laranail\PackageTools\Services\Http\HttpConfigurationService;
-use Simtabi\Laranail\PackageTools\Support\Concerns\HasGuzzleConfig;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\Http\HttpConfigurationService;
+use Simtabi\Laranail\Package\Tools\Support\Concerns\HasGuzzleConfig;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class HasGuzzleConfigTest extends TestCase
 {

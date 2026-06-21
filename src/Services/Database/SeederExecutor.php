@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Database;
+namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Exception;
 use Illuminate\Contracts\Foundation\Application;
@@ -10,15 +10,15 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use ReflectionClass;
-use Simtabi\Laranail\PackageTools\Events\SeederExecuted;
-use Simtabi\Laranail\PackageTools\Events\SeederExecuting;
-use Simtabi\Laranail\PackageTools\Events\SeederFailed;
-use Simtabi\Laranail\PackageTools\Events\SeedingFinished;
-use Simtabi\Laranail\PackageTools\Events\SeedingStarted;
-use Simtabi\Laranail\PackageTools\Exceptions\SeederException;
-use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleFormatterInterface;
-use Simtabi\Laranail\PackageTools\Support\ForeignKeyCheckGuard;
-use Simtabi\Laranail\PackageTools\ValueObjects\SeederExecutionStats;
+use Simtabi\Laranail\Package\Tools\Events\SeederExecuted;
+use Simtabi\Laranail\Package\Tools\Events\SeederExecuting;
+use Simtabi\Laranail\Package\Tools\Events\SeederFailed;
+use Simtabi\Laranail\Package\Tools\Events\SeedingFinished;
+use Simtabi\Laranail\Package\Tools\Events\SeedingStarted;
+use Simtabi\Laranail\Package\Tools\Exceptions\SeederException;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
+use Simtabi\Laranail\Package\Tools\Support\ForeignKeyCheckGuard;
+use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 use Throwable;
 
 /**

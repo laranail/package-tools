@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services;
 
 use Illuminate\Contracts\Http\Kernel;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\PackageTools\Services\Asset\AssetRegistry;
-use Simtabi\Laranail\PackageTools\Services\Component\ComponentRegistry;
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigFileResolver;
-use Simtabi\Laranail\PackageTools\Services\Event\MiddlewareRegistry;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Services\Asset\AssetRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Component\ComponentRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
+use Simtabi\Laranail\Package\Tools\Services\Event\MiddlewareRegistry;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * Regression tests for the call-site corrections that were previously masked

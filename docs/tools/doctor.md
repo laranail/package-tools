@@ -1,7 +1,7 @@
 # laranail::package-tools.doctor
 
 Health-check runner. Runs every registered `DoctorCheck` against the
-singleton `Simtabi\Laranail\PackageTools\Services\Doctor\DoctorService`
+singleton `Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService`
 and prints a status report. Exits non-zero when any check returned `FAIL`
 (or, with `--strict`, when any returned `WARN`).
 
@@ -59,7 +59,7 @@ implement `DoctorCheck` throws `InvalidArgumentException`.
 
 ## The `DoctorCheck` contract
 
-`Simtabi\Laranail\PackageTools\Services\Doctor\DoctorCheck`:
+`Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck`:
 
 ```php
 interface DoctorCheck
@@ -76,7 +76,7 @@ carries the `exception` class, `file`, and `line`.
 
 ## Result and status model
 
-`Simtabi\Laranail\PackageTools\Services\Doctor\DoctorResult` is a
+`Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult` is a
 readonly value object:
 
 ```php
@@ -96,7 +96,7 @@ Construct it with the named factories:
 structured context; the TTY view renders each entry indented under the
 check, the JSON view emits it verbatim.
 
-`Simtabi\Laranail\PackageTools\Services\Doctor\DoctorStatus` is a
+`Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorStatus` is a
 backed enum:
 
 | Case | Value | Symbol | Colour |
@@ -111,8 +111,8 @@ backed enum:
 ## Example check
 
 ```php
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorCheck;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorResult;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
 
 final class ConfigPublishedCheck implements DoctorCheck
 {

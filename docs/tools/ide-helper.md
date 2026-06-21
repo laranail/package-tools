@@ -4,7 +4,7 @@ Facade generator. Walks classes annotated with `#[AsFacade]` under a source dire
 emits a Laravel `Facade` subclass per contract — with `@method`
 docblocks generated from the contract's public methods so IDEs can
 autocomplete the static surface. Backed by
-`Simtabi\Laranail\PackageTools\Services\Facade\FacadeAutoGenerator`.
+`Simtabi\Laranail\Package\Tools\Services\Facade\FacadeAutoGenerator`.
 
 ```bash
 php artisan laranail::package-tools.ide-helper \
@@ -29,7 +29,7 @@ reported and the command exits `FAILURE`.
 
 ## The `#[AsFacade]` attribute
 
-`Simtabi\Laranail\PackageTools\Attributes\AsFacade`
+`Simtabi\Laranail\Package\Tools\Attributes\AsFacade`
 (`#[Attribute(Attribute::TARGET_CLASS)]`):
 
 ```php
@@ -48,7 +48,7 @@ final readonly class AsFacade
   When omitted, it defaults to the annotated class's own FQCN.
 
 ```php
-use Simtabi\Laranail\PackageTools\Attributes\AsFacade;
+use Simtabi\Laranail\Package\Tools\Attributes\AsFacade;
 
 #[AsFacade(alias: 'Greeter')]
 interface GreeterContract

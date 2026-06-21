@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Component;
+namespace Simtabi\Laranail\Package\Tools\Services\Component;
 
 use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
-use Simtabi\Laranail\PackageTools\Contracts\RegistryInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
 
 /**
  * Registers Blade, Livewire, and Vue components.

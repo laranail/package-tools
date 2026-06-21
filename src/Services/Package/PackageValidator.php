@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Package;
+namespace Simtabi\Laranail\Package\Tools\Services\Package;
 
 use Illuminate\Contracts\Validation\Validator as LaravelValidator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
-use Simtabi\Laranail\PackageTools\Contracts\ValidatorInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\ValidatorInterface;
 
 /**
  * Validates package structure, naming, and configuration.

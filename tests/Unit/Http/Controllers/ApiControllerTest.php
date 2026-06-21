@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Http\Controllers;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
-use Simtabi\Laranail\PackageTools\Http\Controllers\ApiController;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Http\Controllers\ApiController;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class ApiControllerTest extends TestCase
 {

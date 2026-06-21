@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Http;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Http;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Http\HttpConfigurationService;
+use Simtabi\Laranail\Package\Tools\Services\Http\HttpConfigurationService;
 
 final class HttpConfigurationServiceTest extends TestCase
 {

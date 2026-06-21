@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Asset;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Asset;
 
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Asset\AssetValidator;
+use Simtabi\Laranail\Package\Tools\Services\Asset\AssetValidator;
 
 final class AssetValidatorTest extends TestCase
 {

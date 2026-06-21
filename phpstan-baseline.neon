@@ -1,43 +1,43 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Commands\\HasProgressBar is used zero times and is not analysed\.$#'
+			message: '#^Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Commands\\HasProgressBar is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: src/Concerns/Commands/HasProgressBar.php
 
 		-
-			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasAssetGroups is used zero times and is not analysed\.$#'
+			message: '#^Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\HasAssetGroups is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: src/Concerns/Package/HasAssetGroups.php
 
 		-
-			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasCachedNamespaces is used zero times and is not analysed\.$#'
+			message: '#^Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\HasCachedNamespaces is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: src/Concerns/Package/HasCachedNamespaces.php
 
 		-
-			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasEventSystem is used zero times and is not analysed\.$#'
+			message: '#^Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\HasEventSystem is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: src/Concerns/Package/HasEventSystem.php
 
 		-
-			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasModuleAssets is used zero times and is not analysed\.$#'
+			message: '#^Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\HasModuleAssets is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: src/Concerns/Package/HasModuleAssets.php
 
 		-
-			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\HasViewComposerRegistry is used zero times and is not analysed\.$#'
+			message: '#^Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\HasViewComposerRegistry is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: src/Concerns/Package/HasViewComposerRegistry.php
 
 		-
-			message: '#^Trait Simtabi\\Laranail\\PackageTools\\Concerns\\Package\\ManagesComposer is used zero times and is not analysed\.$#'
+			message: '#^Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\ManagesComposer is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
 			path: src/Concerns/Package/ManagesComposer.php
@@ -61,43 +61,43 @@ parameters:
 			path: src/Package.php
 
 		-
-			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''getPath'' will always evaluate to true\.$#'
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\Package\\Tools\\Package\) and ''getPath'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Package.php
 
 		-
-			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''hasCommand'' will always evaluate to true\.$#'
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\Package\\Tools\\Package\) and ''hasCommand'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Package.php
 
 		-
-			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''hasViewComposer'' will always evaluate to true\.$#'
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\Package\\Tools\\Package\) and ''hasViewComposer'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Package.php
 
 		-
-			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''packageBasePath'' will always evaluate to true\.$#'
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\Package\\Tools\\Package\) and ''packageBasePath'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Package.php
 
 		-
-			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''resolveModulePath'' will always evaluate to true\.$#'
+			message: '#^Call to function method_exists\(\) with \$this\(Simtabi\\Laranail\\Package\\Tools\\Package\) and ''resolveModulePath'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Package.php
 
 		-
-			message: '#^Call to function property_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''configVendor'' will always evaluate to true\.$#'
+			message: '#^Call to function property_exists\(\) with \$this\(Simtabi\\Laranail\\Package\\Tools\\Package\) and ''configVendor'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 2
 			path: src/Package.php
 
 		-
-			message: '#^Call to function property_exists\(\) with \$this\(Simtabi\\Laranail\\PackageTools\\Package\) and ''name'' will always evaluate to true\.$#'
+			message: '#^Call to function property_exists\(\) with \$this\(Simtabi\\Laranail\\Package\\Tools\\Package\) and ''name'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Package.php
@@ -109,13 +109,13 @@ parameters:
 			path: src/Package.php
 
 		-
-			message: '#^Call to function method_exists\(\) with Simtabi\\Laranail\\PackageTools\\Package and ''getNamespacedPublis…'' will always evaluate to true\.$#'
+			message: '#^Call to function method_exists\(\) with Simtabi\\Laranail\\Package\\Tools\\Package and ''getNamespacedPublis…'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 7
 			path: src/Providers/PackageServiceProvider.php
 
 		-
-			message: '#^Call to function method_exists\(\) with Simtabi\\Laranail\\PackageTools\\Package and ''translationNamespace'' will always evaluate to true\.$#'
+			message: '#^Call to function method_exists\(\) with Simtabi\\Laranail\\Package\\Tools\\Package and ''translationNamespace'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Providers/PackageServiceProvider.php

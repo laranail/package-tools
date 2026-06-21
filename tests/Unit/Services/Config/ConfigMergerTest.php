@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Config;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Config;
 
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigMerger;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigMerger;
 
 final class ConfigMergerTest extends TestCase
 {

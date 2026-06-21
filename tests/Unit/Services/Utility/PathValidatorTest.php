@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Utility;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Utility;
 
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Utility\PathValidator;
+use Simtabi\Laranail\Package\Tools\Services\Utility\PathValidator;
 
 final class PathValidatorTest extends TestCase
 {

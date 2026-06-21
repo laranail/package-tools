@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Feature\Commands;
+namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Providers\LaranailToolsServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackageSbomCommandTest extends TestCase
 {
@@ -33,7 +33,7 @@ final class PackageSbomCommandTest extends TestCase
 
     protected function getPackageProviders($app): array
     {
-        return [LaranailToolsServiceProvider::class];
+        return [PackageToolsServiceProvider::class];
     }
 
     public function test_print_emits_cyclonedx_json_to_stdout(): void

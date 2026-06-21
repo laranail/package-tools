@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Config;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Config;
 
 use Illuminate\Contracts\Foundation\Application;
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigService;
-use Simtabi\Laranail\PackageTools\Services\Config\PatternResolver;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigService;
+use Simtabi\Laranail\Package\Tools\Services\Config\PatternResolver;
 
 final class PatternResolverTest extends TestCase
 {

@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Doctor;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Doctor;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorCheck;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorResult;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorService;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorStatus;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorStatus;
 
 final class PassingCheck implements DoctorCheck
 {

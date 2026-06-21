@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Package;
+namespace Simtabi\Laranail\Package\Tools\Services\Package;
 
 use Illuminate\Support\Facades\File;
 

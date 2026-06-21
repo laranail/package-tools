@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services;
 
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\PackageTools\Services\Component\AnonymousComponentLoader;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Services\Component\AnonymousComponentLoader;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * Bug 3: HasEnhancedAnonymousComponents previously called the non-existent

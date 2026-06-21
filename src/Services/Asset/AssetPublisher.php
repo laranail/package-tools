@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Asset;
+namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
 use Closure;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Simtabi\Laranail\PackageTools\Contracts\PublisherInterface;
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigService;
-use Simtabi\Laranail\PackageTools\Services\Config\PatternResolver;
-use Simtabi\Laranail\PackageTools\Support\PathResolver;
+use Simtabi\Laranail\Package\Tools\Contracts\PublisherInterface;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigService;
+use Simtabi\Laranail\Package\Tools\Services\Config\PatternResolver;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 /**
  * Publishes assets from package to application, using configured

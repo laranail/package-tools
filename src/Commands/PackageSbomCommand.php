@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Commands;
+namespace Simtabi\Laranail\Package\Tools\Commands;
 
-use Simtabi\Laranail\PackageTools\Services\Sbom\SbomGenerator;
+use Simtabi\Laranail\Package\Tools\Services\Sbom\SbomGenerator;
 use Throwable;
 
 /**

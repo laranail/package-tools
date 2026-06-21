@@ -7,8 +7,8 @@ consumer extends the abstract `PackageServiceProvider` and describes its
 own package fluently inside `configurePackage(Package $package)`.
 
 ```php
-use Simtabi\Laranail\PackageTools\Package;
-use Simtabi\Laranail\PackageTools\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\PackageServiceProvider;
 
 final class FooServiceProvider extends PackageServiceProvider
 {
@@ -230,7 +230,7 @@ $package->onAfterBoot(function (Package $package) {
 
 `package-tools` reads **no** env vars for its own configuration. The
 only env vars it consults are read by
-`Simtabi\Laranail\PackageTools\Services\Http\HttpConfigurationService`,
+`Simtabi\Laranail\Package\Tools\Services\Http\HttpConfigurationService`,
 which is an opt-in fluent builder for HTTP-client option arrays. Defaults
 are applied when the variable is unset or empty; every value can also be
 set fluently in code (constructor args or setters), which overrides the

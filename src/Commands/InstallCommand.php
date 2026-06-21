@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Commands;
+namespace Simtabi\Laranail\Package\Tools\Commands;
 
 use Illuminate\Console\Command;
-use Simtabi\Laranail\PackageTools\Commands\Concerns\AskToRunMigrations;
-use Simtabi\Laranail\PackageTools\Commands\Concerns\AskToStarRepoOnGitHub;
-use Simtabi\Laranail\PackageTools\Commands\Concerns\PublishesResources;
-use Simtabi\Laranail\PackageTools\Commands\Concerns\SupportsServiceProviderInApp;
-use Simtabi\Laranail\PackageTools\Commands\Concerns\SupportsStartWithEndWith;
-use Simtabi\Laranail\PackageTools\Package;
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\AskToRunMigrations;
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\AskToStarRepoOnGitHub;
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\PublishesResources;
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsServiceProviderInApp;
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsStartWithEndWith;
+use Simtabi\Laranail\Package\Tools\Package;
 
 class InstallCommand extends Command
 {

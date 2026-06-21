@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use Illuminate\Console\OutputStyle;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Simtabi\Laranail\Console\Tools\Support\Capabilities;
-use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleFormatterInterface;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 

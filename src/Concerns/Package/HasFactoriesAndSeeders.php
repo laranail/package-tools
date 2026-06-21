@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederExecutor;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederPathDiscoverer;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
 
 /**
  * Registers factory and seeder paths and boots them with Laravel.

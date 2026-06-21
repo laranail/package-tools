@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Exceptions;
+namespace Simtabi\Laranail\Package\Tools\Exceptions;
 
 use Exception;
 use Throwable;

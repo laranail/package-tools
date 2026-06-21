@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Commands;
+namespace Simtabi\Laranail\Package\Tools\Commands;
 
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorCheck;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorResult;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
 
 /**
  * `php artisan laranail::package-tools.doctor` runs every registered DoctorCheck and

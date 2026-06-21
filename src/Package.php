@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools;
+namespace Simtabi\Laranail\Package\Tools;
 
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresAssets;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresCommands;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresComponents;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresAssets;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresCommands;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComponents;
 // Domain aggregators. Package only `use`s these; each aggregator composes
 // its leaf traits (Has*) from src/Package/Concerns/Package/.
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresComposer;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresConfig;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresDatabase;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresHelpers;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresLifecycle;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresMiddleware;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresRoutes;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresServiceProviders;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresTranslations;
-use Simtabi\Laranail\PackageTools\Concerns\Package\ConfiguresViews;
-use Simtabi\Laranail\PackageTools\Exceptions\InvalidPackage;
-use Simtabi\Laranail\PackageTools\Exceptions\InvalidPath;
-use Simtabi\Laranail\PackageTools\Support\PathResolver;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComposer;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresConfig;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresDatabase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresHelpers;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresLifecycle;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresMiddleware;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresRoutes;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresServiceProviders;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresTranslations;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresViews;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 class Package
 {

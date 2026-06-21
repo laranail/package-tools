@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Event;
+namespace Simtabi\Laranail\Package\Tools\Services\Event;
 
 use Illuminate\Contracts\Http\Kernel;
-use Simtabi\Laranail\PackageTools\Contracts\RegistryInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
 
 /**
  * Registers middleware and middleware groups.

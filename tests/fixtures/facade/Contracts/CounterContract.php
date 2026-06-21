@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Fixtures\Facade\Contracts;
+namespace Simtabi\Laranail\Package\Tools\Tests\Fixtures\Facade\Contracts;
 
-use Simtabi\Laranail\PackageTools\Attributes\AsFacade;
+use Simtabi\Laranail\Package\Tools\Attributes\AsFacade;
 
 #[AsFacade(alias: 'Counter', accessor: 'counter.service')]
 interface CounterContract

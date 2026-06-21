@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\System;
+namespace Simtabi\Laranail\Package\Tools\Services\System;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Services\System\Contracts\SystemServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
 
 /**
  * Read-only inspector for the host PHP / Laravel / server context.

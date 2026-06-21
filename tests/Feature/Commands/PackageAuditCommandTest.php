@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Feature\Commands;
+namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Providers\LaranailToolsServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackageAuditCommandTest extends TestCase
 {
@@ -33,7 +33,7 @@ final class PackageAuditCommandTest extends TestCase
 
     protected function getPackageProviders($app): array
     {
-        return [LaranailToolsServiceProvider::class];
+        return [PackageToolsServiceProvider::class];
     }
 
     public function test_returns_zero_when_no_advisories(): void

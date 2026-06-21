@@ -18,7 +18,7 @@ and describes itself through the fluent `Package` builder.
 
 ### 1. Package class
 
-`Simtabi\Laranail\PackageTools\Package` is the central builder. It
+`Simtabi\Laranail\Package\Tools\Package` is the central builder. It
 aggregates package configuration through 13 domain aggregator traits
 under `src/Concerns/Package/`: `ConfiguresConfig`,
 `ConfiguresViews`, `ConfiguresAssets`, `ConfiguresRoutes`,
@@ -67,7 +67,7 @@ Traits compose package functionality:
 
 ### 4. Base command and namespaced names
 
-`Simtabi\Laranail\PackageTools\Commands\Command` is an abstract base
+`Simtabi\Laranail\Package\Tools\Commands\Command` is an abstract base
 extending `Illuminate\Console\Command`. It mixes in
 `Commands\Concerns\SupportsNamespacedNames`, the trait that lets a
 command name use the laranail `::` separator

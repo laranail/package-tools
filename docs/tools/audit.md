@@ -4,7 +4,7 @@ Vulnerability audit. Posts every `name@version` pair from `composer.lock` to OSV
 [`/v1/querybatch`](https://google.github.io/osv.dev/post-v1-querybatch/)
 endpoint and surfaces the advisories returned. Exits non-zero when at
 least one package is affected. Backed by
-`Simtabi\Laranail\PackageTools\Services\Audit\OsvAuditService`.
+`Simtabi\Laranail\Package\Tools\Services\Audit\OsvAuditService`.
 
 ```bash
 php artisan laranail::package-tools.audit [--no-dev] [--json] [--timeout=30]

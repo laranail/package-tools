@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Support\Concerns;
+namespace Simtabi\Laranail\Package\Tools\Support\Concerns;
 
-use Simtabi\Laranail\PackageTools\Services\Http\Contracts\HttpConfigurationServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
 
 /**
  * Thin accessor trait that yields the singleton HTTP configuration
@@ -14,7 +14,7 @@ use Simtabi\Laranail\PackageTools\Services\Http\Contracts\HttpConfigurationServi
  *
  * Usage:
  *
- *     use Simtabi\Laranail\PackageTools\Support\Concerns\HasGuzzleConfig;
+ *     use Simtabi\Laranail\Package\Tools\Support\Concerns\HasGuzzleConfig;
  *
  *     final class FetchUsersJob {
  *         use HasGuzzleConfig;

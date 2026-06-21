@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Simtabi\Laranail\PackageTools\Commands\InstallCommand;
+use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
 
 trait HasInstallCommand
 {

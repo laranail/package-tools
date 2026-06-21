@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Http\Controllers;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Http\Controllers;
 
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use ReflectionClass;
-use Simtabi\Laranail\PackageTools\Http\Controllers\WebController;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Http\Controllers\WebController;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class WebControllerTest extends TestCase
 {

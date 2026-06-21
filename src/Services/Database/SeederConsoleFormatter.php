@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Database;
+namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Exception;
 use Illuminate\Console\OutputStyle;
@@ -11,7 +11,7 @@ use Simtabi\Laranail\Console\Tools\Formatting\ConsoleUIFormatter;
 use Simtabi\Laranail\Console\Tools\Support\Capabilities;
 use Simtabi\Laranail\Console\Tools\Support\Symbols;
 use Simtabi\Laranail\Console\Tools\Widgets\Header;
-use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleFormatterInterface;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 
 /**
  * Seeder Console Formatter

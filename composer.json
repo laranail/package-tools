@@ -52,12 +52,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Simtabi\\Laranail\\PackageTools\\": "src/"
+      "Simtabi\\Laranail\\Package\\Tools\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Simtabi\\Laranail\\PackageTools\\Tests\\": "tests/"
+      "Simtabi\\Laranail\\Package\\Tools\\Tests\\": "tests/"
     },
     "classmap": [
       "tests/fixtures/"
@@ -85,14 +85,14 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-main": "0.3.x-dev"
+      "dev-main": "0.4.x-dev"
     },
     "laravel": {
       "providers": [
-        "Simtabi\\Laranail\\PackageTools\\Providers\\LaranailToolsServiceProvider"
+        "Simtabi\\Laranail\\Package\\Tools\\Providers\\PackageToolsServiceProvider"
       ],
       "aliases": {
-        "PackageSeeder": "Simtabi\\Laranail\\PackageTools\\Facades\\PackageSeeder"
+        "PackageSeeder": "Simtabi\\Laranail\\Package\\Tools\\Facades\\PackageSeeder"
       }
     }
   },

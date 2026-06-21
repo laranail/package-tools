@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Event;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Event;
 
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\Event\EventRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Event\EventRegistry;
 
 final class FakeSubscriber
 {

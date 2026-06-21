@@ -17,7 +17,7 @@ namespace Acme\Hello\Http;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Simtabi\Laranail\PackageTools\Http\Controllers\ApiController;
+use Simtabi\Laranail\Package\Tools\Http\Controllers\ApiController;
 
 final class WidgetApiController extends ApiController
 {

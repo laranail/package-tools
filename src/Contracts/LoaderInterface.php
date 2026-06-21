@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Contracts;
+namespace Simtabi\Laranail\Package\Tools\Contracts;
 
 /**
  * Loads resources such as components, helpers, and translations.

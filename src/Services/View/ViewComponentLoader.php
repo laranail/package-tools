@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\View;
+namespace Simtabi\Laranail\Package\Tools\Services\View;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Contracts\LoaderInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\LoaderInterface;
 
 /**
  * Loads and registers view components.

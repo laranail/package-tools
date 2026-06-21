@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Contracts;
+namespace Simtabi\Laranail\Package\Tools\Contracts;
 
 /**
  * Tracks registered items such as components, events, and middleware.

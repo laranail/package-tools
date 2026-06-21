@@ -25,13 +25,13 @@ command named `laranail::package-tools.doctor` would never register.
 
 ## The base command
 
-`Simtabi\Laranail\PackageTools\Commands\Command` is an abstract base that
+`Simtabi\Laranail\Package\Tools\Commands\Command` is an abstract base that
 extends `Illuminate\Console\Command` and mixes in the
 `SupportsNamespacedNames` trait. Extend it instead of Laravel's command
 to opt in:
 
 ```php
-use Simtabi\Laranail\PackageTools\Commands\Command;
+use Simtabi\Laranail\Package\Tools\Commands\Command;
 
 final class SyncCommand extends Command
 {
@@ -51,13 +51,13 @@ All four built-in `laranail::package-tools.*` commands extend this base.
 
 ## The trait
 
-`Simtabi\Laranail\PackageTools\Commands\Concerns\SupportsNamespacedNames`
+`Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsNamespacedNames`
 is what the base class mixes in. Use it directly on a command that
 already extends something else:
 
 ```php
 use Illuminate\Console\Command;
-use Simtabi\Laranail\PackageTools\Commands\Concerns\SupportsNamespacedNames;
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsNamespacedNames;
 
 final class SyncCommand extends Command
 {

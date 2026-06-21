@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\Config;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Config;
 
 use Orchestra\Testbench\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\PackageTools\Services\Config\ConfigFileResolver;
-use Simtabi\Laranail\PackageTools\Support\PathResolver;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 final class ConfigFileResolverTest extends TestCase
 {

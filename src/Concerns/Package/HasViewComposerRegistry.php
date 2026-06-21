@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Concerns\Package;
+namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Simtabi\Laranail\PackageTools\Services\View\ViewComposerRegistry;
+use Simtabi\Laranail\Package\Tools\Services\View\ViewComposerRegistry;
 
 /**
  * Registers view composers and creators, with dependency injection support.

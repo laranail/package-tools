@@ -16,7 +16,7 @@ declare(strict_types=1);
 namespace Acme\Hello\Http;
 
 use Illuminate\Contracts\View\View;
-use Simtabi\Laranail\PackageTools\Attributes\AsViewComposer;
+use Simtabi\Laranail\Package\Tools\Attributes\AsViewComposer;
 
 #[AsViewComposer(views: ['hello::widgets.index', 'hello::layouts.app'])]
 final class GreetingComposer

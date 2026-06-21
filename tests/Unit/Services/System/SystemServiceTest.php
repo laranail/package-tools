@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Services\System;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\System;
 
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\PackageTools\Services\System\SystemService;
+use Simtabi\Laranail\Package\Tools\Services\System\SystemService;
 
 final class SystemServiceTest extends TestCase
 {

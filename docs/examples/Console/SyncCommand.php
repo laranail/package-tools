@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 namespace Acme\Hello\Console;
 
-use Simtabi\Laranail\PackageTools\Commands\Command;
+use Simtabi\Laranail\Package\Tools\Commands\Command;
 
 final class SyncCommand extends Command
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Support\ErrorStorage;
+namespace Simtabi\Laranail\Package\Tools\Support\ErrorStorage;
 
 use Illuminate\Support\Arr;
-use Simtabi\Laranail\PackageTools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
 
 /**
  * In-memory key/message error bag. Bind as a scoped instance per

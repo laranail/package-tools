@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Support\Concerns;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support\Concerns;
 
-use Simtabi\Laranail\PackageTools\Support\Concerns\HasErrorStorage;
-use Simtabi\Laranail\PackageTools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
-use Simtabi\Laranail\PackageTools\Support\ErrorStorage\ErrorStorageService;
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\Concerns\HasErrorStorage;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class HasErrorStorageTest extends TestCase
 {

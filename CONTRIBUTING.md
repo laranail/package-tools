@@ -51,7 +51,7 @@ Examples: `laranail::package-tools.doctor`, `laranail::package-tools.sbom`,
 `laranail::package-scaffolder.new`.
 
 Symfony Console's `Command::validateName()` rejects `::` by default. Extend
-`Simtabi\Laranail\PackageTools\Commands\Command` (or `use` the
+`Simtabi\Laranail\Package\Tools\Commands\Command` (or `use` the
 `Commands\Concerns\SupportsNamespacedNames` trait) on your command — it writes
 the name past that check, so both `::` and `:` are accepted and the command
 still dispatches. The four built-in commands use this base.

@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Providers;
+namespace Simtabi\Laranail\Package\Tools\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Override;
-use Simtabi\Laranail\PackageTools\Commands\PackageAuditCommand;
-use Simtabi\Laranail\PackageTools\Commands\PackageDoctorCommand;
-use Simtabi\Laranail\PackageTools\Commands\PackageIdeHelperCommand;
-use Simtabi\Laranail\PackageTools\Commands\PackageSbomCommand;
-use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleFormatterInterface;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederBuilder;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederConsoleFormatter;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederExecutor;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederManager;
-use Simtabi\Laranail\PackageTools\Services\Database\SeederRegistry;
-use Simtabi\Laranail\PackageTools\Services\Doctor\DoctorService;
-use Simtabi\Laranail\PackageTools\Services\Http\Contracts\HttpConfigurationServiceInterface;
-use Simtabi\Laranail\PackageTools\Services\Http\HttpConfigurationService;
-use Simtabi\Laranail\PackageTools\Services\System\Contracts\SystemServiceInterface;
-use Simtabi\Laranail\PackageTools\Services\System\SystemService;
-use Simtabi\Laranail\PackageTools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
-use Simtabi\Laranail\PackageTools\Support\ErrorStorage\ErrorStorageService;
+use Simtabi\Laranail\Package\Tools\Commands\PackageAuditCommand;
+use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
+use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
+use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederBuilder;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\Http\HttpConfigurationService;
+use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\System\SystemService;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
 
 /**
  * Auto-registers the four library-level Artisan commands plus the three
@@ -35,7 +35,7 @@ use Simtabi\Laranail\PackageTools\Support\ErrorStorage\ErrorStorageService;
  * `$package->hasDoctorCheck(...)`). The other three commands are
  * self-contained and act on the host project.
  */
-final class LaranailToolsServiceProvider extends ServiceProvider
+final class PackageToolsServiceProvider extends ServiceProvider
 {
     #[Override]
     public function register(): void

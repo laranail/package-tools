@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Database;
+namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Illuminate\Database\Seeder;
 

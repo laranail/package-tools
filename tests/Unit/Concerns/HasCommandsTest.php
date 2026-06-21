@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Tests\Unit\Concerns;
+namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\PackageTools\Package;
+use Simtabi\Laranail\Package\Tools\Package;
 
 /**
  * Tests for HasCommands concern

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Config;
+namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\PackageTools\Contracts\ResolverInterface;
-use Simtabi\Laranail\PackageTools\Support\PathResolver;
+use Simtabi\Laranail\Package\Tools\Contracts\ResolverInterface;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 /**
  * Resolves configuration file paths, including nested configs.

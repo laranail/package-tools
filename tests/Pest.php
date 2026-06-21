@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Simtabi\Laranail\PackageTools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /*
 |--------------------------------------------------------------------------

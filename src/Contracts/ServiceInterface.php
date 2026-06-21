@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Contracts;
+namespace Simtabi\Laranail\Package\Tools\Contracts;
 
 /**
  * Base contract implemented by all service classes.

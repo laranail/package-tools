@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Simtabi\Laranail\PackageTools\Services\Component;
+namespace Simtabi\Laranail\Package\Tools\Services\Component;
 
 use ReflectionClass;
 use ReflectionException;
-use Simtabi\Laranail\PackageTools\Contracts\ValidatorInterface;
+use Simtabi\Laranail\Package\Tools\Contracts\ValidatorInterface;
 
 /**
  * Validates component classes and configurations.
