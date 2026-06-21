@@ -8,6 +8,8 @@ use Exception;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Support\Str;
 use Simtabi\Laranail\Console\Tools\Formatting\ConsoleUIFormatter;
+use Simtabi\Laranail\Console\Tools\Support\Capabilities;
+use Simtabi\Laranail\Console\Tools\Support\Symbols;
 use Simtabi\Laranail\Console\Tools\Widgets\Header;
 use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 
@@ -15,11 +17,9 @@ use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleForma
  * Seeder Console Formatter
  *
  * Provides tree-structured console output with status symbols, color coding,
- * and statistics tracking for database seeding operations. Uses
- * laranail/console's ConsoleUIFormatter (and the Header widget) for the
- * low-level styling.
- *
- * SOLID Principle: Single Responsibility - Only handles console output formatting
+ * and statistics tracking for database seeding operations. Glyphs come from
+ * laranail/console's capability-aware Symbols (Unicode, ASCII fallback) and
+ * styling from its ConsoleUIFormatter + Header widget.
  */
 class SeederConsoleFormatter implements SeederConsoleFormatterInterface
 {
@@ -50,24 +50,22 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
     ];
 
     /**
-     * Status glyph + colour used when rendering a per-seeder line.
+     * Per-status {@see Symbols} glyph name + colour for a seeder line.
      *
      * @var array<string, array{symbol: string, color: string}>
      */
     private const array STATUS_STYLES = [
-        'RUNNING' => ['symbol' => '⟳', 'color' => ConsoleUIFormatter::CYAN],
-        'DONE' => ['symbol' => '✓', 'color' => ConsoleUIFormatter::GREEN],
-        'FAILED' => ['symbol' => '✗', 'color' => ConsoleUIFormatter::RED],
-        'SKIPPED' => ['symbol' => '○', 'color' => ConsoleUIFormatter::YELLOW],
+        'RUNNING' => ['symbol' => 'running', 'color' => ConsoleUIFormatter::CYAN],
+        'DONE' => ['symbol' => 'success', 'color' => ConsoleUIFormatter::GREEN],
+        'FAILED' => ['symbol' => 'error', 'color' => ConsoleUIFormatter::RED],
+        'SKIPPED' => ['symbol' => 'skipped', 'color' => ConsoleUIFormatter::YELLOW],
     ];
-
-    private const string TREE_BRANCH = '├─ ';
-
-    private const string TREE_LAST = '└─ ';
 
     private ?OutputStyle $output = null;
 
     private readonly ConsoleUIFormatter $formatter;
+
+    private readonly Symbols $symbols;
 
     private array $statistics = [];
 
@@ -86,6 +84,7 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         $this->displayWidths = array_merge(self::DEFAULT_DISPLAY_WIDTHS, $config['displayWidths'] ?? []);
 
         $this->formatter = ConsoleUIFormatter::create();
+        $this->symbols = Symbols::for(Capabilities::detect());
 
         $this->initializeConfiguration();
         $this->resetStatistics();
@@ -198,11 +197,11 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         string $reason = '',
         string $dotPadding = ' ',
     ): string {
-        $style = self::STATUS_STYLES[$status] ?? ['symbol' => '•', 'color' => ConsoleUIFormatter::GRAY];
-        $branch = $isLast ? self::TREE_LAST : self::TREE_BRANCH;
+        $style = self::STATUS_STYLES[$status] ?? ['symbol' => 'bullet', 'color' => ConsoleUIFormatter::GRAY];
+        $branch = $this->symbols->get($isLast ? 'last' : 'branch') . ' ';
 
         $line = $branch
-            . $this->formatter->colorize($style['symbol'], $style['color'])
+            . $this->formatter->colorize($this->symbols->get($style['symbol']), $style['color'])
             . ' '
             . $seederName;
 
@@ -264,8 +263,10 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         if ($this->statistics['failed'] === 0) {
             $status = $this->formatter->colorize('All seeders completed successfully!', ConsoleUIFormatter::GREEN, true);
         } else {
+            $failed = $this->statistics['failed'];
             $status = $this->formatter->colorize(
-                "Completed with {$this->statistics['failed']} failures out of {$total} seeders",
+                "Completed with {$failed} " . Str::plural('failure', $failed)
+                    . " out of {$total} " . Str::plural('seeder', $total),
                 ConsoleUIFormatter::YELLOW,
                 true
             );
@@ -347,11 +348,9 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         $parts = Str::of($seederClass)->explode('\\');
         $className = (string) $parts->last();
 
-        if (Str::endsWith($className, 'Seeder')) {
-            return Str::substr($className, 0, -7);
-        }
-
-        return $className;
+        // Strip a trailing "Seeder" for display (PostSeeder → Post); returns
+        // the name unchanged when there's no such suffix.
+        return Str::beforeLast($className, 'Seeder') ?: $className;
     }
 
     private function getDotPadding(string $seederName, string $duration): string

@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\PackageTools\Tests\Unit;
 use Illuminate\Console\OutputStyle;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Simtabi\Laranail\Console\Tools\Support\Capabilities;
 use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Simtabi\Laranail\PackageTools\Services\Database\SeederConsoleFormatter;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -14,6 +15,27 @@ use Symfony\Component\Console\Output\BufferedOutput;
 
 final class SeederConsoleFormatterTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        Capabilities::clearFake();
+        parent::tearDown();
+    }
+
+    private function render(SeederConsoleFormatter $formatter, BufferedOutput $buffer): string
+    {
+        $formatter->setOutput(new OutputStyle(new ArrayInput([]), $buffer));
+        $formatter->initializeSession();
+
+        $formatter->displayGroupHeader('Acme\\Blog', 2);
+        $formatter->displaySeederSuccess('Acme\\Blog\\PostSeeder', 0.012);
+        $formatter->displaySeederError('Acme\\Blog\\TagSeeder', new RuntimeException('boom'), 0.003);
+        $formatter->displaySeederSkipped('Acme\\Blog\\UserSeeder', 'already seeded');
+        $formatter->writeInfo('informational message');
+        $formatter->displaySummary();
+
+        return $buffer->fetch();
+    }
+
     public function test_it_implements_the_contract(): void
     {
         $this->assertInstanceOf(SeederConsoleFormatterInterface::class, new SeederConsoleFormatter);
@@ -50,43 +72,52 @@ final class SeederConsoleFormatterTest extends TestCase
 
     public function test_it_renders_meaningful_output_through_the_console_widgets(): void
     {
-        $buffer = new BufferedOutput;
-        $formatter = new SeederConsoleFormatter;
-        $formatter->setOutput(new OutputStyle(new ArrayInput([]), $buffer));
-        $formatter->initializeSession();
+        Capabilities::fake(unicode: true);
 
-        $formatter->displayGroupHeader('Acme\\Blog', 2);
-        $formatter->displaySeederSuccess('Acme\\Blog\\PostSeeder', 0.012);
-        $formatter->displaySeederError('Acme\\Blog\\TagSeeder', new RuntimeException('boom'), 0.003);
-        $formatter->displaySeederSkipped('Acme\\Blog\\UserSeeder', 'already seeded');
-        $formatter->writeInfo('informational message');
-        $formatter->displaySummary();
-
-        $output = $buffer->fetch();
+        $output = $this->render(new SeederConsoleFormatter, new BufferedOutput);
 
         // Header carries the group name and the count + item label.
         $this->assertStringContainsString('Acme\\Blog', $output);
         $this->assertStringContainsString('2 seeders', $output);
 
-        // Per-seeder lines carry the seeder names and status words. Names are
-        // de-suffixed via the class' existing trim logic (drops the trailing
-        // "Seeder" + one extra char), so "PostSeeder" renders as "Pos".
-        $this->assertStringContainsString('Pos', $output);
+        // Per-seeder lines carry the full de-suffixed names and status words.
+        $this->assertStringContainsString('Post', $output);
         $this->assertStringContainsString('DONE', $output);
-        $this->assertStringContainsString('Ta', $output);
+        $this->assertStringContainsString('Tag', $output);
         $this->assertStringContainsString('FAILED', $output);
         $this->assertStringContainsString('boom', $output);
         $this->assertStringContainsString('SKIPPED', $output);
         $this->assertStringContainsString('already seeded', $output);
 
+        // Unicode glyphs + tree branches on a capable terminal.
+        $this->assertStringContainsString('✓', $output);
+        $this->assertStringContainsString('├─', $output);
+
         // Info badge + message.
         $this->assertStringContainsString('INFO', $output);
         $this->assertStringContainsString('informational message', $output);
 
-        // Summary statistics + final status.
+        // Summary statistics + correctly-pluralised final status.
         $this->assertStringContainsString('Successful', $output);
         $this->assertStringContainsString('Failed', $output);
         $this->assertStringContainsString('Skipped', $output);
-        $this->assertStringContainsString('Completed with 1 failures', $output);
+        $this->assertStringContainsString('Completed with 1 failure out of', $output);
+    }
+
+    public function test_it_degrades_to_ascii_glyphs_without_unicode(): void
+    {
+        Capabilities::fake(unicode: false);
+
+        $output = $this->render(new SeederConsoleFormatter, new BufferedOutput);
+
+        // ASCII fallbacks instead of Unicode glyphs/box-drawing.
+        $this->assertStringContainsString('[OK]', $output);
+        $this->assertStringContainsString('|-', $output);
+        $this->assertStringNotContainsString('✓', $output);
+        $this->assertStringNotContainsString('├─', $output);
+
+        // Content still present.
+        $this->assertStringContainsString('Post', $output);
+        $this->assertStringContainsString('DONE', $output);
     }
 }
