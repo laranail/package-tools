@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\Config;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use Simtabi\Laranail\Package\Tools\Contracts\ServiceInterface;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 
 /**
  * Merges, sets, gets, and forgets configuration values.
@@ -71,6 +72,30 @@ class ConfigService implements ServiceInterface
         $merged = array_merge_recursive($existing, $config);
 
         $this->app['config']->set($globalKey, $merged);
+    }
+
+    /**
+     * Load config files from a package directory and RETURN them as raw arrays
+     * keyed by folder-derived dotted key, WITHOUT registering anything in the
+     * config repository. `$baseDir` is treated as a package root: files are read
+     * from `{baseDir}/config/{folder}`, keyed the way the Package builder's
+     * discoversConfig() would mount them (config/admin/panel.php → 'admin.panel').
+     *
+     * Prefer `config('vendor.package.key')` for registered package config; reach
+     * for this only when you need the raw arrays ad-hoc (inspecting/transforming
+     * config files without mounting them). Data is returned as-is (an in-file
+     * `__namespace` key is not processed).
+     *
+     * @param string $baseDir Package root directory (containing a config/ folder)
+     * @param string $folder Subdirectory within config/ ('' = the whole tree)
+     * @param bool $recursive Descend into sub-folders (true) or top level only (false)
+     * @return array<string, array<string, mixed>> Map of dotted key => config array
+     *
+     * @throws InvalidPath If a matched file is unreadable or not an array
+     */
+    public function loadFrom(string $baseDir, string $folder = '', bool $recursive = true): array
+    {
+        return (new ConfigFileResolver($baseDir))->loadAll($folder, $recursive);
     }
 
     /**

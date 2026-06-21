@@ -97,6 +97,40 @@ Package values are **defaults**: each file is merged as
 published copy) overrides the package's. The merge is skipped when the app's
 config is cached (`config:cache`), matching Laravel's `mergeConfigFrom()`.
 
+## Reading config as raw data (without mounting)
+
+Sometimes you want the config **arrays themselves** — to inspect, diff or
+transform them — rather than registering them into `config()`. `loadConfigData()`
+is the read-and-return counterpart of `discoversConfig()`: same folder→key
+mapping, but it returns the data and registers nothing.
+
+```php
+// From inside the package (builder convenience) — reads this package's config/:
+$data = $package->loadConfigData('admin');
+// ['admin.panel' => ['title' => 'Admin', ...], ...]
+
+$all = $package->loadConfigData();          // whole config/ tree, recursive
+$top = $package->loadConfigData('', false); // top level only (non-recursive)
+```
+
+The same is available off the container's `ConfigService` for any package root,
+and on the lower-level `ConfigFileResolver`:
+
+```php
+app(ConfigService::class)->loadFrom('/path/to/package', 'admin');   // {baseDir}/config/admin
+(new ConfigFileResolver($baseDir))->loadAll('admin');               // [key => array]
+(new ConfigFileResolver($baseDir))->load('panel', 'admin');         // single file → array
+```
+
+Notes:
+- Keys match `discoversConfig()` (`config/api/v1/limits.php` → `api.v1.limits`).
+- Data is returned **as-is** — an in-file `__namespace` key is **not** stripped
+  (that is a mount-time concern); nothing lands in the config repository.
+- A missing folder returns `[]`; a matched file that is unreadable or doesn't
+  `return [ ... ]` throws `Exceptions\InvalidPath`.
+- Prefer `config('vendor.package.key')` for normal access — reach for this only
+  when you genuinely need the raw arrays.
+
 ## Publishing
 
 `php artisan vendor:publish --tag=<vendor>::<package>-config` publishes nested

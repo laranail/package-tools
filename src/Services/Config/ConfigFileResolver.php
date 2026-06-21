@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Contracts\ResolverInterface;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 /**
@@ -107,6 +108,98 @@ class ConfigFileResolver implements ResolverInterface
         sort($relatives);
 
         return $relatives;
+    }
+
+    /**
+     * Load a single nested config file and RETURN its array — without
+     * registering it in Laravel's config repository. The read-and-return
+     * counterpart of the Package builder's hasNestedConfig() (which mounts).
+     *
+     * @param string $file Config file name without `.php` (e.g. 'panel')
+     * @param string $folder Subdirectory within config/ (e.g. 'admin', 'api/v1')
+     * @return array<string, mixed> The file's returned array
+     *
+     * @throws InvalidPath If the file is missing/unreadable or does not return an array
+     */
+    public function load(string $file, string $folder = ''): array
+    {
+        return $this->requireArray($this->resolveNested($file, $folder));
+    }
+
+    /**
+     * Load every config file under config/{folder} and RETURN them keyed by the
+     * folder-derived dotted key — the same keys discoversConfig() would mount
+     * them at (config/admin/panel.php → ['admin.panel' => [...]]). Nothing is
+     * registered in the config repository; raw file data is returned as-is (an
+     * in-file `__namespace` key is NOT stripped — that is a mount-time concern).
+     *
+     * Returns [] when the folder does not exist.
+     *
+     * @param string $folder Subdirectory within config/ ('' = the whole tree)
+     * @param bool $recursive Descend into sub-folders (true) or top level only (false)
+     * @return array<string, array<string, mixed>> Map of dotted key => config array
+     *
+     * @throws InvalidPath If any matched file is unreadable or does not return an array
+     */
+    public function loadAll(string $folder = '', bool $recursive = true): array
+    {
+        $relatives = $recursive ? $this->getAllNested($folder) : $this->topLevelFiles($folder);
+
+        $loaded = [];
+
+        foreach ($relatives as $relative) {
+            $relativeNoExt = (string) preg_replace('/\.php$/', '', $relative);
+            $path = PathResolver::normalizePath(
+                PathResolver::joinPaths($this->basePath, 'config', $relative)
+            );
+
+            $loaded[$this->folderToKey($relativeNoExt)] = $this->requireArray($path);
+        }
+
+        return $loaded;
+    }
+
+    /**
+     * List the top-level `.php` files directly under config/{folder} as paths
+     * relative to config/ (mirrors getAllNested()'s shape, one level only).
+     *
+     * @param string $folder Subdirectory within config/
+     * @return array<int, string> Relative file paths, sorted
+     */
+    private function topLevelFiles(string $folder): array
+    {
+        $folder = trim($folder, '/\\');
+
+        $relatives = array_map(
+            static fn (string $name): string => $folder === '' ? $name . '.php' : $folder . '/' . $name . '.php',
+            $this->getAllInDirectory($folder),
+        );
+
+        sort($relatives);
+
+        return $relatives;
+    }
+
+    /**
+     * Require a config file path and assert it returns an array.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws InvalidPath
+     */
+    private function requireArray(string $path): array
+    {
+        if (! File::isFile($path) || ! File::isReadable($path)) {
+            throw InvalidPath::configFileNotReadable($path);
+        }
+
+        $data = require $path;
+
+        if (! is_array($data)) {
+            throw InvalidPath::configFileNotArray($path);
+        }
+
+        return $data;
     }
 
     /**

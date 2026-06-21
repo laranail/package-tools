@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Read-and-return config helpers** — `Package::loadConfigData(folder, recursive)`,
+  `Services\Config\ConfigService::loadFrom(baseDir, folder, recursive)`, and
+  `Services\Config\ConfigFileResolver::load()` / `loadAll()`. The counterpart of
+  `discoversConfig()`: read nested config files and **return** them as
+  `[dottedKey => array]` (same folder→key mapping) without registering anything
+  in the config repository. Raw data (no `__namespace` processing); a missing
+  folder yields `[]`; an unreadable or non-array file throws
+  `Exceptions\InvalidPath`.
+
 ## [0.4.0] - 2026-06-21
 
 ### Changed

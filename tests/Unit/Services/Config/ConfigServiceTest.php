@@ -23,11 +23,28 @@ final class ConfigServiceTest extends TestCase
 
     protected function tearDown(): void
     {
-        foreach (glob($this->tmpRoot . '/*') ?: [] as $file) {
-            @unlink($file);
-        }
-        @rmdir($this->tmpRoot);
+        $this->deleteTree($this->tmpRoot);
         parent::tearDown();
+    }
+
+    private function deleteTree(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+            if ($entry === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $entry;
+            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
+        }
+
+        @rmdir($dir);
     }
 
     private function writeConfig(string $name, array $values): string
@@ -107,5 +124,23 @@ final class ConfigServiceTest extends TestCase
     {
         $this->assertTrue($this->service->isReady());
         $this->assertSame('config', $this->service->getName());
+    }
+
+    public function test_load_from_returns_raw_package_config_keyed_by_folder(): void
+    {
+        $base = $this->tmpRoot . '/pkg';
+        mkdir($base . '/config/admin', 0o755, true);
+        file_put_contents($base . '/config/admin/panel.php', '<?php return ["title" => "Admin"];');
+        file_put_contents($base . '/config/widget.php', '<?php return ["enabled" => true];');
+
+        // Returns raw arrays keyed by folder; nothing is registered in config().
+        $this->assertSame(
+            [
+                'admin.panel' => ['title' => 'Admin'],
+                'widget' => ['enabled' => true],
+            ],
+            $this->service->loadFrom($base),
+        );
+        $this->assertFalse($this->service->has('admin.panel'));
     }
 }

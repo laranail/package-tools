@@ -56,6 +56,7 @@ public surface a consumer calls. Names and signatures are exact.
 | `hasNestedConfigs(array $files, string $folder = '')` | Mount several files from the same sub-folder. |
 | `hasConfigDirectory(string $folder)` | Mount every file directly in a sub-folder (one level). |
 | `discoversConfig(string $namespace = '', string $folder = '')` | Recursively mount the whole config tree by folder path (optional root namespace). |
+| `loadConfigData(string $folder = '', bool $recursive = true)` | Read-and-**return** nested config as `[dottedKey => array]` without registering it (the counterpart of `discoversConfig()`). |
 | `mergeConfigInto(string $sourceKey, string $targetKey, bool $deep = true)` | Merge one config key into another. |
 | `mergeConfigGlobal(string $path, string $globalKey)` / `mergeConfigsGlobal(array $configs)` | Merge package config into a host (global) config key. |
 | `setConfig(string $key, mixed $value)` / `setConfigs(array $values)` / `forgetConfig(string $key)` | Imperative config writes. |

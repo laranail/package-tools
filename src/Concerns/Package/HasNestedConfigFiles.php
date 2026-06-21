@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
 
@@ -101,6 +102,23 @@ trait HasNestedConfigFiles
         }
 
         return $this;
+    }
+
+    /**
+     * Load the package's own nested config files from a folder and RETURN them
+     * as raw arrays keyed by folder-derived dotted key, WITHOUT registering them
+     * in the config repository — the read-and-return counterpart of
+     * discoversConfig(). config/admin/panel.php → ['admin.panel' => [...]].
+     *
+     * @param string $folder Subdirectory within config/ ('' = the whole tree)
+     * @param bool $recursive Descend into sub-folders (true) or top level only (false)
+     * @return array<string, array<string, mixed>> Map of dotted key => config array
+     *
+     * @throws InvalidPath If a matched file is unreadable or not an array
+     */
+    public function loadConfigData(string $folder = '', bool $recursive = true): array
+    {
+        return $this->getConfigFileResolver()->loadAll($folder, $recursive);
     }
 
     /**

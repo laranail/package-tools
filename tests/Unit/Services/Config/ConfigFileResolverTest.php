@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Config;
 
 use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
 use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
@@ -167,5 +168,83 @@ final class ConfigFileResolverTest extends TestCase
         $this->expectException(RuntimeException::class);
 
         $this->resolver->getAllNested('../../etc');
+    }
+
+    public function test_load_returns_a_single_nested_config_array(): void
+    {
+        mkdir($this->basePath . '/config/admin', 0o755, true);
+        file_put_contents($this->basePath . '/config/admin/panel.php', '<?php return ["title" => "Admin"];');
+
+        $this->assertSame(['title' => 'Admin'], $this->resolver->load('panel', 'admin'));
+    }
+
+    public function test_load_throws_when_file_is_missing(): void
+    {
+        $this->expectException(InvalidPath::class);
+
+        $this->resolver->load('nope', 'admin');
+    }
+
+    public function test_load_throws_when_file_does_not_return_an_array(): void
+    {
+        file_put_contents($this->basePath . '/config/scalar.php', '<?php return 42;');
+
+        $this->expectException(InvalidPath::class);
+
+        $this->resolver->load('scalar');
+    }
+
+    public function test_load_all_returns_files_keyed_by_dotted_folder_key(): void
+    {
+        mkdir($this->basePath . '/config/admin', 0o755, true);
+        mkdir($this->basePath . '/config/api/v1', 0o755, true);
+        file_put_contents($this->basePath . '/config/flat.php', '<?php return ["a" => 1];');
+        file_put_contents($this->basePath . '/config/admin/panel.php', '<?php return ["title" => "Admin"];');
+        file_put_contents($this->basePath . '/config/api/v1/limits.php', '<?php return ["rate" => 60];');
+
+        $this->assertSame(
+            [
+                'admin.panel' => ['title' => 'Admin'],
+                'api.v1.limits' => ['rate' => 60],
+                'flat' => ['a' => 1],
+            ],
+            $this->resolver->loadAll(),
+        );
+    }
+
+    public function test_load_all_non_recursive_returns_only_top_level(): void
+    {
+        mkdir($this->basePath . '/config/admin', 0o755, true);
+        file_put_contents($this->basePath . '/config/flat.php', '<?php return ["a" => 1];');
+        file_put_contents($this->basePath . '/config/admin/panel.php', '<?php return ["title" => "Admin"];');
+
+        $this->assertSame(['flat' => ['a' => 1]], $this->resolver->loadAll('', false));
+    }
+
+    public function test_load_all_scopes_to_a_subfolder(): void
+    {
+        mkdir($this->basePath . '/config/api/v1', 0o755, true);
+        file_put_contents($this->basePath . '/config/api/v1/limits.php', '<?php return ["rate" => 60];');
+
+        $this->assertSame(['api.v1.limits' => ['rate' => 60]], $this->resolver->loadAll('api'));
+    }
+
+    public function test_load_all_returns_empty_for_missing_folder(): void
+    {
+        $this->assertSame([], $this->resolver->loadAll('does-not-exist'));
+    }
+
+    public function test_load_all_returns_raw_data_without_processing_namespace_key(): void
+    {
+        mkdir($this->basePath . '/config/custom', 0o755, true);
+        file_put_contents(
+            $this->basePath . '/config/custom/thing.php',
+            '<?php return ["__namespace" => "acme.custom", "enabled" => true];',
+        );
+
+        $this->assertSame(
+            ['custom.thing' => ['__namespace' => 'acme.custom', 'enabled' => true]],
+            $this->resolver->loadAll('custom'),
+        );
     }
 }

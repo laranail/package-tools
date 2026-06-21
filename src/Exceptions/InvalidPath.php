@@ -70,6 +70,32 @@ class InvalidPath extends Exception
     }
 
     /**
+     * Exception when a config file exists in listing but cannot be read.
+     *
+     * @param string $path The unreadable config file path
+     */
+    public static function configFileNotReadable(string $path): static
+    {
+        return new static(
+            "Config file is missing or not readable: '{$path}'. " .
+            'Verify the file exists and its permissions allow reading.'
+        );
+    }
+
+    /**
+     * Exception when a config file does not return an array.
+     *
+     * @param string $path The offending config file path
+     */
+    public static function configFileNotArray(string $path): static
+    {
+        return new static(
+            "Config file did not return an array: '{$path}'. " .
+            'A config file must `return [ ... ];`.'
+        );
+    }
+
+    /**
      * Exception when migration file is missing
      *
      * @param string $migrationFile The missing migration file name
