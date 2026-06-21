@@ -181,6 +181,6 @@ should be resolved through their interfaces — see
   glance.
 - [configuration.md](configuration.md) — the fluent `Package` builder
   these services back.
-- [tools/](tools/) — per-command and per-feature deep dives.
+- [Tools & features](../README.md#documentation) — per-command and per-feature deep dives.
 
 [← Docs index](../README.md#documentation)
