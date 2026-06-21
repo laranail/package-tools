@@ -20,7 +20,7 @@ trait ProcessInertia
         // short name so the value passed downstream is always a string.
         $viewName = $this->packageView($namespace) ?? $this->package->shortName();
         $directoryName = Str::of($viewName)->studly()->remove('-')->value();
-        $vendorComponents = $this->package->basePath('/../resources/js/Pages');
+        $vendorComponents = $this->package->basePath('/resources/js/Pages');
         $appComponents = base_path("resources/js/Pages/{$directoryName}");
 
         if ($this->app->runningInConsole()) {

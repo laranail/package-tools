@@ -244,11 +244,18 @@ abstract class PackageServiceProvider extends ServiceProvider
 
         $packageBaseDir = dirname($fileName);
 
-        // Some packages like to keep Laravels directory structure and place
-        // the service providers in a Providers folder.
-        // move up a level when this is the case.
+        // Some packages like to keep Laravel's directory structure and place
+        // the service providers in a Providers folder. Step up out of it.
         if (Str::endsWith($packageBaseDir, DIRECTORY_SEPARATOR . 'Providers')) {
-            return dirname($packageBaseDir);
+            $packageBaseDir = dirname($packageBaseDir);
+        }
+
+        // When the PHP source lives under a src/ directory, the package root —
+        // where resources/, database/, routes/ and config/ live — is the level
+        // above it. Step up so resource paths resolve against the package root
+        // rather than the source root.
+        if (Str::endsWith($packageBaseDir, DIRECTORY_SEPARATOR . 'src')) {
+            $packageBaseDir = dirname($packageBaseDir);
         }
 
         return $packageBaseDir;

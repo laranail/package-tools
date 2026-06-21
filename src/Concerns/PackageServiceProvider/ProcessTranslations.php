@@ -16,7 +16,7 @@ trait ProcessTranslations
             ? $this->package->translationNamespace()
             : $this->package->shortName();
 
-        $vendorTranslations = $this->package->basePath('/../resources/lang');
+        $vendorTranslations = $this->package->basePath('/resources/lang');
         $appTranslations = (function_exists('lang_path'))
             ? lang_path("vendor/{$translationNamespace}")
             : resource_path("lang/vendor/{$translationNamespace}");

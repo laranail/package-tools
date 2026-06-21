@@ -13,7 +13,7 @@ trait ProcessServiceProviders
         }
 
         $providerName = $this->package->publishableProviderName;
-        $vendorProvider = $this->package->basePath("/../resources/stubs/{$providerName}.php.stub");
+        $vendorProvider = $this->package->basePath("/resources/stubs/{$providerName}.php.stub");
         $appProvider = base_path("app/Providers/{$providerName}.php");
 
         $publishTag = method_exists($this->package, 'getNamespacedPublishTag')

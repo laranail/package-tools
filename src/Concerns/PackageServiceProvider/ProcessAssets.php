@@ -12,7 +12,7 @@ trait ProcessAssets
             return $this;
         }
 
-        $vendorAssets = $this->package->basePath('/../resources/dist');
+        $vendorAssets = $this->package->basePath('/resources/dist');
         $appAssets = public_path("vendor/{$this->package->shortName()}");
 
         $publishTag = method_exists($this->package, 'getNamespacedPublishTag')

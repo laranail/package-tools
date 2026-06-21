@@ -17,7 +17,7 @@ trait ProcessBladeComponents
         }
 
         if ($this->app->runningInConsole()) {
-            $vendorComponents = $this->package->basePath('/Components');
+            $vendorComponents = $this->package->basePath('/src/Components');
             $appComponents = base_path("app/View/Components/vendor/{$this->package->shortName()}");
 
             $publishTag = method_exists($this->package, 'getNamespacedPublishTag')
