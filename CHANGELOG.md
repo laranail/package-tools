@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-06-21
+
+### Fixed
+
+- With config namespacing on, a flat config file now publishes to the
+  namespace-matching nested path (`config/vendor/package.php`) so the published
+  override loads under the same dotted key it was merged into
+  (`config('vendor.package')`). Previously it published to a flat
+  `config/package.php`, which Laravel loaded under the wrong key.
+
 ## [0.3.0] - 2026-06-21
 
 ### Added
