@@ -51,14 +51,20 @@ public surface a consumer calls. Names and signatures are exact.
 
 | Method | Purpose |
 |---|---|
-| `hasConfigFile(string\|array\|null $configFileName = null)` | Register one or more config files for merge + publish. |
-| `hasConfigDirectory(string $folder)` | Register a directory of config files. |
-| `hasNestedConfig(string $fileName, string $folder = '', ?string $key = null)` | Register a config file nested under a folder. |
-| `hasNestedConfigs(array $files, string $folder = '')` | Register multiple nested config files. |
+| `hasConfigFile(string\|array\|null $configFileName = null)` | Register one or more **flat** config files (`config/foo.php` → `config('foo.*')`). |
+| `hasNestedConfig(string $fileName, string $folder = '', ?string $key = null)` | Mount a config file in a sub-folder at a folder-derived dotted key (`config/admin/panel.php` → `config('admin.panel.*')`). |
+| `hasNestedConfigs(array $files, string $folder = '')` | Mount several files from the same sub-folder. |
+| `hasConfigDirectory(string $folder)` | Mount every file directly in a sub-folder (one level). |
+| `discoversConfig(string $namespace = '', string $folder = '')` | Recursively mount the whole config tree by folder path (optional root namespace). |
 | `mergeConfigInto(string $sourceKey, string $targetKey, bool $deep = true)` | Merge one config key into another. |
 | `mergeConfigGlobal(string $path, string $globalKey)` / `mergeConfigsGlobal(array $configs)` | Merge package config into a host (global) config key. |
 | `setConfig(string $key, mixed $value)` / `setConfigs(array $values)` / `forgetConfig(string $key)` | Imperative config writes. |
 | `enableConfigSafeMode()` / `disableConfigSafeMode()` | Toggle safe-mode merging. |
+
+Beyond flat files, config files in sub-folders resolve to dotted keys
+(`config('admin.panel.*')`) and a file may optionally declare its own mount with
+an `__namespace` key — see **[Namespaced & nested config](tools/config-namespacing.md)**
+for the folder→key mapping, precedence, publishing and merge semantics.
 
 ### Views, components & assets
 

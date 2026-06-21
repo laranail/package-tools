@@ -80,6 +80,7 @@ A complete, runnable example lives in
 |---|---|
 | Fluent `Package` builder | Spatie-compatible surface: `name()`, `hasConfigFile()`, `hasViews()`, `hasViewComponents()`, `hasInertiaComponents()`, `hasViewComposer()`, `sharesDataWithAllViews()`, `hasTranslations()`, `hasAssets()`, `hasRoute()`, `hasMigration()`, `runsMigrations()`, `discoversMigrations()`, `hasCommand()`, `hasInstallCommand()`, `publishesServiceProvider()`. |
 | Attribute discovery | `discoversWithAttributes()` scans `src/` for `#[AsArtisanCommand]`, `#[AsRoute]`, and `#[AsViewComposer]` and registers them for you. |
+| Namespaced config | `hasNestedConfig()` / `discoversConfig()` mount config sub-folders at dotted keys (`config/admin/panel.php` → `config('admin.panel.*')`), with an optional in-file `__namespace`. See [config-namespacing](docs/tools/config-namespacing.md). |
 | Artisan commands | `laranail::package-tools.doctor`, `.sbom`, `.audit`, `.ide-helper` (see below). |
 | HTTP controllers | Optional `WebController` / `ApiController` base classes for package routes. |
 | Testing harness | `Testing\IsolatedTestCase` — Testbench wrapper with in-memory SQLite, sync queue, and schema/command assertions. |
@@ -144,6 +145,7 @@ The same pages live under [`docs/`](docs/):
 - [package-tools.audit](docs/tools/audit.md) — OSV.dev advisory scan
 - [package-tools.ide-helper](docs/tools/ide-helper.md) — Facade generation from `#[AsFacade]`
 - [Attribute discovery](docs/tools/attribute-discovery.md) — `#[AsArtisanCommand]`, `#[AsRoute]`, `#[AsViewComposer]`
+- [Namespaced config](docs/tools/config-namespacing.md) — folder-tree config keys (`config('admin.panel.*')`) + the optional `__namespace`
 - [Command naming](docs/tools/command-naming.md) — the `laranail::<slug>.<command>` separator, the base `Command`, and `SupportsNamespacedNames`
 - [HTTP controllers](docs/tools/http-controllers.md) — `WebController` and `ApiController`
 - [IsolatedTestCase](docs/tools/isolated-testcase.md) — the testing harness

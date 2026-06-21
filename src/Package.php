@@ -47,6 +47,13 @@ class Package
     /** @var string Config directory path relative to package root */
     public const string CONFIG_DIR = 'config';
 
+    /**
+     * Reserved key a nested config file may declare to mount itself at an
+     * explicit dotted namespace (optional). Stripped before merge, so it
+     * never leaks into resolved config. E.g. `'__namespace' => 'acme.blog'`.
+     */
+    public const string CONFIG_NAMESPACE_KEY = '__namespace';
+
     /** @var string Views directory path relative to package root */
     public const string VIEWS_DIR = 'resources/views';
 

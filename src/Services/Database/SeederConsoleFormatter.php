@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Support\Str;
 use Simtabi\Laranail\Console\Tools\Formatting\ConsoleUIFormatter;
+use Simtabi\Laranail\Console\Tools\Widgets\Header;
 use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 
 /**
@@ -15,7 +16,8 @@ use Simtabi\Laranail\PackageTools\Services\Database\Contracts\SeederConsoleForma
  *
  * Provides tree-structured console output with status symbols, color coding,
  * and statistics tracking for database seeding operations. Uses
- * laranail/console's ConsoleUIFormatter for the low-level styling.
+ * laranail/console's ConsoleUIFormatter (and the Header widget) for the
+ * low-level styling.
  *
  * SOLID Principle: Single Responsibility - Only handles console output formatting
  */
@@ -47,6 +49,22 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         'done_text' => 5,
     ];
 
+    /**
+     * Status glyph + colour used when rendering a per-seeder line.
+     *
+     * @var array<string, array{symbol: string, color: string}>
+     */
+    private const array STATUS_STYLES = [
+        'RUNNING' => ['symbol' => '⟳', 'color' => ConsoleUIFormatter::CYAN],
+        'DONE' => ['symbol' => '✓', 'color' => ConsoleUIFormatter::GREEN],
+        'FAILED' => ['symbol' => '✗', 'color' => ConsoleUIFormatter::RED],
+        'SKIPPED' => ['symbol' => '○', 'color' => ConsoleUIFormatter::YELLOW],
+    ];
+
+    private const string TREE_BRANCH = '├─ ';
+
+    private const string TREE_LAST = '└─ ';
+
     private ?OutputStyle $output = null;
 
     private readonly ConsoleUIFormatter $formatter;
@@ -67,12 +85,7 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         $this->display = array_merge(self::DEFAULT_DISPLAY, $config['display'] ?? []);
         $this->displayWidths = array_merge(self::DEFAULT_DISPLAY_WIDTHS, $config['displayWidths'] ?? []);
 
-        $this->formatter = ConsoleUIFormatter::create()
-            ->configure([
-                'padding' => $this->padding,
-                'display' => $this->display,
-                'displayWidths' => $this->displayWidths,
-            ]);
+        $this->formatter = ConsoleUIFormatter::create();
 
         $this->initializeConfiguration();
         $this->resetStatistics();
@@ -94,7 +107,6 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
      */
     public function initializeSession(): void
     {
-        $this->formatter->startSession();
         $this->startTime = microtime(true);
         $this->resetStatistics();
     }
@@ -104,9 +116,9 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
      */
     public function displayGroupHeader(string $groupName, int $seederCount, bool $isLast = false): void
     {
-        $groupLine = ConsoleUIFormatter::header($groupName, $seederCount, 'seeders', $isLast);
+        $groupLine = Header::make($groupName)->count($seederCount, 'seeders')->render();
         $this->writeLine($this->padding['group'] . $groupLine);
-        $this->updateStatistics('groups');
+        $this->incrementStatistic('groups');
     }
 
     /**
@@ -114,7 +126,8 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
      */
     public function displaySeederStart(string $seederClass, bool $isLast = false): void
     {
-        $seederLine = ConsoleUIFormatter::statusLine($seederClass, 'RUNNING', '', $isLast);
+        $seederName = $this->extractSeederName($seederClass);
+        $seederLine = $this->buildStatusLine($seederName, 'RUNNING', '', $isLast);
         $this->write($this->padding['seeder'] . $seederLine . "\r");
     }
 
@@ -126,12 +139,11 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         $durationMs = number_format($duration * 1000, 2);
         $seederName = $this->extractSeederName($seederClass);
 
-        $seederLine = ConsoleUIFormatter::statusLine($seederName, 'DONE', $durationMs, $isLast);
         $dotPadding = $this->getDotPadding($seederName, $durationMs);
+        $seederLine = $this->buildStatusLine($seederName, 'DONE', $durationMs, $isLast, '', $dotPadding);
 
-        $line = $this->padding['seeder'] . str_replace($durationMs . 'ms', $dotPadding . $durationMs . 'ms', $seederLine);
-        $this->writeLine($line);
-        $this->updateStatistics('successful');
+        $this->writeLine($this->padding['seeder'] . $seederLine);
+        $this->incrementStatistic('successful');
     }
 
     /**
@@ -140,11 +152,12 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
     public function displaySeederError(string $seederClass, Exception $exception, float $duration, bool $isLast = false): void
     {
         $durationMs = number_format($duration * 1000);
-        $seederLine = ConsoleUIFormatter::statusLine($seederClass, 'FAILED', $durationMs, $isLast);
+        $seederName = $this->extractSeederName($seederClass);
+        $seederLine = $this->buildStatusLine($seederName, 'FAILED', $durationMs, $isLast);
 
         $this->writeLine($this->padding['seeder'] . $seederLine);
         $this->displayErrorDetails($exception);
-        $this->updateStatistics('failed');
+        $this->incrementStatistic('failed');
     }
 
     /**
@@ -152,9 +165,10 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
      */
     public function displaySeederSkipped(string $seederClass, string $reason, bool $isLast = false): void
     {
-        $seederLine = ConsoleUIFormatter::statusLine($seederClass, 'SKIPPED', '', $isLast, $reason);
+        $seederName = $this->extractSeederName($seederClass);
+        $seederLine = $this->buildStatusLine($seederName, 'SKIPPED', '', $isLast, $reason);
         $this->writeLine($this->padding['seeder'] . $seederLine);
-        $this->updateStatistics('skipped');
+        $this->incrementStatistic('skipped');
     }
 
     /**
@@ -169,6 +183,40 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         $this->writeLine('');
         $this->displaySummaryStatistics();
         $this->displayFinalStatus();
+    }
+
+    /**
+     * Build a single per-seeder status line: tree branch, coloured status glyph,
+     * the seeder name, optional dot-leader, status word and (optionally) the
+     * duration or skip reason.
+     */
+    private function buildStatusLine(
+        string $seederName,
+        string $status,
+        string $durationMs,
+        bool $isLast,
+        string $reason = '',
+        string $dotPadding = ' ',
+    ): string {
+        $style = self::STATUS_STYLES[$status] ?? ['symbol' => '•', 'color' => ConsoleUIFormatter::GRAY];
+        $branch = $isLast ? self::TREE_LAST : self::TREE_BRANCH;
+
+        $line = $branch
+            . $this->formatter->colorize($style['symbol'], $style['color'])
+            . ' '
+            . $seederName;
+
+        if ($durationMs !== '') {
+            $line .= $dotPadding . $this->formatter->colorize($durationMs . 'ms', ConsoleUIFormatter::GRAY);
+        }
+
+        $line .= ' ' . $this->formatter->colorize($status, $style['color']);
+
+        if ($reason !== '') {
+            $line .= ' ' . $this->formatter->colorize('(' . $reason . ')', ConsoleUIFormatter::GRAY);
+        }
+
+        return $line;
     }
 
     private function displayErrorDetails(Exception $exception): void
@@ -186,18 +234,26 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
 
     private function displaySummaryStatistics(): void
     {
-        $this->writeLine(ConsoleUIFormatter::statisticsLine('Groups', $this->statistics['groups'], 'group', ConsoleUIFormatter::CYAN));
-        $this->writeLine(ConsoleUIFormatter::statisticsLine('Successful', $this->statistics['successful'], 'success', ConsoleUIFormatter::GREEN));
+        $this->writeLine($this->statisticsLine('Groups', $this->statistics['groups'], ConsoleUIFormatter::CYAN));
+        $this->writeLine($this->statisticsLine('Successful', $this->statistics['successful'], ConsoleUIFormatter::GREEN));
 
         if ($this->statistics['failed'] > 0) {
-            $this->writeLine(ConsoleUIFormatter::statisticsLine('Failed', $this->statistics['failed'], 'error', ConsoleUIFormatter::RED));
+            $this->writeLine($this->statisticsLine('Failed', $this->statistics['failed'], ConsoleUIFormatter::RED));
         }
 
         if ($this->statistics['skipped'] > 0) {
-            $this->writeLine(ConsoleUIFormatter::statisticsLine('Skipped', $this->statistics['skipped'], 'skipped', ConsoleUIFormatter::YELLOW));
+            $this->writeLine($this->statisticsLine('Skipped', $this->statistics['skipped'], ConsoleUIFormatter::YELLOW));
         }
 
         $this->writeLine('');
+    }
+
+    private function statisticsLine(string $label, int $count, string $color): string
+    {
+        return $this->padding['summary']
+            . $this->formatter->colorize($label . ':', $color, true)
+            . ' '
+            . $this->formatter->colorize((string) $count, $color);
     }
 
     private function displayFinalStatus(): void
@@ -222,10 +278,9 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
         ));
     }
 
-    private function updateStatistics(string $type): void
+    private function incrementStatistic(string $type): void
     {
         $this->statistics[$type] = ($this->statistics[$type] ?? 0) + 1;
-        $this->formatter->updateStatistics($type);
     }
 
     private function writeLine(string $line): void
@@ -333,7 +388,6 @@ class SeederConsoleFormatter implements SeederConsoleFormatterInterface
             'failed' => 0,
             'skipped' => 0,
         ];
-        $this->formatter->resetStatistics();
     }
 
     /**

@@ -57,6 +57,59 @@ class ConfigFileResolver implements ResolverInterface
     }
 
     /**
+     * Convert a config path relative to config/ (without extension) into a
+     * dotted config key. `api/v1/limits` → `api.v1.limits`.
+     *
+     * @param string $relativeNoExt Path relative to config/, no `.php`
+     * @return string Dotted config key
+     */
+    public function folderToKey(string $relativeNoExt): string
+    {
+        $relativeNoExt = trim(str_replace('\\', '/', $relativeNoExt), '/');
+        PathResolver::validatePathSecurity($relativeNoExt);
+
+        return str_replace('/', '.', $relativeNoExt);
+    }
+
+    /**
+     * Recursively list every `.php` config file under config/{folder},
+     * returned as paths relative to config/ (e.g. 'admin/panel.php').
+     *
+     * @param string $folder Subdirectory within config/ ('' = whole tree)
+     * @return array<int, string> Relative file paths, sorted
+     */
+    public function getAllNested(string $folder = ''): array
+    {
+        $folder = trim($folder, '/\\');
+        if ($folder !== '') {
+            PathResolver::validatePathSecurity($folder);
+        }
+
+        $scanRoot = $folder === ''
+            ? PathResolver::joinPaths($this->basePath, 'config')
+            : PathResolver::joinPaths($this->basePath, 'config', $folder);
+
+        if (! File::isDirectory($scanRoot)) {
+            return [];
+        }
+
+        $relatives = [];
+
+        foreach (File::allFiles($scanRoot) as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $relName = str_replace('\\', '/', $file->getRelativePathname());
+            $relatives[] = $folder === '' ? $relName : $folder . '/' . $relName;
+        }
+
+        sort($relatives);
+
+        return $relatives;
+    }
+
+    /**
      * Check if a configuration file exists
      *
      * @param string $file Config file name

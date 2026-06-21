@@ -255,7 +255,7 @@ abstract class PackageServiceProvider extends ServiceProvider
         // above it. Step up so resource paths resolve against the package root
         // rather than the source root.
         if (Str::endsWith($packageBaseDir, DIRECTORY_SEPARATOR . 'src')) {
-            $packageBaseDir = dirname($packageBaseDir);
+            return dirname($packageBaseDir);
         }
 
         return $packageBaseDir;

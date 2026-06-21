@@ -5,6 +5,24 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Namespaced / folder-tree config resolution** — config files in sub-folders
+  mount at dotted keys (`config/admin/panel.php` → `config('admin.panel.*')`).
+  New builder methods `hasNestedConfig()`, `hasNestedConfigs()`,
+  `hasConfigDirectory()` and the recursive `discoversConfig()`; an optional
+  in-file `__namespace` key overrides the mount point (stripped before merge).
+  Reads stay native `config()`; flat `hasConfigFile()` is unchanged. See
+  [config-namespacing](docs/tools/config-namespacing.md).
+
+### Changed
+
+- `Services\Database\SeederConsoleFormatter` migrated to the `laranail/console`
+  1.x umbrella (its `ConsoleUIFormatter`/`Widgets`); `laranail/console` is now
+  required at `^1.0` and resolves from Packagist (the dev vcs bridge is gone).
+
 ## [0.2.0] - 2026-06-19
 
 Initial release — a runtime base library for building Laravel packages.
