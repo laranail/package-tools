@@ -36,7 +36,7 @@
     "illuminate/support": "^13.0",
     "illuminate/filesystem": "^13.0",
     "laranail/console": "^1.2.1",
-    "symfony/process": "^7.0"
+    "symfony/process": "^8.1"
   },
   "require-dev": {
     "mockery/mockery": "^1.6",
