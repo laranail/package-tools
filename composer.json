@@ -33,9 +33,9 @@
     "php": "^8.4 || ^8.5",
     "illuminate/contracts": "^13.0",
     "illuminate/database": "^13.0",
-    "illuminate/support": "^13.0",
     "illuminate/filesystem": "^13.0",
-    "laranail/console": "^1.0",
+    "illuminate/support": "^13.0",
+    "laranail/console": "^2.0",
     "symfony/process": "^7.0"
   },
   "require-dev": {
