@@ -67,6 +67,44 @@ trait HasAssetPublisher
     }
 
     /**
+     * Publish a single FILE under the package's namespaced publish tag
+     * (`vendor::package-{suffix}`). The suffix defaults to the source file's
+     * name without extension. Unlike the asset registry above, this registers a
+     * plain `vendor:publish` mapping applied at boot.
+     *
+     * @example
+     * $package->publishFile('config/security.php', config_path('acme-security.php'), 'security');
+     */
+    public function publishFile(string $source, string $destination, ?string $suffix = null, bool $clean = false): static
+    {
+        return $this->publishWithNamespacedTag($source, $destination, $suffix ?? pathinfo($source, PATHINFO_FILENAME), $clean);
+    }
+
+    /**
+     * Publish a DIRECTORY under the package's namespaced publish tag
+     * (`vendor::package-{suffix}`). The suffix defaults to the source
+     * directory's basename.
+     *
+     * @example
+     * $package->publishDirectory('stubs', base_path('stubs/vendor/acme'), 'stubs');
+     */
+    public function publishDirectory(string $source, string $destination, ?string $suffix = null, bool $clean = false): static
+    {
+        return $this->publishWithNamespacedTag($source, $destination, $suffix ?? basename($source), $clean);
+    }
+
+    /**
+     * Register a source→destination publish under the package's namespaced tag
+     * for the given suffix (shared by publishFile()/publishDirectory()).
+     */
+    private function publishWithNamespacedTag(string $source, string $destination, string $suffix, bool $clean): static
+    {
+        $this->validatePublishTagName($suffix);
+
+        return $this->publish([$source => $destination], $this->getNamespacedPublishTag($suffix), $clean);
+    }
+
+    /**
      * Publish module assets by standard type.
      *
      * Types: 'all', 'js', 'css', 'images', 'media', 'fonts', 'vendors'.

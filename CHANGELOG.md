@@ -5,6 +5,29 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-06-26
+
+### Added
+
+- **`Package::publishFile()` / `Package::publishDirectory()`** — publish a single file
+  or a directory under the package's namespaced publish tag (`vendor::package-{suffix}`),
+  with the suffix defaulting to the source's name. Replaces the verbose
+  `->publish([$src => $dest], $package->getNamespacedPublishTag($suffix))` pattern.
+- **`Testing\AssertsPublishedConfigOverrides`** trait — reliably test that a published
+  namespaced-config override reaches its dotted key (writes the file, registers a fresh
+  provider instance so the register-phase bridge picks it up, asserts, and cleans up).
+  Mixed into `Testing\IsolatedTestCase` so it is available out of the box.
+- **Batch fluent helpers** so consumers pass one array instead of chaining repeated
+  calls: `hasValidationRules()`, `hasAboutSections()`, `hasDoctorChecks()`,
+  `registerNamespacedConfigs()`, and `sharesDataWithAllViews()` now also accepts an
+  associative `name => value` array.
+
+### Notes
+
+- `registerMiddlewareAliases(['alias' => Class::class])` is the canonical batch entry
+  point for route-middleware aliases — no separate `registerRouteMiddlewares` is added
+  (it would duplicate it; both resolve to `$router->aliasMiddleware()`).
+
 ## [1.1.0] - 2026-06-26
 
 ### Added

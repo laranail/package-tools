@@ -28,6 +28,20 @@ trait HasDoctorChecks
         return $this;
     }
 
+    /**
+     * Register several doctor checks at once.
+     *
+     * @param array<int, class-string<DoctorCheck>|DoctorCheck> $checks
+     */
+    public function hasDoctorChecks(array $checks): static
+    {
+        foreach ($checks as $check) {
+            $this->hasDoctorCheck($check);
+        }
+
+        return $this;
+    }
+
     /** @return list<class-string<DoctorCheck>|DoctorCheck> */
     public function getDoctorChecks(): array
     {

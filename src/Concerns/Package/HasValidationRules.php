@@ -30,4 +30,22 @@ trait HasValidationRules
 
         return $this;
     }
+
+    /**
+     * Register several validation rules at once, keyed by rule name. Each value
+     * is either a `class-string` (no custom message) or a `[class-string, message]`
+     * pair.
+     *
+     * @param array<string, class-string|array{0: class-string, 1?: ?string}> $rules
+     */
+    public function hasValidationRules(array $rules): static
+    {
+        foreach ($rules as $name => $rule) {
+            is_array($rule)
+                ? $this->hasValidationRule($name, $rule[0], $rule[1] ?? null)
+                : $this->hasValidationRule($name, $rule);
+        }
+
+        return $this;
+    }
 }

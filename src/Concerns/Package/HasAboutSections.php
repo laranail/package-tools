@@ -26,4 +26,18 @@ trait HasAboutSections
 
         return $this;
     }
+
+    /**
+     * Register several `php artisan about` sections at once, keyed by label.
+     *
+     * @param array<string, callable> $sections
+     */
+    public function hasAboutSections(array $sections): static
+    {
+        foreach ($sections as $label => $data) {
+            $this->hasAboutSection($label, $data);
+        }
+
+        return $this;
+    }
 }

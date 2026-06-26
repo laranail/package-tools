@@ -70,4 +70,19 @@ trait HasConfigs
 
         return $this;
     }
+
+    /**
+     * Register several namespaced config files at once. Each entry is an
+     * associative array with `path`, `key` and `relative` keys.
+     *
+     * @param array<int, array{path: string, key: string, relative: string}> $configs
+     */
+    public function registerNamespacedConfigs(array $configs): static
+    {
+        foreach ($configs as $config) {
+            $this->registerNamespacedConfig($config['path'], $config['key'], $config['relative']);
+        }
+
+        return $this;
+    }
 }

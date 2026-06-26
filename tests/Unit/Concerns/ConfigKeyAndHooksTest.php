@@ -54,4 +54,72 @@ class ConfigKeyAndHooksTest extends TestCase
         $this->assertSame('Acme', $package->aboutSections[0]['label']);
         $this->assertSame(['Version' => '1.0'], ($package->aboutSections[0]['data'])());
     }
+
+    #[Test]
+    public function has_validation_rules_batch_supports_class_and_class_message_forms(): void
+    {
+        $package = (new Package)->name('acme/widget')->hasValidationRules([
+            'bare' => Package::class,
+            'with_message' => [Package::class, 'The :attribute failed.'],
+        ]);
+
+        $this->assertCount(2, $package->validationRules);
+        $this->assertSame('bare', $package->validationRules[0]['name']);
+        $this->assertNull($package->validationRules[0]['message']);
+        $this->assertSame('with_message', $package->validationRules[1]['name']);
+        $this->assertSame('The :attribute failed.', $package->validationRules[1]['message']);
+    }
+
+    #[Test]
+    public function has_about_sections_batch_is_keyed_by_label(): void
+    {
+        $package = (new Package)->name('acme/widget')->hasAboutSections([
+            'One' => static fn (): array => ['a' => 1],
+            'Two' => static fn (): array => ['b' => 2],
+        ]);
+
+        $this->assertCount(2, $package->aboutSections);
+        $this->assertSame(['One', 'Two'], array_column($package->aboutSections, 'label'));
+    }
+
+    #[Test]
+    public function has_doctor_checks_batch_fans_out_to_the_singular(): void
+    {
+        $package = (new Package)->name('acme/widget')->hasDoctorChecks([Package::class, Package::class]);
+
+        $this->assertCount(2, $package->getDoctorChecks());
+    }
+
+    #[Test]
+    public function shares_data_with_all_views_accepts_a_batch_array(): void
+    {
+        $package = (new Package)->name('acme/widget')
+            ->sharesDataWithAllViews(['site' => 'Acme', 'year' => 2026]);
+
+        $this->assertSame(['site' => 'Acme', 'year' => 2026], $package->sharedViewData);
+    }
+
+    #[Test]
+    public function publish_file_registers_a_namespaced_tag(): void
+    {
+        $package = (new Package)->name('acme/widget')
+            ->publishFile('/abs/config/security.php', '/dest/acme-security.php');
+
+        $this->assertSame(
+            ['/abs/config/security.php' => '/dest/acme-security.php'],
+            $package->getPublishPaths()['acme::widget-security'] ?? null,
+        );
+    }
+
+    #[Test]
+    public function publish_directory_registers_a_namespaced_tag(): void
+    {
+        $package = (new Package)->name('acme/widget')
+            ->publishDirectory('/abs/stubs', '/dest/stubs');
+
+        $this->assertSame(
+            ['/abs/stubs' => '/dest/stubs'],
+            $package->getPublishPaths()['acme::widget-stubs'] ?? null,
+        );
+    }
 }

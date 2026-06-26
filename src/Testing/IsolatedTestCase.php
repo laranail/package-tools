@@ -23,6 +23,7 @@ use Orchestra\Testbench\TestCase as Testbench;
  *   - assertColumnExists(table, column)
  *   - assertCommandExists(signature)
  *   - createTempPath(suffix): a unique tmp path that auto-cleans at tearDown.
+ *   - assertPublishedConfigOverride(...) via {@see AssertsPublishedConfigOverrides}.
  *
  * Subclasses register their package's service provider via
  * getPackageProviders($app). The base class does not auto-discover any
@@ -31,6 +32,8 @@ use Orchestra\Testbench\TestCase as Testbench;
  */
 abstract class IsolatedTestCase extends Testbench
 {
+    use AssertsPublishedConfigOverrides;
+
     /** @var list<string> Tmp paths created by createTempPath(); removed at tearDown. */
     private array $tempPathsToCleanup = [];
 

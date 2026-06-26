@@ -76,6 +76,55 @@ final class FooServiceProvider extends PackageServiceProvider
 A complete, runnable example lives in
 [`docs/examples/`](docs/examples/HelloPackageServiceProvider.php).
 
+## Declarative registration & batch helpers
+
+Beyond the core builder, `Package` exposes hooks for child providers, validation
+rules, `about` sections, doctor checks, and namespaced asset publishing — each
+with a **batch sibling** so you pass one array instead of chaining repeated calls:
+
+```php
+$package
+    ->name('vendor/foo')
+    // Config files — the single call already accepts an array.
+    ->hasConfigFile(['foo', 'foo-features'])
+    // Register child / feature service providers (array form).
+    ->hasChildProviders([Bar\BarServiceProvider::class, Baz\BazServiceProvider::class])
+    // Opt-in route-middleware aliases (the canonical batch entry point).
+    ->registerMiddlewareAliases(['foo.auth' => EnsureFoo::class])
+    // Custom validator rules: `name => Class` or `name => [Class, message]`.
+    ->hasValidationRules([
+        'strong_password' => [StrongPassword::class, 'The :attribute is too weak.'],
+    ])
+    // `php artisan about` sections: label => callable.
+    ->hasAboutSections(['Foo' => fn (): array => ['Version' => Foo::VERSION]])
+    // Doctor checks (batch).
+    ->hasDoctorChecks([FooHealthCheck::class, BarHealthCheck::class])
+    // Publish an individual FILE or DIRECTORY under a namespaced `::` tag.
+    ->publishFile('config/foo-data.php', config_path('foo-data.php'), 'data')   // tag: vendor::foo-data
+    ->publishDirectory('stubs', base_path('stubs/vendor/foo'), 'stubs');        // tag: vendor::foo-stubs
+```
+
+The singular forms (`hasValidationRule()`, `hasAboutSection()`, `hasDoctorCheck()`,
+`registerMiddlewareAlias()`, `sharesDataWithAllViews($name, $value)`) remain for
+one-off registration.
+
+### Testing published config overrides
+
+A namespaced config publishes to a nested `config/vendor/package.php` that Laravel
+never auto-loads; the provider bridges it back into the dotted key at register
+time. To test that round-trip reliably (without racing Testbench's
+`getEnvironmentSetUp()`), `use` the `AssertsPublishedConfigOverrides` trait — it's
+already mixed into `Testing\IsolatedTestCase`:
+
+```php
+use Simtabi\Laranail\Package\Tools\Testing\AssertsPublishedConfigOverrides;
+
+$this->assertPublishedConfigOverride(
+    FooServiceProvider::class, 'vendor.foo',
+    ['enabled' => false], 'vendor.foo.enabled', false,
+);
+```
+
 ## What you get
 
 | Capability | Summary |
