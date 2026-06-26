@@ -14,8 +14,10 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 trait ConfiguresLifecycle
 {
     use DiscoversWithAttributes;
+    use HasAboutSections;
     use HasBatchResourceLoading;
     use HasDoctorChecks;
     use HasEnhancedValidation;
     use HasLifecycleHooks;
+    use HasValidationRules;
 }

@@ -27,6 +27,12 @@ trait ProcessConfigs
                 : $configFileName;
 
             $this->mergeConfigFrom($vendorConfig, $configKey);
+
+            // Namespaced configs publish to a NESTED path (config/vendor/package.php)
+            // that Laravel does not auto-load, so a published override would never
+            // reach the dotted key. Load it here and merge it OVER the vendor
+            // defaults so `vendor:publish` + edit actually overrides.
+            $this->mergePublishedConfigOverride($configKey);
         }
 
         // Folder-namespaced config files: mounted at their dotted key so
@@ -36,6 +42,39 @@ trait ProcessConfigs
         }
 
         return $this;
+    }
+
+    /**
+     * Load a PUBLISHED override for a namespaced config and merge it over the
+     * vendor defaults already merged under $key. Only namespaced (nested-path)
+     * configs need this — flat configs are auto-loaded by Laravel at their root
+     * key. Uses a recursive merge so a partially-edited published file still
+     * inherits untouched defaults. No-op when config is cached.
+     */
+    protected function mergePublishedConfigOverride(string $key): void
+    {
+        if (! $this->package->hasConfigNamespacing()) {
+            return;
+        }
+
+        if ($this->app instanceof CachesConfiguration && $this->app->configurationIsCached()) {
+            return;
+        }
+
+        $published = config_path(str_replace('.', '/', $key) . '.php');
+
+        if (! File::isFile($published)) {
+            return;
+        }
+
+        $override = require $published;
+
+        if (! is_array($override)) {
+            return;
+        }
+
+        $config = $this->app->make(Repository::class);
+        $config->set($key, array_replace_recursive((array) $config->get($key, []), $override));
     }
 
     /**

@@ -42,11 +42,18 @@ trait HasConfigNamespace
     }
 
     /**
-     * Get the full namespaced config key, e.g. 'vendor.package'.
+     * Get the full namespaced config key. The default config file (whose name
+     * equals the package short-name) maps to the bare dotted namespace
+     * (`vendor.package`); any additional file gets a per-file sub-key
+     * (`vendor.package.{file}`) so multiple config files do not collide.
      */
     public function getNamespacedConfigKey(string $configFileName): string
     {
-        return $this->getDottedNamespace();
+        $base = $this->getDottedNamespace();
+
+        return $configFileName === $this->shortName()
+            ? $base
+            : $base . '.' . $configFileName;
     }
 
     /**

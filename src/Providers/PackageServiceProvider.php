@@ -12,6 +12,7 @@ use Override;
 use ReflectionClass;
 use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\LoadsHelpers;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessAboutSections;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessAssets;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessBladeComponents;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessBladeDirectives;
@@ -23,9 +24,11 @@ use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessMigrat
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessRoutes;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessServiceProviders;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessTranslations;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessValidationRules;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViewComposers;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViews;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViewSharedData;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\RegisterChildProviders;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Package;
@@ -54,6 +57,7 @@ use Simtabi\Laranail\Package\Tools\Package;
 abstract class PackageServiceProvider extends ServiceProvider
 {
     use LoadsHelpers;
+    use ProcessAboutSections;
     use ProcessAssets;
     use ProcessBladeComponents;
     use ProcessBladeDirectives;
@@ -65,9 +69,11 @@ abstract class PackageServiceProvider extends ServiceProvider
     use ProcessRoutes;
     use ProcessServiceProviders;
     use ProcessTranslations;
+    use ProcessValidationRules;
     use ProcessViewComposers;
     use ProcessViews;
     use ProcessViewSharedData;
+    use RegisterChildProviders;
 
     public Package $package;
 
@@ -118,6 +124,8 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->loadPackageHelpers();
 
         $this->registerPackageConfigs();
+
+        $this->registerPackageChildProviders();
 
         $this->packageRegistered();
     }
@@ -189,6 +197,8 @@ abstract class PackageServiceProvider extends ServiceProvider
             ->bootPackageViewComposers()
             ->bootPackageViewSharedData()
             ->bootPackageCustomPublishes()
+            ->bootPackageValidationRules()
+            ->bootPackageAboutSections()
             ->bootPackageDeferredHooks()
             ->packageBooted();
     }
