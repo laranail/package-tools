@@ -1,0 +1,12 @@
+{
+    "name": "acme/sample-app",
+    "description": "Sample app for SBOM tests",
+    "type": "project",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^13.0"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.0"
+    }
+}
