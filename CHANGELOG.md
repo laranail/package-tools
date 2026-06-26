@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-26
+
+### Changed
+
+- **BREAKING — requires `laranail/console ^2.5`** (was `^1.0`). console 1.x is
+  retired on Packagist (only `v1.0.0` remains, which predates the
+  `Support\Symbols`/`Capabilities` classes `SeederConsoleFormatter` uses), so the
+  prior `^1.0` constraint was a latent break on fresh installs. Realigned to the
+  live v2.x line — **no package-tools code change was required** (the four console
+  formatter/widget classes it uses have the same API in v2.5).
+- Require `symfony/process ^8.0` (was `^7.0`), matching the Laravel 13 / console
+  v2.5 Symfony 8 ecosystem.
+- CI: bumped pinned GitHub Actions — `actions/checkout` v7, `actions/cache` v5,
+  `softprops/action-gh-release` v3.
+
 ## [0.5.0] - 2026-06-21
 
 This release consolidates duplicate/unwired builder traits into their wired

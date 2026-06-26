@@ -12,7 +12,7 @@ package extends, in the spirit of `spatie/laravel-package-tools`. On top of
 that base it adds attribute-driven discovery, a set of `package-tools.*`
 Artisan commands, abstract HTTP controllers, and a testing harness.
 
-**Status:** v0.5.0 — namespaced config, console 1.x, and a consolidated fluent builder (config/views/components/assets/routes/middleware/events/commands/seeders).
+**Status:** v0.6.0 — namespaced config, console 2.x, and a consolidated fluent builder (config/views/components/assets/routes/middleware/events/commands/seeders).
 
 ## Contents
 
