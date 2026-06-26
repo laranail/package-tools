@@ -67,6 +67,7 @@ via `setPublishTagId('…')` on the package, or provide a
 | `mergeConfigGlobal(string $path, string $globalKey)` / `mergeConfigsGlobal(array $configs)` | Merge package config into a host (global) config key. |
 | `setConfig(string $key, mixed $value)` / `setConfigs(array $values)` / `forgetConfig(string $key)` | Imperative config writes. |
 | `enableConfigSafeMode()` / `disableConfigSafeMode()` | Toggle safe-mode merging. |
+| `loadAllResources(array $resources = [])` | Convenience: auto-load several resource types at once (`configs`, `views`, `translations`, `migrations`, …) from their conventional package directories. Pass a subset to limit which are loaded. |
 
 Beyond flat files, config files in sub-folders resolve to dotted keys
 (`config('admin.panel.*')`) and a file may optionally declare its own mount with
@@ -115,7 +116,9 @@ The four namespace getters (`getDottedNamespace()`, `getDashedNamespace()`,
 | `hasRoute(string $routeFileName)` / `hasRoutes(string\|array ...$routeFileNames)` | Register route files. |
 | `hasTranslations()` | Register the package translations directory. |
 | `registerRouteMiddleware(string $name, string $class)` / `registerGlobalMiddleware(string $class)` | Register middleware. |
-| `registerMiddlewareAlias(string $alias, string $class)` / `registerMiddlewareGroup(string $group, array $middleware)` | Register middleware aliases and groups. |
+| `registerMiddlewareAlias(string $alias, string $class)` / `registerMiddlewareAliases(array $aliases)` | Register one route-middleware alias, or batch-register a `[alias => class]` map. **`registerMiddlewareAliases` is the canonical batch entry point.** |
+| `registerMiddlewareGroup(string $group, array $middleware)` / `registerMiddlewareGroups(array $groups)` | Register one middleware group, or batch-register a `[group => [middleware...]]` map. |
+| `addToMiddlewareGroup(string $group, string $middleware)` / `registerPrefixedMiddleware(array $middleware, ?string $prefix = null)` | Append to an existing group; register a `[name => class]` map with an optional name prefix. |
 | `registerEventListener(string $event, string $listener)` / `registerEventSubscriber(string $subscriber)` | Register event listeners and subscribers. |
 | `registerEventListeners(array $listeners)` / `registerEventSubscribers(array $subscribers)` | Register many at once (`$listeners` accepts `[event => listener]` or `[event => [l1, l2]]`). |
 | `discoverEventListeners(string $directory = 'src/Listeners', string $namespace = '')` | Auto-discover listeners in a directory; each event is inferred from the typed first parameter of the listener's `handle()` / `__invoke()`. |

@@ -12,13 +12,14 @@ package extends, in the spirit of `spatie/laravel-package-tools`. On top of
 that base it adds attribute-driven discovery, a set of `package-tools.*`
 Artisan commands, abstract HTTP controllers, and a testing harness.
 
-**Status:** v1.0.0 — namespaced config, console 1.x, and a consolidated fluent builder (config/views/components/assets/routes/middleware/events/commands/seeders).
+**Status:** v1.2.0 — namespaced config with publishable overrides, a consolidated fluent builder (config/views/components/assets/routes/middleware/events/commands/seeders) with singular **and array-batch** forms, `publishFile()`/`publishDirectory()`, attribute-driven discovery, abstract HTTP controllers, a testing harness, four Artisan commands, and runtime services.
 
 ## Contents
 
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick start](#quick-start)
+- [Declarative registration & batch helpers](#declarative-registration--batch-helpers)
 - [What you get](#what-you-get)
 - [Artisan commands](#artisan-commands)
 - [Attribute discovery](#attribute-discovery)
