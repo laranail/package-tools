@@ -29,8 +29,7 @@ use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 class Package
 {
-    // 13 domain aggregators wire 44 leaf traits. Six leaves collide by
-    // method or property name with wired siblings and stay unwired.
+    // 14 domain aggregators wire all 46 leaf traits under src/Concerns/Package/.
     use ConfiguresAssets;
     use ConfiguresCommands;
     use ConfiguresComponents;

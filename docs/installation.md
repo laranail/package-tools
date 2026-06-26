@@ -6,7 +6,7 @@
 |---|---|
 | PHP | `^8.4.1` (8.4, 8.5 supported; the `.1` floor is from `laranail/console`) |
 | Laravel | `^13.0` (`illuminate/contracts`, `illuminate/support`, `illuminate/filesystem`) |
-| Other runtime | `symfony/process` `^7.0` |
+| Other runtime | `symfony/process` `^8.0` |
 
 ## Install
 

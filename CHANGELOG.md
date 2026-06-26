@@ -5,6 +5,20 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-06-26
+
+### Fixed (docs)
+
+- Document the v1.2.0 builder surface that was added after the `v1.2.0` tag:
+  `registerMiddlewareAliases` (the canonical middleware batch entry),
+  `registerMiddlewareGroups`/`addToMiddlewareGroup`/`registerPrefixedMiddleware`,
+  `loadAllResources()`, and the README "Status" line (now v1.2.0).
+- `docs/installation.md`: corrected the `symfony/process` constraint to `^8.0`
+  (matches `composer.json`).
+- `docs/architecture.md` + the `Package` class comment: the builder has **14**
+  domain aggregator traits (added `ConfiguresEvents`), and **all 46 leaf traits
+  are wired** — removed the stale "six leaves stay unwired" note.
+
 ## [1.2.0] - 2026-06-26
 
 ### Added

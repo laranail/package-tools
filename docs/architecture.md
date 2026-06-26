@@ -19,16 +19,14 @@ and describes itself through the fluent `Package` builder.
 ### 1. Package class
 
 `Simtabi\Laranail\Package\Tools\Package` is the central builder. It
-aggregates package configuration through 13 domain aggregator traits
+aggregates package configuration through 14 domain aggregator traits
 under `src/Concerns/Package/`: `ConfiguresConfig`,
 `ConfiguresViews`, `ConfiguresAssets`, `ConfiguresRoutes`,
 `ConfiguresTranslations`, `ConfiguresDatabase`, `ConfiguresCommands`,
-`ConfiguresComponents`, `ConfiguresMiddleware`, `ConfiguresServiceProviders`,
-`ConfiguresComposer`, `ConfiguresHelpers`, and `ConfiguresLifecycle`. Each
-aggregator composes its leaf `Has*` traits.
-
-Six leaf traits collide by method or property name with already-wired
-siblings and stay unwired pending consolidation.
+`ConfiguresComponents`, `ConfiguresMiddleware`, `ConfiguresEvents`,
+`ConfiguresServiceProviders`, `ConfiguresComposer`, `ConfiguresHelpers`,
+and `ConfiguresLifecycle`. Each aggregator composes its leaf `Has*` traits;
+all 46 leaf traits under `src/Concerns/Package/` are wired through an aggregator.
 
 ### 2. Service layer (`src/Services/`)
 
@@ -108,7 +106,7 @@ configuration method returns `static`.
 ### Trait composition
 
 The `Package` class and the abstract provider compose functionality
-through traits. The builder uses a two-tier scheme: 13 domain aggregator
+through traits. The builder uses a two-tier scheme: 14 domain aggregator
 traits, each composing a set of leaf `Has*` traits. This keeps a single
 domain's surface (config, views, database, …) in one aggregator while the
 leaves stay small and individually testable. Six leaf traits collide by
