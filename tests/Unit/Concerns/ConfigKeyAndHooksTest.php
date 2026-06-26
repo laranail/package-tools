@@ -122,4 +122,38 @@ class ConfigKeyAndHooksTest extends TestCase
             $package->getPublishPaths()['acme::widget-stubs'] ?? null,
         );
     }
+
+    #[Test]
+    public function publish_file_derives_the_suffix_from_the_filename_when_omitted(): void
+    {
+        $package = (new Package)->name('acme/widget')
+            ->publishFile('/abs/config/security.php', '/dest/acme-security.php');
+
+        // Suffix defaults to the source filename without extension → tag `…-security`.
+        $this->assertArrayHasKey('acme::widget-security', $package->getPublishPaths());
+    }
+
+    #[Test]
+    public function publish_file_and_directory_register_cleanup_when_clean_is_true(): void
+    {
+        $package = (new Package)->name('acme/widget')
+            ->publishFile('/abs/config/security.php', '/dest/acme-security.php', null, true)
+            ->publishDirectory('/abs/stubs', '/dest/stubs', null, true);
+
+        $toClean = $package->getPublishPathsToClean();
+        $this->assertArrayHasKey('acme::widget-security', $toClean);
+        $this->assertArrayHasKey('acme::widget-stubs', $toClean);
+    }
+
+    #[Test]
+    public function register_namespaced_configs_batch_registers_each_entry(): void
+    {
+        $package = (new Package)->name('acme/widget')->registerNamespacedConfigs([
+            ['path' => '/abs/admin/panel.php', 'key' => 'admin.panel', 'relative' => 'admin/panel.php'],
+            ['path' => '/abs/admin/settings.php', 'key' => 'admin.settings', 'relative' => 'admin/settings.php'],
+        ]);
+
+        $this->assertCount(2, $package->namespacedConfigFiles);
+        $this->assertSame(['admin.panel', 'admin.settings'], array_column($package->namespacedConfigFiles, 'key'));
+    }
 }

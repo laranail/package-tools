@@ -50,9 +50,12 @@ skipping.
 | `assertTableMissing(string $table, string $message = '')` | Assert `! Schema::hasTable($table)`. |
 | `assertColumnExists(string $table, string $column, string $message = '')` | Assert `Schema::hasColumn($table, $column)`. |
 | `assertCommandExists(string $signature, string $message = '')` | Assert the Artisan command `$signature` is registered (throws `LogicException` if the app isn't booted). |
+| `assertPublishedConfigOverride(class-string $providerClass, string $configKey, array $override, string $assertKey, mixed $expected)` | Via the mixed-in `AssertsPublishedConfigOverrides` trait: write a published override for `$configKey`, register a fresh `$providerClass` instance so the register-phase bridge picks it up, assert it reached `config($assertKey)`, then clean up. |
 
 `tearDown()` removes every path created via `createTempPath()` before
-calling `parent::tearDown()`.
+calling `parent::tearDown()`. The `AssertsPublishedConfigOverrides` trait is mixed
+into this base class, so `assertPublishedConfigOverride()` is available out of the
+box (and can also be `use`d standalone in any test case).
 
 ## End-to-end example
 

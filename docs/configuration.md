@@ -59,6 +59,7 @@ via `setPublishTagId('…')` on the package, or provide a
 | `hasConfigFile(string\|array\|null $configFileName = null)` | Register one or more **flat** config files (`config/foo.php` → `config('foo.*')`). |
 | `hasNestedConfig(string $fileName, string $folder = '', ?string $key = null)` | Mount a config file in a sub-folder at a folder-derived dotted key (`config/admin/panel.php` → `config('admin.panel.*')`). |
 | `hasNestedConfigs(array $files, string $folder = '')` | Mount several files from the same sub-folder. |
+| `registerNamespacedConfig(string $path, string $key, string $relative)` / `registerNamespacedConfigs(array $configs)` | Lower-level: register one config file (or a batch of `[path, key, relative]` entries) at an explicit dotted key + relative publish path. |
 | `hasConfigDirectory(string $folder)` | Mount every file directly in a sub-folder (one level). |
 | `discoversConfig(string $namespace = '', string $folder = '')` | Recursively mount the whole config tree by folder path (optional root namespace). |
 | `loadConfigData(string $folder = '', bool $recursive = true)` | Read-and-**return** nested config as `[dottedKey => array]` without registering it (the counterpart of `discoversConfig()`). |
@@ -88,7 +89,7 @@ The four namespace getters (`getDottedNamespace()`, `getDashedNamespace()`,
 | `registerGlobalViewComposer(string\|callable $composer)` | Bind a composer that fires for **all** views (via `'*'`, unprefixed). |
 | `registerViewCreator(string\|array $views, string\|callable $creator, bool $autoPrefix = true)` | Bind a view *creator* (fires earlier than a composer). |
 | `registerViewComposerWithDependencies(string\|array $views, string $composer, array $dependencies = [])` | Bind a composer whose constructor dependencies are resolved from the container. |
-| `sharesDataWithAllViews(string $name, mixed $value)` | Share a value with every package view. |
+| `sharesDataWithAllViews(string\|array $name, mixed $value = null)` | Share a value with every package view — pass a `name`/`value` pair, or a `[name => value]` array to share several at once. |
 | `hasViewComponent(string $prefix, string $viewComponentName)` / `hasViewComponents(string $prefix, string ...$names)` | Register class-based Blade components. |
 | `hasAnonymousComponents(string $path, ?string $prefix = null)` / `discoverAnonymousComponents(string $baseDir = 'resources/views/components')` | Register or auto-discover anonymous Blade components. |
 | `hasComponentNamespace(string $namespace, ?string $prefix = null)` / `hasComponentNamespaces(array $namespaces)` | Register Blade component namespaces. |
@@ -98,6 +99,8 @@ The four namespace getters (`getDottedNamespace()`, `getDashedNamespace()`,
 | `hasVueComponent(string $name, string $path)` / `hasVueComponents(array $components)` / `hasVueComponentsDirectory(string $directory, ?string $namespace = null)` | Register Vue components. |
 | `hasAssets()` | Register the package assets directory for publishing. |
 | `publishAssets(string $source, string $destination, bool $cleanBeforePublish = false, ?string $tag = null)` | Register a source → destination asset publish path. |
+| `publishFile(string $source, string $destination, ?string $suffix = null, bool $clean = false)` | Publish a single file under the package's namespaced tag `vendor::package-{suffix}` (suffix defaults to the source filename without extension). |
+| `publishDirectory(string $source, string $destination, ?string $suffix = null, bool $clean = false)` | Publish a directory under the package's namespaced tag `vendor::package-{suffix}` (suffix defaults to the source directory basename). |
 | `publishAssetGroup(string $groupName, array $assets, bool $cleanBeforePublish = false)` / `publishAssetGroups(array $groups, ...)` | Publish named asset groups. |
 | `publishModuleJs(bool $clean = false)` / `publishModuleCss(...)` / `publishModuleMedia(...)` / `publishModuleVendors(...)` / `publishAllModuleAssets(...)` | Typed conveniences over `publishModuleAssets()` for the standard asset types. |
 | `declareAssetGroup(string $name, array $config = [])` / `declareAssetGroups(array $groups)` | Declaratively register a named group resolved to `[source, target]` (source defaults to `public/{name}`, target to `vendor/{kebab}/{name}`); the provider publishes declared groups at boot. |
@@ -195,6 +198,7 @@ and can chain these steps (`src/Commands/Concerns/`):
 | Method | Purpose |
 |---|---|
 | `publishesServiceProvider(string $providerName)` | Publish a stub service provider into the host app. |
+| `hasChildProviders(array $providers)` | Register child / feature service providers (eager or deferred) at register time. |
 | `loadHelpers()` | Load the package `helpers/` directory. (The provider also auto-loads helpers when the directory exists.) |
 
 ### Extensions
@@ -202,7 +206,9 @@ and can chain these steps (`src/Commands/Concerns/`):
 | Method | Purpose |
 |---|---|
 | `discoversWithAttributes(?string $directory = null, ?string $namespace = null)` | Scan `src/` for classes carrying `#[AsArtisanCommand]`, `#[AsRoute]`, `#[AsViewComposer]` and wire them automatically. Defaults to the package `src/` and detected namespace. |
-| `hasDoctorCheck(string\|DoctorCheck $check)` | Register a `DoctorCheck` for `php artisan laranail::package-tools.doctor`. |
+| `hasDoctorCheck(string\|DoctorCheck $check)` / `hasDoctorChecks(array $checks)` | Register one or many `DoctorCheck`s for `php artisan laranail::package-tools.doctor`. |
+| `hasValidationRule(string $name, string $ruleClass, ?string $message = null)` / `hasValidationRules(array $rules)` | Register a custom validator rule (or a batch keyed by name, each value a `class-string` or `[class-string, message]`). |
+| `hasAboutSection(string $label, callable $data)` / `hasAboutSections(array $sections)` | Add one or many `php artisan about` sections (label → callable returning a `[label => value]` array). |
 
 ## Lifecycle hooks
 
