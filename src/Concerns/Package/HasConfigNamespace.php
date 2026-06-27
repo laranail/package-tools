@@ -24,8 +24,25 @@ trait HasConfigNamespace
 {
     public ?string $configVendor = null;
 
+    /**
+     * When false, flat config files merge under their bare file name
+     * (`config('file.*')`) instead of the `vendor.package` namespace. Lets a
+     * package keep reading bare config keys after adopting this base.
+     */
+    public bool $configNamespacing = true;
+
     /** @var array<string, string> Cache for computed namespace strings */
     private array $namespaceCache = [];
+
+    /**
+     * Opt out of vendor/package config namespacing for this package.
+     */
+    public function withoutConfigNamespacing(): static
+    {
+        $this->configNamespacing = false;
+
+        return $this;
+    }
 
     /**
      * Get or compute a cached namespace.
@@ -61,7 +78,7 @@ trait HasConfigNamespace
      */
     public function hasConfigNamespacing(): bool
     {
-        return $this->configVendor !== null;
+        return $this->configVendor !== null && $this->configNamespacing;
     }
 
     /**

@@ -21,6 +21,12 @@ trait ProcessTranslations
 
         $this->loadTranslationsFrom($vendorTranslations, $translationNamespace);
 
+        // Optional short alias namespace (e.g. 'license-kit::') alongside the full one.
+        $alias = $this->package->getTranslationAlias();
+        if (is_string($alias) && $alias !== '') {
+            $this->loadTranslationsFrom($vendorTranslations, $alias);
+        }
+
         $this->loadJsonTranslationsFrom($vendorTranslations);
         $this->loadJsonTranslationsFrom($appTranslations);
 

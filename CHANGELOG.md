@@ -5,6 +5,33 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-06-27
+
+### Added
+
+- **Reusable doctor check library** (`Services/Doctor/Checks/`): `PhpExtensionCheck`,
+  `PhpVersionCheck`, `WritablePathCheck` (with optional free-disk warning), `ConfigPresentCheck`,
+  `SoftDependencyCheck`, `ReachabilityCheck` (a failing/throwing probe is a WARN, never a FAIL),
+  and a `CallbackCheck` escape hatch — so consuming packages compose a doctor from parameterised
+  instances instead of bespoke classes.
+- **`DoctorReporter`** (table/JSON render + summary + exit code) and **`HealthResponder`**
+  (`200 healthy` / `503 degraded` JSON, now with a `summary` block) collapse the per-package
+  doctor-command and health-controller boilerplate to one line each. Adds `illuminate/console`
+  + `illuminate/http` to `require`.
+- **`PackageServiceProvider::bootPackageDoctorChecks()`** wires a package's declared
+  `->hasDoctorChecks()` into the shared `DoctorService` at boot, so they surface in the unified
+  `laranail::package-tools.doctor` command.
+- **`Package::hasTranslations(?string $alias)`** registers an optional short translation namespace
+  alongside the full `vendor/package` one (e.g. `license-kit::` as well as `laranail/license-kit::`).
+- **`Package::withoutConfigNamespacing()`** merges a flat config file under its bare file name
+  (`config('file.*')`) instead of the `vendor.package` key — for packages that read bare config keys.
+
+### Changed
+
+- `Package::hasDoctorChecks()` now accepts any `iterable` (was `array`).
+- `DoctorReporter` JSON `status` uses the `healthy`/`degraded` vocabulary (was `ok`/`degraded`),
+  matching `HealthResponder`.
+
 ## [1.2.1] - 2026-06-26
 
 ### Fixed (docs)

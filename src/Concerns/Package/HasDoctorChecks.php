@@ -31,9 +31,9 @@ trait HasDoctorChecks
     /**
      * Register several doctor checks at once.
      *
-     * @param array<int, class-string<DoctorCheck>|DoctorCheck> $checks
+     * @param iterable<class-string<DoctorCheck>|DoctorCheck> $checks
      */
-    public function hasDoctorChecks(array $checks): static
+    public function hasDoctorChecks(iterable $checks): static
     {
         foreach ($checks as $check) {
             $this->hasDoctorCheck($check);

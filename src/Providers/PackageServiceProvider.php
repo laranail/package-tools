@@ -32,6 +32,7 @@ use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\RegisterChild
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
 
 /**
  * Base service provider for Laravel packages. Manages the package
@@ -200,6 +201,7 @@ abstract class PackageServiceProvider extends ServiceProvider
             ->bootPackageValidationRules()
             ->bootPackageAboutSections()
             ->bootPackageDeferredHooks()
+            ->bootPackageDoctorChecks()
             ->packageBooted();
     }
 
@@ -219,6 +221,28 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->package->bootPackageEventSubscribers();
         $this->package->bootPackageFactories();
         $this->package->bootPackageSeeders();
+
+        return $this;
+    }
+
+    /**
+     * Register the package's declared doctor checks (`$package->hasDoctorChecks()`)
+     * into the shared DoctorService so they surface in the unified
+     * `php artisan laranail::package-tools.doctor` command.
+     */
+    protected function bootPackageDoctorChecks(): static
+    {
+        $checks = $this->package->getDoctorChecks();
+
+        if ($checks === [] || ! $this->app->bound(DoctorService::class)) {
+            return $this;
+        }
+
+        $service = $this->app->make(DoctorService::class);
+
+        foreach ($checks as $check) {
+            $service->register($check);
+        }
 
         return $this;
     }
