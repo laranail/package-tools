@@ -176,21 +176,22 @@ class AppViewComposer {}
 
 See [`docs/tools/attribute-discovery.md`](docs/tools/attribute-discovery.md).
 
-## Documentation
+## <a name="documentation"></a>Documentation
 
 Hosted at [`opensource.simtabi.com/package-tools/docs/`](https://opensource.simtabi.com/package-tools/docs/)
 (product page: [`opensource.simtabi.com/package-tools/`](https://opensource.simtabi.com/package-tools/)).
 The same pages live under [`docs/`](docs/):
 
-**Guides**
+### Guides
 
 - [Installation](docs/installation.md) — requirements, install, auto-registration
+- [Getting started](docs/getting-started.md) — build your first package on package-tools
 - [Configuration](docs/configuration.md) — the fluent `Package` builder and lifecycle hooks
 - [Seeding](docs/seeding.md) — package + standalone seeding: registry, executor, fluent builder, `SeederExecutionStats`, events, console output
 - [Architecture](docs/architecture.md) — how the runtime is put together
 - [Services reference](docs/services.md) — the service and support classes
 
-**Tools & features**
+### Reference
 
 - [package-tools.doctor](docs/tools/doctor.md) — health checks
 - [package-tools.sbom](docs/tools/sbom.md) — CycloneDX SBOM
@@ -203,9 +204,13 @@ The same pages live under [`docs/`](docs/):
 - [IsolatedTestCase](docs/tools/isolated-testcase.md) — the testing harness
 - [Runtime services](docs/tools/runtime-services.md) — `SystemService`, `HttpConfigurationService`, `ErrorStorageService`
 
-**Examples**
+### Examples
 
 - [Runnable examples](docs/examples/) — a cohesive `Acme\Hello` package that demonstrates every feature end to end: the fluent builder and lifecycle hooks, all four discovery attributes, namespaced commands, the `WebController`/`ApiController` bases, doctor checks, the runtime services and consumer traits, package seeders, the install-command flow, and an `IsolatedTestCase` test
+
+### Project
+
+- [Changelog](CHANGELOG.md) — release history.
 
 ## Local development
 
