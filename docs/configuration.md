@@ -285,21 +285,21 @@ its own. Details and a usage example are in
 
 ## Worked example
 
-[`examples/`](examples/) is a cohesive `Acme\Hello` package that exercises
+[`examples/`](https://github.com/laranail/package-tools/tree/main/examples) is a cohesive `Acme\Hello` package that exercises
 every package-tools feature end to end. Start with the provider, which ties
 the rest together:
 
-- [HelloPackageServiceProvider.php](examples/HelloPackageServiceProvider.php)
+- [HelloPackageServiceProvider.php](https://github.com/laranail/package-tools/blob/main/examples/HelloPackageServiceProvider.php)
   — the fluent builder (config, views, components, translations, assets,
   routes, migrations, commands), the install-command flow, package seeders,
   attribute discovery, two doctor checks, and both override and closure
   lifecycle hooks.
-- [Console/HelloCommand.php](examples/Console/HelloCommand.php) — a command
+- [Console/HelloCommand.php](https://github.com/laranail/package-tools/blob/main/examples/Console/HelloCommand.php) — a command
   registered via `hasCommand()`.
-- [Database/Seeders/GreetingSeeder.php](examples/Database/Seeders/GreetingSeeder.php)
+- [Database/Seeders/GreetingSeeder.php](https://github.com/laranail/package-tools/blob/main/examples/Database/Seeders/GreetingSeeder.php)
   — a seeder run through `hasPackageSeeders()`, with the
   `SeedingStarted`/`SeedingFinished` events noted inline.
-- [Doctor/HelloHealthCheck.php](examples/Doctor/HelloHealthCheck.php) — the
+- [Doctor/HelloHealthCheck.php](https://github.com/laranail/package-tools/blob/main/examples/Doctor/HelloHealthCheck.php) — the
   `DoctorCheck` wired via `hasDoctorCheck()`.
 
 ## See also

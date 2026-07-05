@@ -73,7 +73,7 @@ final class FooServiceProvider extends PackageServiceProvider
 The full fluent surface, the provider lifecycle hooks, and the runtime
 environment variables are documented in
 [configuration.md](configuration.md). See
-[`examples/`](examples/) for runnable examples.
+[`examples/`](https://github.com/laranail/package-tools/tree/main/examples) for runnable examples.
 
 ## See also
 
