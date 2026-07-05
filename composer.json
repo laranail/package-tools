@@ -9,7 +9,7 @@
     "service-provider",
     "fluent-api"
   ],
-  "homepage": "https://opensource.simtabi.com/package-tools/",
+  "homepage": "https://opensource.simtabi.com/documentation/laranail/package-tools/",
   "license": "MIT",
   "authors": [
     {
@@ -27,7 +27,7 @@
   "support": {
     "issues": "https://github.com/laranail/package-tools/issues",
     "source": "https://github.com/laranail/package-tools",
-    "docs": "https://opensource.simtabi.com/package-tools/docs/"
+    "docs": "https://opensource.simtabi.com/documentation/laranail/package-tools/"
   },
   "require": {
     "php": "^8.4.1 || ^8.5",
