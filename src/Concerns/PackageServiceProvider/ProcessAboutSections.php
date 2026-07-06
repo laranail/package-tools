@@ -22,6 +22,14 @@ trait ProcessAboutSections
             AboutCommand::add($section['label'], $section['data']);
         }
 
+        foreach ($this->package->aboutSectionDefinitions as $definition) {
+            if (! $definition->shouldDisplay()) {
+                continue;
+            }
+
+            AboutCommand::add($definition->label(), static fn (): array => $definition->resolve());
+        }
+
         return $this;
     }
 }

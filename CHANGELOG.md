@@ -5,6 +5,17 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-07-06
+
+### Added
+
+- **Fluent about sections**: `hasAboutSection()` accepts an
+  `AboutSectionDefinition` — per-field lazy closures (no mega-closure over
+  everything), `fieldsUsing()` whole-array sources with explicit-field
+  precedence, `whenConfig`/`whenConfigNotNull` gating via the shared
+  ConfigGate, and the standard toArray/toJson surface. The legacy
+  label + callable form is unchanged.
+
 ## [2.0.0] - 2026-07-06
 
 ### Added

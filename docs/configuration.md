@@ -618,7 +618,24 @@ consume.
 | `discoversWithAttributes(?string $directory = null, ?string $namespace = null)` | Scan `src/` for classes carrying `#[AsArtisanCommand]`, `#[AsRoute]`, `#[AsViewComposer]` and wire them automatically. Defaults to the package `src/` and detected namespace. |
 | `hasDoctorCheck(string\|DoctorCheck $check)` / `hasDoctorChecks(array $checks)` | Register one or many `DoctorCheck`s for `php artisan laranail::package-tools.doctor`. |
 | `hasValidationRule(string $name, string $ruleClass, ?string $message = null)` / `hasValidationRules(array $rules)` | Register a custom validator rule (or a batch keyed by name, each value a `class-string` or `[class-string, message]`). |
-| `hasAboutSection(string $label, callable $data)` / `hasAboutSections(array $sections)` | Add one or many `php artisan about` sections (label → callable returning a `[label => value]` array). |
+| `hasAboutSection(AboutSectionDefinition\|string $label, ?callable $data)` / `hasAboutSections(array $sections)` | Add one or many `php artisan about` sections: a fluent `AboutSectionDefinition`, or the legacy label + callable form. |
+
+The fluent form declares fields one by one — scalars render as-is, closures
+resolve per field only when the about command actually runs, and the section
+can be gated on config:
+
+```php
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
+
+$package->hasAboutSection(
+    AboutSectionDefinition::make('Acme Blog')
+        ->field('Version', '1.2.3')
+        ->field('Posts', fn (): string => (string) Post::count())   // lazy, per field
+        ->fieldsUsing(fn (): array => $diagnostics->summary())      // whole-array source;
+                                                                    // explicit fields win
+        ->whenConfig('acme.blog.about', true),                      // config gate
+);
+```
 
 ## Lifecycle hooks
 
