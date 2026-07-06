@@ -13,4 +13,5 @@ trait ConfiguresCommands
     use HasConsoleWrapper;
     use HasInstallCommand;
     use HasProgressIndicators;
+    use HasScheduledCommands;
 }

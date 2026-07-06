@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Closure;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Orchestra\Testbench\TestCase;
 use Override;
 use ReflectionClass;
@@ -87,6 +92,32 @@ final class BootPackageDeferredHooksTest extends TestCase
         $this->assertContains('database/seeders/Test', $package->getSeederPaths());
     }
 
+    public function test_policy_registers_at_boot(): void
+    {
+        // one provider wiring a policy alongside the other hooks proves the
+        // 2.0 additions ride the same deferred-hooks chain
+        $this->assertInstanceOf(
+            StubDeferredPolicy::class,
+            Gate::getPolicyFor(StubDeferredModel::class),
+        );
+    }
+
+    public function test_morph_map_registers_at_boot(): void
+    {
+        $this->assertSame(
+            StubDeferredModel::class,
+            Relation::getMorphedModel('deferred-thing'),
+        );
+    }
+
+    public function test_rate_limiter_registers_at_boot(): void
+    {
+        $limiter = RateLimiter::limiter('deferred-limiter');
+
+        $this->assertInstanceOf(Closure::class, $limiter);
+        $this->assertSame(3, $limiter()->maxAttempts);
+    }
+
     /** @return list<string> */
     private function extractGlobalMiddleware(HttpKernel $kernel): array
     {
@@ -136,6 +167,16 @@ final class StubSubscriber
     }
 }
 
+final class StubDeferredModel extends Model {}
+
+final class StubDeferredPolicy
+{
+    public function view(): bool
+    {
+        return true;
+    }
+}
+
 final class TestPackageProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
@@ -149,6 +190,11 @@ final class TestPackageProvider extends PackageServiceProvider
         $package->registerEventSubscriber(StubSubscriber::class);
         $package->loadFactoriesFrom('database/factories/Test');
         $package->loadSeedersFrom('database/seeders/Test');
+
+        // 2.0 deferred hooks: one provider must boot all of these together
+        $package->registerPolicy(StubDeferredModel::class, StubDeferredPolicy::class);
+        $package->registerMorphMap(['deferred-thing' => StubDeferredModel::class]);
+        $package->registerRateLimiter('deferred-limiter', static fn (): Limit => Limit::perMinute(3));
     }
 
     #[Override]

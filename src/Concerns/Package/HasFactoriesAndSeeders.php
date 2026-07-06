@@ -8,9 +8,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 
 /**
  * Registers factory and seeder paths and boots them with Laravel.
@@ -26,11 +25,8 @@ trait HasFactoriesAndSeeders
     /** @var array<string> Registered seeders */
     protected array $seeders = [];
 
-    /**
-     * Per-package seeder registry. Lazily-instantiated; consumers reach
-     * for it via `hasPackageSeeders()` / `discoverPackageSeedersIn()`.
-     */
-    protected ?SeederRegistry $packageSeederRegistry = null;
+    /** @var list<AutoSeederDefinition> */
+    protected array $packageSeederDefinitions = [];
 
     /**
      * Load factories from a directory
@@ -117,69 +113,79 @@ trait HasFactoriesAndSeeders
     }
 
     /**
-     * Register a bundle of package-contributed seeders to run when the
-     * host app's `DatabaseSeeder` resolves.
+     * Register the package's seeders to run with the host app's
+     * `php artisan db:seed` (via the SeederManager's resolver hook).
+     * Accepts a fluent AutoSeederDefinition for full control — discovery,
+     * ignore lists, config gating, priority — or the string + array
+     * shorthand for the simple case. Seeders NEVER execute at package
+     * boot; registration happens at boot, execution at db:seed time.
      *
-     * @param string $key Opaque label, typically the package namespace.
-     * @param list<class-string<Seeder>> $seeders
-     * @param array<string, mixed> $options
-     *                                      - `disable_foreign_key_checks` (bool, default true)
-     *                                      - `fire_events` (bool, default false) — emit `SeedingStarted`/`SeedingFinished`
-     *                                      - `parameters` (array<string, mixed>) — passed to seeders that accept ctor args
+     * @param list<class-string<Seeder>> $seeders execution order = array order
      */
-    public function hasPackageSeeders(
-        string $key,
-        array $seeders,
-        ?string $namespace = null,
-        array $options = [],
-    ): static {
-        $this->packageSeederRegistry()->register($key, $seeders, $namespace, $options);
+    public function hasPackageSeeders(AutoSeederDefinition|string $key, array $seeders = []): static
+    {
+        $this->packageSeederDefinitions[] = $key instanceof AutoSeederDefinition
+            ? $key
+            : AutoSeederDefinition::make($key)->seeders($seeders);
 
         return $this;
     }
 
     /**
-     * Discover Seeder subclasses under `$path` and register them.
-     *
-     * @param array<string, mixed> $options
+     * Discover Seeder subclasses under `$path` and register them for
+     * db:seed-time execution (sugar over the definition's discovery mode).
      */
-    public function discoverPackageSeedersIn(
-        string $path,
-        ?string $namespace = null,
-        array $options = [],
-    ): static {
-        $discovered = (new SeederPathDiscoverer)->discover($path);
-        if ($discovered === []) {
-            return $this;
-        }
-
+    public function discoverPackageSeedersIn(string $path, ?string $namespace = null): static
+    {
         $key = $namespace ?? 'discovered:' . md5($path);
 
-        return $this->hasPackageSeeders($key, $discovered, $namespace, $options);
-    }
-
-    public function packageSeederRegistry(): SeederRegistry
-    {
-        return $this->packageSeederRegistry ??= new SeederRegistry;
+        return $this->hasPackageSeeders(
+            AutoSeederDefinition::make($key)->discoverIn($path)->inNamespace($namespace),
+        );
     }
 
     /**
-     * Boot package seeders. Called from `PackageServiceProvider` via the
-     * deferred-hooks chain. Runs every registered configuration through
-     * a `SeederExecutor`.
+     * @return list<AutoSeederDefinition>
      */
-    public function bootPackageSeeders(): void
+    public function getPackageSeederDefinitions(): array
     {
-        $registry = $this->packageSeederRegistry;
-        if ($registry === null || $registry->isEmpty()) {
+        return $this->packageSeederDefinitions;
+    }
+
+    /**
+     * Called from the deferred-hooks chain: evaluates each definition's
+     * config gate and registers the surviving bundles with the shared
+     * SeederManager. Registration only — execution belongs to db:seed.
+     */
+    public function bootPackageAutoSeeders(): void
+    {
+        if ($this->packageSeederDefinitions === [] || ! function_exists('app')) {
             return;
         }
 
-        if (! function_exists('app')) {
-            return;
-        }
+        $defaultDiscoveryPath = $this->basePath('/' . self::SEEDERS_DIR);
 
-        (new SeederExecutor(app()))->run($registry);
+        /** @var SeederManager $manager */
+        $manager = app(SeederManager::class);
+
+        foreach ($this->packageSeederDefinitions as $definition) {
+            if (! $definition->shouldRegister()) {
+                continue;
+            }
+
+            $seeders = $definition->resolveSeeders($defaultDiscoveryPath);
+
+            if ($seeders === []) {
+                continue;
+            }
+
+            $manager->autoSeed(
+                $definition->key(),
+                $seeders,
+                $definition->namespace(),
+                [...$definition->optionsValue(), 'priority' => $definition->priorityValue()],
+            );
+        }
     }
 
     /**

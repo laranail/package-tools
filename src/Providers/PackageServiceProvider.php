@@ -22,6 +22,7 @@ use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessInerti
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLivewireComponents;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessMigrations;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessRoutes;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessScheduledCommands;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessServiceProviders;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessTranslations;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessValidationRules;
@@ -68,6 +69,7 @@ abstract class PackageServiceProvider extends ServiceProvider
     use ProcessLivewireComponents;
     use ProcessMigrations;
     use ProcessRoutes;
+    use ProcessScheduledCommands;
     use ProcessServiceProviders;
     use ProcessTranslations;
     use ProcessValidationRules;
@@ -187,6 +189,7 @@ abstract class PackageServiceProvider extends ServiceProvider
             ->bootPackageBladeDirectives()
             ->bootPackageCommands()
             ->bootPackageConsoleCommands()
+            ->bootPackageScheduledCommands()
             ->bootPackageConfigs()
             ->bootPackageInertia()
             ->bootPackageLivewireComponents()
@@ -213,14 +216,23 @@ abstract class PackageServiceProvider extends ServiceProvider
      */
     protected function bootPackageDeferredHooks(): static
     {
+        // morphs first: models may be touched by any later step
+        $this->package->bootPackageMorphMaps();
+
         $this->package->bootPackageMiddleware(
             $this->app->make(Router::class)
         );
 
         $this->package->bootPackageEventListeners();
         $this->package->bootPackageEventSubscribers();
+        $this->package->bootPackagePolicies();
+        $this->package->bootPackageObservers();
+        $this->package->bootPackageRateLimiters();
         $this->package->bootPackageFactories();
-        $this->package->bootPackageSeeders();
+
+        // seeder registration only — execution belongs to db:seed (the
+        // boot-time-immediate path was removed in 2.0)
+        $this->package->bootPackageAutoSeeders();
 
         return $this;
     }

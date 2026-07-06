@@ -19,6 +19,9 @@ trait HasMiddlewareManagement
     /** @var array<string> Global middleware registry */
     protected array $globalMiddleware = [];
 
+    /** @var array<string, array<int, string>> Middleware group registry */
+    protected array $middlewareGroups = [];
+
     /**
      * Register route middleware
      *
@@ -28,6 +31,20 @@ trait HasMiddlewareManagement
     public function registerRouteMiddleware(string $name, string $class): static
     {
         $this->routeMiddleware[$name] = $class;
+
+        return $this;
+    }
+
+    /**
+     * Batch alias registration.
+     *
+     * @param array<string, string> $aliases [alias => class]
+     */
+    public function registerRouteMiddlewares(array $aliases): static
+    {
+        foreach ($aliases as $name => $class) {
+            $this->registerRouteMiddleware($name, $class);
+        }
 
         return $this;
     }
@@ -55,9 +72,23 @@ trait HasMiddlewareManagement
             $router->aliasMiddleware($name, $class);
         }
 
+        foreach ($this->middlewareGroups as $group => $middleware) {
+            $router->middlewareGroup($group, $middleware);
+        }
+
         foreach ($this->globalMiddleware as $class) {
             app(Kernel::class)->pushMiddleware($class);
         }
+    }
+
+    /**
+     * Get all middleware groups
+     *
+     * @return array<string, array<int, string>>
+     */
+    public function getMiddlewareGroups(): array
+    {
+        return $this->middlewareGroups;
     }
 
     /**

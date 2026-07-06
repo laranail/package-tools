@@ -5,6 +5,77 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-07-06
+
+### Added
+
+- **Fluent scheduler registration**: `registerScheduledCommand(s)` with
+  `ScheduledCommandDefinition` — a two-tier fluent surface where the
+  cron-expressible frequency vocabulary lives once on the reusable
+  `CronBuilder` and everything else (sub-minute frequencies, runtime
+  constraints, execution modifiers) defers to the real scheduler event;
+  `cadence()`, `cron()`, `cadenceFromConfig($key, $default)` (missing key
+  falls back, explicit null opts out, raw 5-field cron values accepted),
+  `configure()` and `schedulesUsing()` escape hatches.
+- **`CronBuilder`** (`Support\Scheduling`): validated, standalone cron
+  designer behind the new `CronExpressible` contract — field setters,
+  steps/lists/ranges, `at()`, `daily/weekly/monthly/quarterly/yearly`,
+  `twiceWeekly/twiceMonthly` (+ `biWeekly`/`biMonthly` sugar),
+  `weekdays/weekends`, `fromExpression()`.
+- **`TimeOfDay`** (`Support\Scheduling`): 24h/12h parsing, `am()/pm()`
+  constructors, minute arithmetic with midnight wrap, `format24()/format12()`.
+- **Enums**: `Cadence` (every scheduler frequency; config strings resolve
+  through it first), `Weekday` (sunday = 0), `Environment`, and a
+  GENERATED `Timezone` enum covering every iana identifier
+  (`tools/generate-timezone-enum.php`).
+- **`ConfigGate`** (`Support`): the single config-gating implementation
+  behind every `whenConfig()` / `whenConfigNotNull()` (truthy and
+  configured-means-on modes).
+- **`DeferredCallQueue`** (`Support`): generic capture/replay with one
+  argument normalizer (BackedEnum → value, TimeOfDay → 'H:i',
+  CronExpressible → expression).
+- **Authorization**: `registerPolicy`/`registerPolicies` (`Gate::policy`
+  at boot).
+- **Morph maps**: `registerMorphMap(array|Closure)` and
+  `registerMorphMapFromConfig($mapKey, $userModelKey)` with user-model
+  fallback chain, subclass validation, non-enforcing registration.
+- **Rate limiters**: `registerRateLimiter(s)`.
+- **Observers**: `registerObserver(s)`.
+- **Conditional routes**: `hasRoutesWhen($configKey, $files, $default)`.
+- **Blade**: `hasBladeComponentNamespace()`, `hasBladeComponentAlias(es)`.
+- **Livewire**: config gate on `hasLivewireComponents(..., whenConfig:)`,
+  `withoutLivewireNamespacePrefix()`, and reactive registration — when
+  livewire's provider registers late (dont-discover setups) the components
+  register the moment it binds.
+- **Middleware**: batch `registerRouteMiddlewares()`.
+- **Seeders**: `hasPackageSeeders` accepts a fluent `AutoSeederDefinition`
+  (explicit list or discovery mode, `ignoreSeeders()` exclusion,
+  `whenConfig` gates, `priority`); `SeederBundle` typed options.
+
+### Changed (BREAKING)
+
+- **Seeder execution model unified**: all package seeders run at `db:seed`
+  time via the resolver hook; the boot-time-immediate execution path
+  (`bootPackageSeeders()`) is removed — seeders never run at app boot.
+- **Middleware registration uniformly deferred**: the enhanced methods
+  (aliases, groups, prefixed) now store on the package and apply in
+  `bootPackageMiddleware()` instead of writing to the router at configure
+  time.
+- **Seeder registry entries are typed `SeederBundle` VOs** (`get()`/`all()`
+  no longer return shape-arrays); bundles execute in priority order
+  (lower first, stable ties).
+- New deferred-hook boot order: morph maps boot first (models may be
+  touched by any later step), then middleware/events/policies/observers/
+  rate limiters/factories/seeder registration.
+
+### Fixed
+
+- `hasComponentNamespace()` registrations were never applied at boot
+  (write-only array) — they now register through `Blade::componentNamespace()`.
+- Seeder options (`disable_foreign_key_checks`, `fire_events`,
+  `parameters`) no longer bleed across packages: scoped per bundle.
+- Stale composer branch alias (`dev-main` now `2.x-dev`).
+
 ## [1.3.0] - 2026-06-27
 
 ### Added

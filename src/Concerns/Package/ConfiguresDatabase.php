@@ -13,4 +13,6 @@ trait ConfiguresDatabase
 {
     use HasFactoriesAndSeeders;
     use HasMigrations;
+    use HasMorphMaps;
+    use HasObservers;
 }

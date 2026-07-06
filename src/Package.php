@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresAssets;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresAuthorization;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresCommands;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComponents;
 // Domain aggregators. Package only `use`s these; each aggregator composes
@@ -29,8 +30,9 @@ use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 class Package
 {
-    // 14 domain aggregators wire all 46 leaf traits under src/Concerns/Package/.
+    // 15 domain aggregators wire the leaf traits under src/Concerns/Package/.
     use ConfiguresAssets;
+    use ConfiguresAuthorization;
     use ConfiguresCommands;
     use ConfiguresComponents;
     use ConfiguresComposer;
@@ -611,6 +613,16 @@ class Package
     protected function registerComponentNamespace(string $namespace, string $prefix): void
     {
         $this->componentNamespaces[$namespace] = $prefix;
+    }
+
+    /**
+     * Get all registered component namespaces.
+     *
+     * @return array<string, string> [class namespace => tag prefix]
+     */
+    public function getComponentNamespaces(): array
+    {
+        return $this->componentNamespaces;
     }
 
     /**

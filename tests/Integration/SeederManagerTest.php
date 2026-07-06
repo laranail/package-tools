@@ -27,7 +27,7 @@ final class SeederManagerTest extends TestCase
         $this->assertNotNull($manager->registry()->get('Acme\\Blog'));
         $this->assertSame(
             [ManagerStubSeeder::class],
-            $manager->registry()->get('Acme\\Blog')['seeders'],
+            $manager->registry()->get('Acme\\Blog')->seeders(),
         );
     }
 

@@ -7,73 +7,71 @@ namespace Simtabi\Laranail\Package\Tools\Services\Database;
 use Illuminate\Database\Seeder;
 
 /**
- * In-memory store of per-package seeder configurations.
- *
- * Each entry is keyed by an opaque label (typically the consumer
- * package's namespace) and carries the list of `Seeder` classes that
- * package contributes plus any per-package execution options.
+ * In-memory store of per-package seeder bundles, keyed by an opaque label
+ * (typically the consumer package's name). Entries are typed SeederBundle
+ * value objects; execution order across bundles follows priority (lower
+ * first), then registration order.
  */
 final class SeederRegistry
 {
-    /**
-     * @var array<string, array{seeders: list<class-string<Seeder>>, namespace: ?string, options: array<string, mixed>}>
-     */
-    private array $configurations = [];
+    /** @var array<string, SeederBundle> */
+    private array $bundles = [];
 
     /**
-     * Register (or replace) a configuration for `$key`.
+     * Register (or replace) the bundle for `$key`. The array form keeps
+     * the historical signature; pass a SeederBundle for typed options.
      *
      * @param list<class-string<Seeder>> $seeders
-     * @param array<string, mixed> $options
+     * @param array<string, mixed> $options legacy string-keyed options
      */
     public function register(string $key, array $seeders, ?string $namespace = null, array $options = []): self
     {
-        $this->configurations[$key] = [
-            'seeders' => $seeders,
-            'namespace' => $namespace,
-            'options' => $options,
-        ];
+        $this->bundles[$key] = SeederBundle::fromOptions($key, $seeders, $namespace, $options);
+
+        return $this;
+    }
+
+    public function registerBundle(SeederBundle $bundle): self
+    {
+        $this->bundles[$bundle->key()] = $bundle;
 
         return $this;
     }
 
     public function forget(string $key): self
     {
-        unset($this->configurations[$key]);
+        unset($this->bundles[$key]);
 
         return $this;
     }
 
     public function clear(): self
     {
-        $this->configurations = [];
+        $this->bundles = [];
 
         return $this;
     }
 
-    /**
-     * @return array{seeders: list<class-string<Seeder>>, namespace: ?string, options: array<string, mixed>}|null
-     */
-    public function get(string $key): ?array
+    public function get(string $key): ?SeederBundle
     {
-        return $this->configurations[$key] ?? null;
+        return $this->bundles[$key] ?? null;
     }
 
     /**
-     * @return array<string, array{seeders: list<class-string<Seeder>>, namespace: ?string, options: array<string, mixed>}>
+     * @return array<string, SeederBundle>
      */
     public function all(): array
     {
-        return $this->configurations;
+        return $this->bundles;
     }
 
     public function isEmpty(): bool
     {
-        return $this->configurations === [];
+        return $this->bundles === [];
     }
 
     public function count(): int
     {
-        return count($this->configurations);
+        return count($this->bundles);
     }
 }

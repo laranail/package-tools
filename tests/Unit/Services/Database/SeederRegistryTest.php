@@ -15,10 +15,10 @@ final class SeederRegistryTest extends TestCase
         $r->register('vendor/pkg', ['App\\OneSeeder'], 'Vendor\\Pkg', ['fire_events' => true]);
 
         $this->assertSame(1, $r->count());
-        $config = $r->get('vendor/pkg');
-        $this->assertSame(['App\\OneSeeder'], $config['seeders']);
-        $this->assertSame('Vendor\\Pkg', $config['namespace']);
-        $this->assertTrue($config['options']['fire_events']);
+        $bundle = $r->get('vendor/pkg');
+        $this->assertSame(['App\\OneSeeder'], $bundle->seeders());
+        $this->assertSame('Vendor\\Pkg', $bundle->namespace());
+        $this->assertTrue($bundle->shouldFireEvents());
     }
 
     public function test_register_replaces_existing_entry_for_same_key(): void
@@ -27,7 +27,7 @@ final class SeederRegistryTest extends TestCase
         $r->register('k', ['A']);
         $r->register('k', ['B', 'C']);
 
-        $this->assertSame(['B', 'C'], $r->get('k')['seeders']);
+        $this->assertSame(['B', 'C'], $r->get('k')->seeders());
         $this->assertSame(1, $r->count());
     }
 

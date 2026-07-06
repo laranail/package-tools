@@ -14,5 +14,6 @@ trait ConfiguresRoutes
 {
     use HasAdvancedPaths;
     use HasNestedLevels;
+    use HasRateLimiters;
     use HasRoutes;
 }

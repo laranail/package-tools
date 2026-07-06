@@ -4,27 +4,25 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Simtabi\Laranail\Package\Tools\Services\Event\MiddlewareRegistry;
-
 /**
- * Registers middleware aliases and groups for a package.
+ * Convenience middleware vocabulary over the one deferred registry. Since
+ * 2.0 everything here stores on the package and is applied by
+ * bootPackageMiddleware() at boot — the old eager path (which wrote to the
+ * router at configure time) is gone, so aliases, groups, and global
+ * middleware all follow one lifecycle.
  */
 trait HasEnhancedMiddleware
 {
-    protected ?MiddlewareRegistry $packageMiddlewareRegistry = null;
-
     /**
-     * Register middleware alias
+     * Register middleware alias (deferred; equivalent to
+     * registerRouteMiddleware).
      *
      * @param string $alias Middleware alias
      * @param string $class Middleware class
      */
     public function registerMiddlewareAlias(string $alias, string $class): static
     {
-        $registry = $this->getPackageMiddlewareRegistry();
-        $registry->registerMiddleware($alias, $class);
-
-        return $this;
+        return $this->registerRouteMiddleware($alias, $class);
     }
 
     /**
@@ -34,23 +32,18 @@ trait HasEnhancedMiddleware
      */
     public function registerMiddlewareAliases(array $aliases): static
     {
-        foreach ($aliases as $alias => $class) {
-            $this->registerMiddlewareAlias($alias, $class);
-        }
-
-        return $this;
+        return $this->registerRouteMiddlewares($aliases);
     }
 
     /**
      * Register middleware group
      *
      * @param string $group Group name
-     * @param array<string> $middleware Middleware classes
+     * @param array<int, string> $middleware Middleware classes
      */
     public function registerMiddlewareGroup(string $group, array $middleware): static
     {
-        $registry = $this->getPackageMiddlewareRegistry();
-        $registry->registerGroup($group, $middleware);
+        $this->middlewareGroups[$group] = array_values($middleware);
 
         return $this;
     }
@@ -70,19 +63,14 @@ trait HasEnhancedMiddleware
     }
 
     /**
-     * Add middleware to existing group
+     * Add middleware to a group registered on this package
      *
      * @param string $group Group name
      * @param string $middleware Middleware class
      */
     public function addToMiddlewareGroup(string $group, string $middleware): static
     {
-        $registry = $this->getPackageMiddlewareRegistry();
-        $current = $registry->get($group, []);
-        $current = is_array($current) ? $current : [];
-        $current[] = $middleware;
-
-        $registry->registerGroup($group, $current);
+        $this->middlewareGroups[$group][] = $middleware;
 
         return $this;
     }
@@ -98,23 +86,10 @@ trait HasEnhancedMiddleware
         $prefix ??= $this->shortName();
 
         foreach ($middleware as $alias => $class) {
-            $prefixedAlias = "{$prefix}.{$alias}";
-            $this->registerMiddlewareAlias($prefixedAlias, $class);
+            $this->registerRouteMiddleware("{$prefix}.{$alias}", $class);
         }
 
         return $this;
-    }
-
-    /**
-     * Get the registry, creating it on first use.
-     */
-    protected function getPackageMiddlewareRegistry(): MiddlewareRegistry
-    {
-        if (! $this->packageMiddlewareRegistry) {
-            $this->packageMiddlewareRegistry = app(MiddlewareRegistry::class);
-        }
-
-        return $this->packageMiddlewareRegistry;
     }
 
     /**

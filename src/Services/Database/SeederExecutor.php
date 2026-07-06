@@ -22,10 +22,11 @@ use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 use Throwable;
 
 /**
- * Executes the seeders held in a `SeederRegistry`, grouped by package
- * namespace, with optional FK-toggle, optional event emission, per-seeder
- * error logging, and optional tree-structured console output (when a
- * `SeederConsoleFormatter` is supplied).
+ * Executes the bundles held in a `SeederRegistry` in priority order (lower
+ * first, ties keep registration order), with per-bundle FK-toggle, event
+ * emission, and constructor parameters — one package's options never leak
+ * into another's run. Optional tree-structured console output when a
+ * `SeederConsoleFormatter` is supplied.
  *
  * Returns a typed {@see SeederExecutionStats} value object.
  */
@@ -38,7 +39,7 @@ final readonly class SeederExecutor
     ) {}
 
     /**
-     * Execute every configuration registered in `$registry`.
+     * Execute every bundle registered in `$registry`.
      */
     public function run(SeederRegistry $registry): SeederExecutionStats
     {
@@ -46,118 +47,125 @@ final readonly class SeederExecutor
             return SeederExecutionStats::empty();
         }
 
-        [$bucketsByPackage, $disableFk, $fireEvents, $parameters] = $this->bucketise($registry);
+        $bundles = $this->sortedBundles($registry);
+        $anyFireEvents = array_any($bundles, static fn (SeederBundle $bundle): bool => $bundle->shouldFireEvents());
+        $groups = array_values(array_map(
+            static fn (SeederBundle $bundle): string => $bundle->namespace() ?? 'Default',
+            $bundles,
+        ));
 
         $this->formatter?->initializeSession();
 
-        if ($fireEvents) {
-            Event::dispatch(new SeedingStarted(array_keys($bucketsByPackage)));
+        if ($anyFireEvents) {
+            Event::dispatch(new SeedingStarted($groups));
         }
 
-        $execute = fn (): SeederExecutionStats => $this->runBuckets($bucketsByPackage, $parameters, $fireEvents);
-
-        $stats = $disableFk
-            ? ($this->fkGuard ?? new ForeignKeyCheckGuard)->run($execute)
-            : $execute();
-
-        $this->formatter?->displaySummary();
-
-        if ($fireEvents) {
-            Event::dispatch(new SeedingFinished(
-                array_keys($bucketsByPackage),
-                $stats->success,
-                $stats->failed,
-            ));
-        }
-
-        return $stats;
-    }
-
-    /**
-     * Project the registry into per-package buckets and merged options.
-     *
-     * @return array{0: array<string, list<class-string<Seeder>>>, 1: bool, 2: bool, 3: array<string, mixed>}
-     */
-    private function bucketise(SeederRegistry $registry): array
-    {
-        $buckets = [];
-        $disableFk = false;
-        $fireEvents = false;
-        $parameters = [];
-
-        foreach ($registry->all() as $config) {
-            $package = $config['namespace'] ?? 'Default';
-            $buckets[$package] = array_merge($buckets[$package] ?? [], $config['seeders']);
-
-            $opts = $config['options'];
-            $disableFk = $disableFk || ($opts['disable_foreign_key_checks'] ?? true);
-            $fireEvents = $fireEvents || ($opts['fire_events'] ?? false);
-            $parameters = array_merge($parameters, $opts['parameters'] ?? []);
-        }
-
-        return [$buckets, $disableFk, $fireEvents, $parameters];
-    }
-
-    /**
-     * @param array<string, list<class-string<Seeder>>> $buckets
-     * @param array<string, mixed> $parameters
-     */
-    private function runBuckets(array $buckets, array $parameters, bool $fireEvents): SeederExecutionStats
-    {
         $success = 0;
         $failed = 0;
         $totalTime = 0.0;
         $errors = [];
 
-        $packageNames = array_keys($buckets);
-        $lastPackage = end($packageNames);
+        $lastIndex = count($bundles) - 1;
 
-        foreach ($buckets as $package => $seederClasses) {
-            $this->formatter?->displayGroupHeader((string) $package, count($seederClasses), $package === $lastPackage);
+        foreach ($bundles as $index => $bundle) {
+            $execute = fn (): SeederExecutionStats => $this->runBundle($bundle, $index === $lastIndex);
 
-            $lastIndex = count($seederClasses) - 1;
+            $stats = $bundle->disablesForeignKeyChecks()
+                ? ($this->fkGuard ?? new ForeignKeyCheckGuard)->run($execute)
+                : $execute();
 
-            foreach ($seederClasses as $index => $class) {
-                $isLast = $index === $lastIndex;
-                $start = microtime(true);
+            $success += $stats->success;
+            $failed += $stats->failed;
+            $totalTime += $stats->totalTime;
+            $errors = [...$errors, ...$stats->errors];
+        }
+
+        $this->formatter?->displaySummary();
+
+        if ($anyFireEvents) {
+            Event::dispatch(new SeedingFinished($groups, $success, $failed));
+        }
+
+        return new SeederExecutionStats(
+            total: $success + $failed,
+            success: $success,
+            failed: $failed,
+            totalTime: $totalTime,
+            errors: $errors,
+        );
+    }
+
+    /**
+     * Priority ascending; the sort is stable (php >= 8.0), so equal
+     * priorities keep registration order.
+     *
+     * @return list<SeederBundle>
+     */
+    private function sortedBundles(SeederRegistry $registry): array
+    {
+        $bundles = array_values($registry->all());
+
+        usort($bundles, static fn (SeederBundle $a, SeederBundle $b): int => $a->priorityValue() <=> $b->priorityValue());
+
+        return $bundles;
+    }
+
+    private function runBundle(SeederBundle $bundle, bool $isLastBundle): SeederExecutionStats
+    {
+        $group = $bundle->namespace() ?? 'Default';
+        $seederClasses = $bundle->seeders();
+        $fireEvents = $bundle->shouldFireEvents();
+        $parameters = $bundle->parametersValue();
+
+        $this->formatter?->displayGroupHeader($group, count($seederClasses), $isLastBundle);
+
+        $success = 0;
+        $failed = 0;
+        $totalTime = 0.0;
+        $errors = [];
+
+        $lastIndex = count($seederClasses) - 1;
+
+        foreach ($seederClasses as $index => $class) {
+            $isLast = $index === $lastIndex;
+            $start = microtime(true);
+
+            if ($fireEvents) {
+                Event::dispatch(new SeederExecuting($class, $group));
+            }
+            $this->formatter?->displaySeederStart($class, $isLast);
+
+            try {
+                $seeder = $this->resolveSeeder($class, $parameters);
+                // Invoke through `__invoke()` rather than `->run()`.
+                // Laravel's base `Seeder` dispatches via the invoke wrapper.
+                $seeder();
+
+                $durationMs = (microtime(true) - $start) * 1000;
+                $totalTime += $durationMs;
+                $success++;
 
                 if ($fireEvents) {
-                    Event::dispatch(new SeederExecuting($class, (string) $package));
+                    Event::dispatch(new SeederExecuted($class, $durationMs, $group));
                 }
-                $this->formatter?->displaySeederStart($class, $isLast);
+                $this->formatter?->displaySeederSuccess($class, $durationMs / 1000, $isLast);
+            } catch (Throwable $e) {
+                $durationMs = (microtime(true) - $start) * 1000;
+                $totalTime += $durationMs;
+                $failed++;
+                $errors[] = ['class' => $class, 'message' => $e->getMessage(), 'package' => $group];
 
-                try {
-                    $seeder = $this->resolveSeeder($class, $parameters);
-                    // Invoke through `__invoke()` rather than `->run()`.
-                    // Laravel's base `Seeder` dispatches via the invoke wrapper.
-                    $seeder();
-
-                    $durationMs = (microtime(true) - $start) * 1000;
-                    $totalTime += $durationMs;
-                    $success++;
-
-                    if ($fireEvents) {
-                        Event::dispatch(new SeederExecuted($class, $durationMs, (string) $package));
-                    }
-                    $this->formatter?->displaySeederSuccess($class, $durationMs / 1000, $isLast);
-                } catch (Throwable $e) {
-                    $durationMs = (microtime(true) - $start) * 1000;
-                    $totalTime += $durationMs;
-                    $failed++;
-                    $errors[] = ['class' => $class, 'message' => $e->getMessage(), 'package' => (string) $package];
-
-                    if ($fireEvents) {
-                        Event::dispatch(new SeederFailed($class, $e, (string) $package));
-                    }
-                    $this->formatter?->displaySeederError($class, $this->toException($e), $durationMs / 1000, $isLast);
-
-                    Log::error("Package seeder failed: {$class}", [
-                        'package' => $package,
-                        'message' => $e->getMessage(),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                    ]);
+                if ($fireEvents) {
+                    Event::dispatch(new SeederFailed($class, $e, $group));
                 }
+                $this->formatter?->displaySeederError($class, $this->toException($e), $durationMs / 1000, $isLast);
+
+                Log::error("Package seeder failed: {$class}", [
+                    'package' => $group,
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
             }
         }
 
