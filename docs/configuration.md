@@ -616,7 +616,7 @@ consume.
 | Method | Purpose |
 |---|---|
 | `discoversWithAttributes(?string $directory = null, ?string $namespace = null)` | Scan `src/` for classes carrying `#[AsArtisanCommand]`, `#[AsRoute]`, `#[AsViewComposer]` and wire them automatically. Defaults to the package `src/` and detected namespace. |
-| `hasDoctorCheck(string\|DoctorCheck $check)` / `hasDoctorChecks(array $checks)` | Register one or many `DoctorCheck`s for `php artisan laranail::package-tools.doctor`. |
+| `hasDoctorCheck(string\|DoctorCheck $check)` / `hasDoctorChecks(array $checks)` | Register one or many `DoctorCheck`s for `php artisan laranail::package-tools.doctor` — the fluent `DoctorCheckDefinition` (factories, `named`/`describe`, `whenConfig` gates) is the primary form; see [doctor](tools/doctor.md). |
 | `hasValidationRule(string $name, string $ruleClass, ?string $message = null)` / `hasValidationRules(array $rules)` | Register a custom validator rule (or a batch keyed by name, each value a `class-string` or `[class-string, message]`). |
 | `hasAboutSection(AboutSectionDefinition\|string $label, ?callable $data)` / `hasAboutSections(array $sections)` | Add one or many `php artisan about` sections: a fluent `AboutSectionDefinition`, or the legacy label + callable form. |
 

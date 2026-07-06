@@ -15,7 +15,7 @@ use Throwable;
  */
 final readonly class WritablePathCheck implements DoctorCheck
 {
-    /** @param array<string, string> $paths label => path */
+    /** @param array<string, string>|list<string> $paths label => path, or a plain list (paths label themselves) */
     public function __construct(
         private array $paths,
         private ?int $minFreeBytes = null,
@@ -38,6 +38,8 @@ final readonly class WritablePathCheck implements DoctorCheck
         $notWritable = [];
 
         foreach ($this->paths as $label => $path) {
+            $label = is_string($label) ? $label : $path;
+
             if (! File::isDirectory($path)) {
                 try {
                     File::ensureDirectoryExists($path);

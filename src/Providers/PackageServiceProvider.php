@@ -34,6 +34,7 @@ use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
 
 /**
  * Base service provider for Laravel packages. Manages the package
@@ -253,7 +254,17 @@ abstract class PackageServiceProvider extends ServiceProvider
         $service = $this->app->make(DoctorService::class);
 
         foreach ($checks as $check) {
-            $service->register($check);
+            // gated definitions evaluate their config gate at boot; a
+            // failed gate means the check is never registered
+            if ($check instanceof DoctorCheckDefinition && ! $check->shouldRegister()) {
+                continue;
+            }
+
+            $group = $this->package->configVendor !== null
+                ? "{$this->package->configVendor}/{$this->package->name}"
+                : $this->package->name;
+
+            $service->register($check, $group);
         }
 
         return $this;

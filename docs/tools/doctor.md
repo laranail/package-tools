@@ -38,7 +38,35 @@ The exit code is `0` here (a `WARN` is not a failure). Re-run with
 ## Registering a check
 
 A `DoctorCheck` is registered against the `DoctorService` singleton.
-From a package's `configurePackage()`, use the fluent helper:
+From a package's `configurePackage()`, the fluent `DoctorCheckDefinition`
+is the primary form — static factories cover the whole bundled library,
+with chainable name/description overrides and config gating (no positional
+nullable constructor arguments anywhere):
+
+```php
+use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
+
+$package->hasDoctorChecks([
+    DoctorCheckDefinition::phpVersion('8.4.0'),
+    DoctorCheckDefinition::phpExtensions(['pdo', 'mbstring'])
+        ->named('runtime:extensions'),
+    DoctorCheckDefinition::configPresent(['acme.api_key'])
+        ->describe('the api key the sync worker needs'),
+    DoctorCheckDefinition::writablePaths([storage_path('acme')]),
+    DoctorCheckDefinition::reachable('db:ping', fn (): bool => DB::select('select 1') !== []),
+    DoctorCheckDefinition::softDependency(\Livewire\Livewire::class, 'livewire/livewire', required: false),
+    DoctorCheckDefinition::callback('queue:responsive', fn (): DoctorResult => DoctorResult::pass('ok')),
+    // wrap any custom check to gain the fluent surface:
+    DoctorCheckDefinition::wrap(new MigrationsAreFreshCheck())
+        ->whenConfig('acme.doctor.migrations', true),   // gated: never registered when off
+]);
+```
+
+`whenConfig` / `whenConfigNotNull` gates evaluate at boot — a failed gate
+means the check is never registered. Run-time preconditions belong inside
+the check itself via `DoctorResult::skip()`.
+
+The plain forms still work:
 
 ```php
 $package->hasDoctorCheck(MigrationsAreFreshCheck::class);
@@ -52,10 +80,14 @@ Equivalently, resolve the singleton directly:
 $this->app->make(DoctorService::class)->register(new MigrationsAreFreshCheck());
 ```
 
-`DoctorService::register(DoctorCheck|class-string<DoctorCheck> $check)`
-accepts either an instance or an FQCN. An FQCN is instantiated with `new`
-(no constructor arguments); a class that does not exist or does not
-implement `DoctorCheck` throws `InvalidArgumentException`.
+`DoctorService::register(DoctorCheck|class-string<DoctorCheck> $check, ?string $group = null)`
+accepts an instance or an FQCN, plus an optional attribution group (the
+provider passes the registering package's name automatically, so reports
+show which package owns each check). Re-registering the same (group, name)
+pair replaces the earlier entry instead of stacking duplicate rows. An
+FQCN is instantiated with `new` (no constructor arguments); a class that
+does not exist or does not implement `DoctorCheck` throws
+`InvalidArgumentException`.
 
 ## The `DoctorCheck` contract
 
@@ -143,6 +175,7 @@ final class ConfigPublishedCheck implements DoctorCheck
   "checks": [
     {
       "name": "config:published",
+      "group": "acme/blog",
       "description": "Verifies the package config has been published.",
       "status": "pass",
       "message": "Config is published.",
@@ -156,8 +189,8 @@ final class ConfigPublishedCheck implements DoctorCheck
 
 | Method | Returns | Purpose |
 |---|---|---|
-| `register(DoctorCheck\|class-string $check)` | `self` | Add a check (instance or FQCN). |
-| `run()` | `list<array{check, result}>` | Run every check in registration order. |
+| `register(DoctorCheck\|class-string $check, ?string $group = null)` | `self` | Add a check (instance or FQCN), optionally attributed to a group; same (group, name) replaces. |
+| `run()` | `list<array{check, result, group}>` | Run every check in registration order. |
 | `summarise(array $report)` | `array{pass,warn,fail,skip}` | Count results by status. |
 | `getChecks()` | `list<DoctorCheck>` | Registered checks. |
 | `reset()` | `self` | Clear all registered checks. |

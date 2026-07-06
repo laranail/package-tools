@@ -33,6 +33,7 @@ final class HealthResponder
             'summary' => $summary,
             'checks' => array_map(static fn (array $row): array => [
                 'name' => $row['check']->name(),
+                'group' => $row['group'] ?? null,
                 'status' => $row['result']->status->value,
                 'message' => $row['result']->message,
             ], $report),

@@ -18,12 +18,15 @@ final class DoctorService
     /** @var list<DoctorCheck> */
     private array $checks = [];
 
+    /** @var array<int, string|null> group per check, index-aligned */
+    private array $groups = [];
+
     /**
      * Register a check (FQCN or instance).
      *
      * @param DoctorCheck|class-string<DoctorCheck> $check
      */
-    public function register(DoctorCheck|string $check): self
+    public function register(DoctorCheck|string $check, ?string $group = null): self
     {
         if (is_string($check)) {
             if (! class_exists($check)) {
@@ -37,10 +40,21 @@ final class DoctorService
                     "DoctorService: {$check} does not implement DoctorCheck",
                 );
             }
-            $this->checks[] = $instance;
-        } else {
-            $this->checks[] = $check;
+            $check = $instance;
         }
+
+        // re-registering the same (group, name) replaces instead of
+        // duplicating report rows (double boots were silently stacking)
+        foreach ($this->checks as $index => $existing) {
+            if ($existing->name() === $check->name() && ($this->groups[$index] ?? null) === $group) {
+                $this->checks[$index] = $check;
+
+                return $this;
+            }
+        }
+
+        $this->checks[] = $check;
+        $this->groups[count($this->checks) - 1] = $group;
 
         return $this;
     }
@@ -48,13 +62,13 @@ final class DoctorService
     /**
      * Run every registered check. Order is registration order.
      *
-     * @return list<array{check: DoctorCheck, result: DoctorResult}>
+     * @return list<array{check: DoctorCheck, result: DoctorResult, group: string|null}>
      */
     public function run(): array
     {
         $report = [];
 
-        foreach ($this->checks as $check) {
+        foreach ($this->checks as $index => $check) {
             try {
                 $result = $check->run();
             } catch (Throwable $e) {
@@ -64,14 +78,14 @@ final class DoctorService
                 );
             }
 
-            $report[] = ['check' => $check, 'result' => $result];
+            $report[] = ['check' => $check, 'result' => $result, 'group' => $this->groups[$index] ?? null];
         }
 
         return $report;
     }
 
     /**
-     * @param list<array{check: DoctorCheck, result: DoctorResult}> $report
+     * @param list<array{check: DoctorCheck, result: DoctorResult, group: string|null}> $report
      * @return array{pass: int, warn: int, fail: int, skip: int}
      */
     public function summarise(array $report): array
@@ -94,6 +108,7 @@ final class DoctorService
     public function reset(): self
     {
         $this->checks = [];
+        $this->groups = [];
 
         return $this;
     }

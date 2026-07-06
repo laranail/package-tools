@@ -118,13 +118,33 @@ final class DoctorServiceTest extends TestCase
     {
         $service = (new DoctorService)
             ->register(new PassingCheck)
-            ->register(new PassingCheck)
+            ->register(new PassingCheck, 'acme/other') // distinct group => distinct row
             ->register(new FailingCheck);
 
         $report = $service->run();
         $counts = $service->summarise($report);
 
         $this->assertSame(['pass' => 2, 'warn' => 0, 'fail' => 1, 'skip' => 0], $counts);
+    }
+
+    public function test_reregistering_the_same_group_and_name_replaces(): void
+    {
+        $service = (new DoctorService)
+            ->register(new PassingCheck, 'acme/pkg')
+            ->register(new PassingCheck, 'acme/pkg'); // double boot must not stack rows
+
+        $this->assertCount(1, $service->run());
+    }
+
+    public function test_report_rows_carry_the_registering_group(): void
+    {
+        $report = (new DoctorService)
+            ->register(new PassingCheck, 'acme/pkg')
+            ->register(new FailingCheck)
+            ->run();
+
+        $this->assertSame('acme/pkg', $report[0]['group']);
+        $this->assertNull($report[1]['group']);
     }
 
     public function test_doctor_status_has_symbol_and_color(): void

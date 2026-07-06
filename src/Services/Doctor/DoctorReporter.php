@@ -34,6 +34,7 @@ final class DoctorReporter
                 'summary' => $summary,
                 'checks' => array_map(static fn (array $row): array => [
                     'name' => $row['check']->name(),
+                    'group' => $row['group'] ?? null,
                     'status' => $row['result']->status->value,
                     'message' => $row['result']->message,
                     'detail' => $row['result']->detail,
@@ -45,7 +46,7 @@ final class DoctorReporter
 
         $cmd->table(['', 'Check', 'Result'], array_map(static fn (array $row): array => [
             $row['result']->status->symbol(),
-            $row['check']->name(),
+            ($row['group'] ?? null) !== null ? "[{$row['group']}] " . $row['check']->name() : $row['check']->name(),
             $row['result']->message,
         ], $report));
 

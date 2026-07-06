@@ -5,6 +5,31 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-07-06
+
+### Added
+
+- **Fluent doctor checks**: `DoctorCheckDefinition` — static factories for
+  the whole bundled check library (`phpVersion`, `phpExtensions`,
+  `configPresent`, `writablePaths`, `reachable`, `softDependency`,
+  `callback`, and `wrap()` for custom checks), chainable
+  `named()`/`describe()` overrides, `whenConfig`/`whenConfigNotNull`
+  gating via the shared ConfigGate (a failed gate means the check is never
+  registered), and the standard toArray/toJson surface. The definition IS
+  a DoctorCheck, so everything existing keeps working.
+- **Package attribution**: doctor report rows (table, JSON, health
+  endpoint) now carry the registering package's name as `group`; the boot
+  step passes it automatically.
+- `DoctorResult` implements `Arrayable`.
+- `WritablePathCheck` accepts a plain list of paths (paths label
+  themselves) alongside the label => path map.
+
+### Fixed
+
+- `DoctorService::register()` no longer stacks duplicate report rows when
+  the same (group, name) pair registers twice (double boots were silently
+  duplicating checks); the later registration replaces the earlier one.
+
 ## [2.1.0] - 2026-07-06
 
 ### Added

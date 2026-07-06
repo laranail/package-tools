@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Doctor;
 
+use Illuminate\Contracts\Support\Arrayable;
+
 /**
  * The outcome of a single DoctorCheck.
  *
@@ -13,7 +15,10 @@ namespace Simtabi\Laranail\Package\Tools\Services\Doctor;
  *   - FAIL: check found a real problem requiring user action.
  *   - SKIP: check did not run (e.g., precondition unmet).
  */
-final readonly class DoctorResult
+/**
+ * @implements Arrayable<string, mixed>
+ */
+final readonly class DoctorResult implements Arrayable
 {
     public function __construct(
         public DoctorStatus $status,
@@ -52,5 +57,17 @@ final readonly class DoctorResult
     public static function skip(string $message, array $detail = []): self
     {
         return new self(DoctorStatus::Skip, $message, $detail);
+    }
+
+    /**
+     * @return array{status: string, message: string, detail: array<string, scalar|array<scalar>>}
+     */
+    public function toArray(): array
+    {
+        return [
+            'status' => $this->status->value,
+            'message' => $this->message,
+            'detail' => $this->detail,
+        ];
     }
 }
