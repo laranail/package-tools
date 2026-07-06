@@ -81,13 +81,33 @@ $this->app->make(DoctorService::class)->register(new MigrationsAreFreshCheck());
 ```
 
 `DoctorService::register(DoctorCheck|class-string<DoctorCheck> $check, ?string $group = null)`
-accepts an instance or an FQCN, plus an optional attribution group (the
-provider passes the registering package's name automatically, so reports
-show which package owns each check). Re-registering the same (group, name)
-pair replaces the earlier entry instead of stacking duplicate rows. An
-FQCN is instantiated with `new` (no constructor arguments); a class that
-does not exist or does not implement `DoctorCheck` throws
+accepts an instance or an FQCN, plus an optional attribution group. The
+provider's boot step passes the registering package's name
+(`vendor/package`) automatically, so the service's report rows record
+which package owns each check; the `group` surfaces in the
+`DoctorReporter` and `HealthResponder` shapes below. Re-registering the
+same (group, name) pair replaces the earlier entry instead of stacking
+duplicate rows (double boots were silently duplicating checks pre-2.2).
+An FQCN is instantiated with `new` (no constructor arguments); a class
+that does not exist or does not implement `DoctorCheck` throws
 `InvalidArgumentException`.
+
+## The bundled check library
+
+The static factories on `DoctorCheckDefinition` wrap these parameterised
+checks (`Services\Doctor\Checks\`). Each also takes optional `name` /
+`description` constructor overrides; the definition's `named()` /
+`describe()` are the fluent equivalents.
+
+| Check | Default name | Semantics |
+|---|---|---|
+| `PhpVersionCheck(string $minVersion)` | `php:version` | `FAIL` when the runtime PHP is below `$minVersion`. |
+| `PhpExtensionCheck(string\|array $extensions)` | `php:extensions` | `FAIL` listing any extension not loaded. |
+| `ConfigPresentCheck(array $keys, bool $required = true)` | `config:present` | Keys may be a `label => config-key` map or a plain list. A `null`/`''` value is missing: `FAIL` when required, `WARN` otherwise. |
+| `WritablePathCheck(array $paths, ?int $minFreeBytes = null)` | `fs:writable` | Paths may be a `label => path` map or a plain list (paths label themselves); missing directories are created. Not writable is a `FAIL`; free disk below `$minFreeBytes` is a `WARN`. |
+| `ReachabilityCheck(Closure $probe, string $name, ?string $description = null, string $target = 'Target')` | *(required)* | An unreachable result — or a probe that throws — is a `WARN`, never a `FAIL`: connectivity is not a config error. |
+| `SoftDependencyCheck(string $class, string $label, bool $required = true)` | `dependency:{label}` | Class absent: `FAIL` when required, `WARN` otherwise. |
+| `CallbackCheck(string $name, string $description, Closure $run)` | *(required)* | Escape hatch — the closure returns the `DoctorResult`. |
 
 ## The `DoctorCheck` contract
 
@@ -169,13 +189,14 @@ final class ConfigPublishedCheck implements DoctorCheck
 
 ## JSON output shape
 
+`laranail::package-tools.doctor --json` emits:
+
 ```json
 {
-  "summary": { "pass": 0, "warn": 0, "fail": 0, "skip": 0 },
+  "summary": { "pass": 1, "warn": 0, "fail": 0, "skip": 0 },
   "checks": [
     {
       "name": "config:published",
-      "group": "acme/blog",
       "description": "Verifies the package config has been published.",
       "status": "pass",
       "message": "Config is published.",
@@ -183,6 +204,52 @@ final class ConfigPublishedCheck implements DoctorCheck
     }
   ]
 }
+```
+
+## Reusable rendering: `DoctorReporter` and `HealthResponder`
+
+Two static helpers — `Services\Doctor\DoctorReporter` and
+`Services\Doctor\HealthResponder` — collapse a package's own doctor
+command and HTTP health endpoint to one line each. Both build a fresh `DoctorService`
+from the checks you pass, run it, and render the report — group
+attribution appears when the rows carry a group (registered on a shared
+service with `register($check, $group)`); checks passed directly to the
+helpers register ungrouped (`group: null`).
+
+`DoctorReporter::render(Command $cmd, iterable $checks, bool $json = false, bool $strict = false): int`
+renders a table (columns: symbol, `Check`, `Result`, with the check name
+prefixed `[group] ` when a group is set) or, with `$json`, a JSON payload
+with a top-level status:
+
+```json
+{
+  "status": "healthy",
+  "summary": { "pass": 1, "warn": 0, "fail": 0, "skip": 0 },
+  "checks": [
+    { "name": "config:published", "group": null, "status": "pass",
+      "message": "Config is published.", "detail": {} }
+  ]
+}
+```
+
+`status` is `degraded` when any check failed. The return value is the
+conventional exit code: `FAILURE` on any `FAIL` (or any `WARN` with
+`$strict`), else `SUCCESS`.
+
+```php
+public function handle(): int
+{
+    return DoctorReporter::render($this, [new ConfigPublishedCheck], json: $this->option('json'));
+}
+```
+
+`HealthResponder::json(iterable $checks): JsonResponse` returns the same
+`status`/`summary`/`checks` payload (rows carry `name`, `group`,
+`status`, `message` — no `detail`) with HTTP `200` when healthy and
+`503` when any check failed:
+
+```php
+Route::get('/health', fn () => HealthResponder::json([new ConfigPublishedCheck]));
 ```
 
 ## DoctorService API

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
+use Illuminate\Container\Container;
+use Illuminate\Events\Dispatcher;
+use Illuminate\Routing\Router;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Simtabi\Laranail\Package\Tools\Package;
@@ -119,6 +122,34 @@ class HasEnhancedMiddlewareTest extends TestCase
     }
 
     #[Test]
+    public function boot_defines_a_group_the_router_does_not_have(): void
+    {
+        $router = $this->makeRouter();
+
+        $this->package->registerMiddlewareGroup('blog', ['App\\A', 'App\\B']);
+        $this->package->bootPackageMiddleware($router);
+
+        $this->assertSame(['App\\A', 'App\\B'], $router->getMiddlewareGroups()['blog']);
+    }
+
+    #[Test]
+    public function boot_appends_to_a_group_the_host_already_defined(): void
+    {
+        $router = $this->makeRouter();
+        $router->middlewareGroup('web', ['App\\HostSession', 'App\\HostCsrf']);
+
+        // addToMiddlewareGroup('web', …) must append to the host's web
+        // group, never replace it with the package's short list
+        $this->package->addToMiddlewareGroup('web', 'App\\PackageMiddleware');
+        $this->package->bootPackageMiddleware($router);
+
+        $this->assertSame(
+            ['App\\HostSession', 'App\\HostCsrf', 'App\\PackageMiddleware'],
+            $router->getMiddlewareGroups()['web'],
+        );
+    }
+
+    #[Test]
     public function register_prefixed_middleware_defaults_to_the_package_short_name(): void
     {
         $this->package->registerPrefixedMiddleware(['auth' => 'App\\Auth']);
@@ -138,5 +169,10 @@ class HasEnhancedMiddlewareTest extends TestCase
             ['blog.auth' => 'App\\Auth'],
             $this->package->getRouteMiddleware(),
         );
+    }
+
+    private function makeRouter(): Router
+    {
+        return new Router(new Dispatcher, new Container);
     }
 }

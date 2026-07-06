@@ -73,6 +73,17 @@ trait HasMiddlewareManagement
         }
 
         foreach ($this->middlewareGroups as $group => $middleware) {
+            // never replace a group the host (or an earlier package) already
+            // defined — addToMiddlewareGroup('web', …) must append to the
+            // host's web group, not clobber it down to the package's list
+            if ($router->hasMiddlewareGroup($group)) {
+                foreach ($middleware as $class) {
+                    $router->pushMiddlewareToGroup($group, $class);
+                }
+
+                continue;
+            }
+
             $router->middlewareGroup($group, $middleware);
         }
 

@@ -29,6 +29,10 @@ final class DefinedInstallCommand extends InstallCommand
     #[Override]
     public function handle(): int
     {
+        // steps are deliberately not wrapped in try/catch: an install step
+        // that throws should abort the run loudly (artisan renders the
+        // exception and exits non-zero) rather than half-install quietly —
+        // same contract as the legacy fixed pipeline
         foreach ($this->definition->steps() as $step) {
             ($step['run'])($this);
         }

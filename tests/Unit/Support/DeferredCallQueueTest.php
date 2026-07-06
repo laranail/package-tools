@@ -99,6 +99,20 @@ final class DeferredCallQueueTest extends TestCase
     }
 
     #[Test]
+    public function replay_normalizes_enums_inside_array_arguments(): void
+    {
+        $queue = new DeferredCallQueue;
+        $target = new RecordingReplayTarget;
+
+        // environments([Environment::Production, 'staging']) — the array
+        // form must normalize its members like the variadic form does
+        $queue->record('environments', [[Environment::Production, 'staging']]);
+        $queue->replayOn($target);
+
+        $this->assertSame([['environments', [['production', 'staging']]]], $target->calls);
+    }
+
+    #[Test]
     public function replay_normalizes_time_of_day_to_the_canonical_24_hour_string(): void
     {
         $queue = new DeferredCallQueue;

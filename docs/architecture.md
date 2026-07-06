@@ -14,19 +14,21 @@ and describes itself through the fluent `Package` builder.
 > in `package-tools` references a `Packager` facade, a `config/packager.php`,
 > or any `PACKAGER_*` environment variable.
 
-## Core Components
+## Core components
 
 ### 1. Package class
 
 `Simtabi\Laranail\Package\Tools\Package` is the central builder. It
-aggregates package configuration through 14 domain aggregator traits
+aggregates package configuration through 15 domain aggregator traits
 under `src/Concerns/Package/`: `ConfiguresConfig`,
 `ConfiguresViews`, `ConfiguresAssets`, `ConfiguresRoutes`,
 `ConfiguresTranslations`, `ConfiguresDatabase`, `ConfiguresCommands`,
 `ConfiguresComponents`, `ConfiguresMiddleware`, `ConfiguresEvents`,
-`ConfiguresServiceProviders`, `ConfiguresComposer`, `ConfiguresHelpers`,
-and `ConfiguresLifecycle`. Each aggregator composes its leaf `Has*` traits;
-all 46 leaf traits under `src/Concerns/Package/` are wired through an aggregator.
+`ConfiguresAuthorization` (policies, morph maps, observers, rate
+limiters — added in 2.0), `ConfiguresServiceProviders`,
+`ConfiguresComposer`, `ConfiguresHelpers`, and `ConfiguresLifecycle`.
+Each aggregator composes its leaf `Has*` traits; all 51 leaf traits
+under `src/Concerns/Package/` are wired through an aggregator.
 
 ### 2. Service layer (`src/Services/`)
 
@@ -51,14 +53,18 @@ fully-qualified class names. The domains:
 - **View** — component loader, composer registry, validation.
 
 Plus support classes under `src/Support/` (`ConfigDetector`,
-`FluentPackageHelper`, `ForeignKeyCheckGuard`, `PathResolver`,
-`RuntimeConfigurator`) and the `ErrorStorage` subsystem.
+`ConfigGate`, `DeferredCallQueue`, `FluentPackageHelper`,
+`ForeignKeyCheckGuard`, `PathResolver`, `RuntimeConfigurator`), the
+`Scheduling` pair (`CronBuilder`, `TimeOfDay`), the fluent
+`Support\Definitions\*` value objects (scheduled commands, seeders,
+about sections, doctor checks, install commands), and the `ErrorStorage`
+subsystem.
 
 ### 3. Package concerns (`src/Concerns/`)
 
 Traits compose package functionality:
 
-- `Concerns/Package/` — the 13 aggregators + their leaf `Has*` traits.
+- `Concerns/Package/` — the 15 aggregators + their leaf `Has*` traits.
 - `Concerns/PackageServiceProvider/` — the `Process*`/`Loads*` traits that
   the provider mixes in to boot assets, configs, views, routes, commands,
   migrations, components, translations, etc.
@@ -87,7 +93,7 @@ override `configurePackage()` (required) plus the optional
 closure hooks (`onBeforeBoot`, `onAfterBoot`, …). See
 [configuration.md](configuration.md) for details.
 
-## Design Patterns
+## Design patterns
 
 ### Service pattern
 
@@ -106,13 +112,11 @@ configuration method returns `static`.
 ### Trait composition
 
 The `Package` class and the abstract provider compose functionality
-through traits. The builder uses a two-tier scheme: 14 domain aggregator
+through traits. The builder uses a two-tier scheme: 15 domain aggregator
 traits, each composing a set of leaf `Has*` traits. This keeps a single
 domain's surface (config, views, database, …) in one aggregator while the
-leaves stay small and individually testable. Six leaf traits collide by
-method or property name with already-wired siblings; they stay unwired by
-design until that overlap is consolidated, rather than being force-fitted
-into the aggregators.
+leaves stay small and individually testable. All leaves are wired through
+an aggregator.
 
 ## Design intent
 
@@ -132,21 +136,48 @@ third-party auto-discovery dependency. The flag is set in
 `configurePackage()`; the scan runs at `packageBooted()`. See
 [tools/attribute-discovery.md](tools/attribute-discovery.md).
 
+### Why a definitions layer? (2.x)
+
+The 2.x surface is built on fluent **definition value objects**
+(`Support\Definitions\*`): configure time records intent; nothing
+touches the framework until the right lifecycle moment. Config gates
+(`whenConfig()` / `whenConfigNotNull()`) share one implementation
+(`Support\ConfigGate`) and evaluate at boot — or, for schedules, when
+the `Schedule` itself resolves — never at configure time, so a package
+can be described before the host's config is even merged.
+`ScheduledCommandDefinition` splits its vocabulary in two tiers on
+purpose: the cron-expressible frequency methods live once on the
+standalone `CronBuilder` (a validated designer any code can use), and
+every other call is recorded in a generic `DeferredCallQueue` and
+replayed — validated, with argument normalization — on the real
+scheduler `Event`, so the full Laravel scheduler vocabulary works
+without being reimplemented. Morph maps are registered
+**non-enforcingly** (no `Relation::requireMorphMap()`): a package
+forcing enforcement globally would break unrelated host morphs, so
+hosts opt in themselves. See
+[configuration.md](configuration.md#scheduled-commands) for the full
+behavior reference.
+
 ### Seeder auto-run and the package-author plumbing
 
 Package authors register seeders with `hasPackageSeeders()` /
 `discoverPackageSeedersIn()`. The design goal is that these run without
-the host app editing its own `DatabaseSeeder`. Two paths achieve that: the
-provider executes registered seeders at `packageBooted()` through a
-`SeederExecutor`, and a `SeederResolverHook` also runs them the first time
-the host's `DatabaseSeeder` resolves (e.g. `php artisan db:seed`). The
+the host app editing its own `DatabaseSeeder` — but **never at
+application boot** (the pre-2.0 boot-time execution path ran DB writes
+per request and was removed). Boot only evaluates each definition's
+config gate and registers the surviving bundles; a `SeederResolverHook`
+then runs everything registered the first time the host's
+`DatabaseSeeder` resolves (e.g. `php artisan db:seed`). The
 hook is idempotent — it fires at most once per invocation even when
 several packages attach — and uses weak references so it never pins the
-registry/executor in memory. Seeding runs inside `ForeignKeyCheckGuard`
-by default (FK checks off, then restored, nesting- and exception-safe),
-and can emit `SeedingStarted` / `SeedingFinished` events when
-`fire_events` is set. A failing seeder is logged and counted, not
-fatal. See [configuration.md](configuration.md#package-seeders).
+registry/executor in memory. Each bundle's seeding runs inside
+`ForeignKeyCheckGuard` by default (FK checks off, then restored,
+nesting- and exception-safe, scoped per bundle), bundles execute in
+priority order (lower first, stable ties), and the
+`SeedingStarted` / `SeedingFinished` events fire when a bundle opts in
+via `fire_events`. A failing seeder is logged and counted, not
+fatal. See [seeding.md](seeding.md) and
+[configuration.md](configuration.md#package-seeders).
 
 ### Fluent-return convention
 

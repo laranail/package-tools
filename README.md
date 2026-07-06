@@ -17,7 +17,7 @@ composer require laranail/package-tools
 
 ## Documentation
 
-Full documentation is at **[opensource.simtabi.com/documentation/laranail/package-tools](https://opensource.simtabi.com/documentation/laranail/package-tools/)** — getting started, the fluent builder, declarative registration & batch helpers, attribute discovery, the Artisan commands, HTTP controllers, provenance/SBOM, the testing harness, and configuration.
+Full documentation is at **[opensource.simtabi.com/documentation/laranail/package-tools](https://opensource.simtabi.com/documentation/laranail/package-tools/)** — getting started, the fluent builder, declarative registration & batch helpers (scheduled commands, policies, morph maps, `db:seed`-time seeders, about sections, doctor checks, install commands), attribute discovery, the Artisan commands, HTTP controllers, provenance/SBOM, the testing harness, and configuration.
 
 ## Contributing & security
 

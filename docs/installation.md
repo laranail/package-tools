@@ -53,7 +53,7 @@ inside `configurePackage(Package $package)`:
 
 ```php
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 final class FooServiceProvider extends PackageServiceProvider
 {
@@ -73,7 +73,7 @@ final class FooServiceProvider extends PackageServiceProvider
 The full fluent surface, the provider lifecycle hooks, and the runtime
 environment variables are documented in
 [configuration.md](configuration.md). See
-[`examples/`](https://github.com/laranail/package-tools/tree/main/examples) for runnable examples.
+[`docs/examples/`](https://github.com/laranail/package-tools/tree/main/docs/examples) for runnable examples.
 
 ## See also
 

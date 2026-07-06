@@ -16,8 +16,19 @@ $caseName = static function (string $identifier): string {
 };
 
 $cases = '';
+$seen = [];
 foreach ($identifiers as $identifier) {
-    $cases .= sprintf("    case %s = '%s';\n", $caseName($identifier), $identifier);
+    $name = $caseName($identifier);
+
+    // two identifiers normalizing to one case name would be a fatal enum
+    // redeclaration in the generated file — refuse to write it
+    if (isset($seen[$name])) {
+        fwrite(STDERR, "case-name collision: '{$seen[$name]}' and '{$identifier}' both normalize to '{$name}'\n");
+        exit(1);
+    }
+
+    $seen[$name] = $identifier;
+    $cases .= sprintf("    case %s = '%s';\n", $name, $identifier);
 }
 
 $code = <<<PHP

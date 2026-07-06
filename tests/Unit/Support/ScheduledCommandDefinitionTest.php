@@ -294,6 +294,42 @@ final class ScheduledCommandDefinitionTest extends TestCase
     }
 
     #[Test]
+    public function config_cadence_is_applied_once_across_repeated_schedule_resolutions(): void
+    {
+        config()->set('pkg.schedule', 'twiceDaily:1,13');
+        $definition = ScheduledCommandDefinition::make('pkg:sync')->cadenceFromConfig('pkg.schedule');
+
+        // callAfterResolving can fire more than once per process (tests,
+        // octane); the deferred queue must not double-record
+        $this->assertTrue($definition->shouldSchedule());
+        $this->assertTrue($definition->shouldSchedule());
+
+        $this->assertSame(
+            [['method' => 'twiceDaily', 'args' => [1, 13]]],
+            $definition->toArray()['deferred_calls'],
+        );
+    }
+
+    #[Test]
+    public function cadence_does_not_mistake_five_words_for_a_cron_expression(): void
+    {
+        $definition = ScheduledCommandDefinition::make('pkg:sync')->cadence('daily and more words here');
+
+        // routed to method dispatch (which fails loudly at replay), never
+        // silently seeded as a raw cron expression
+        $this->assertNull($definition->toArray()['cron']);
+        $this->assertCount(1, $definition->toArray()['deferred_calls']);
+    }
+
+    #[Test]
+    public function cadence_detects_a_raw_cron_expression_with_named_fields(): void
+    {
+        $definition = ScheduledCommandDefinition::make('pkg:sync')->cadence('0 2 * JAN MON-FRI');
+
+        $this->assertSame(['expression' => '0 2 * JAN MON-FRI'], $definition->toArray()['cron']);
+    }
+
+    #[Test]
     public function config_cadence_fails_closed_on_a_malformed_value(): void
     {
         config()->set('pkg.schedule', 123);

@@ -162,9 +162,18 @@ final class AutoSeederDefinition implements Arrayable, Jsonable, JsonSerializabl
      */
     public function resolveSeeders(string $defaultDiscoveryPath): array
     {
-        $seeders = $this->seeders !== []
-            ? $this->seeders
-            : (new SeederPathDiscoverer)->discover($this->discoveryPath ?? $defaultDiscoveryPath);
+        if ($this->seeders !== []) {
+            // dedupe the explicit list: a seeder listed twice must not run
+            // twice (first occurrence keeps its position)
+            $seeders = array_values(array_unique($this->seeders));
+        } else {
+            $path = $this->discoveryPath ?? $defaultDiscoveryPath;
+
+            // a package without a seeders directory has nothing to discover
+            // — not a boot error (the discoverer itself stays strict for
+            // direct callers)
+            $seeders = is_dir($path) ? (new SeederPathDiscoverer)->discover($path) : [];
+        }
 
         return array_values(array_diff($seeders, $this->ignored));
     }

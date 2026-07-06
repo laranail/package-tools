@@ -5,6 +5,36 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-07-06
+
+### Fixed
+
+- **Middleware group boot no longer replaces host groups**: booting an
+  `addToMiddlewareGroup('web', ...)` registration was overwriting the
+  host's entire `web` group (sessions, CSRF) with the package's list; it
+  now appends via `pushMiddlewareToGroup()` and only defines groups the
+  router does not have.
+- **CronBuilder validation tightened**: zero steps (`*/0`), inverted
+  ranges (`5-2`), field-minimum violations (`dayOfMonth('0')`), and
+  `*-N` forms are rejected; `everyHours()` no longer clobbers an
+  explicitly set minute.
+- **Deferred-call argument normalization is recursive**: enum/TimeOfDay/
+  CronExpressible values inside array arguments (e.g.
+  `environments([Environment::Production])`) now normalize like scalars.
+- **Config cadences apply once** across repeated Schedule resolutions
+  (tests, Octane) instead of re-recording duplicate frequency calls.
+- **Raw-cron detection** no longer mistakes any five words for an
+  expression; only field-shaped tokens route to `cron()`.
+- **Seeder definitions**: duplicate explicit seeders resolve once;
+  discovery over a missing directory registers nothing instead of
+  throwing at boot.
+- **About sections** accept numeric-string field keys.
+- The unified doctor command's table and `--json` output surface the
+  registering package (`group`).
+- Documentation accuracy pass across every page (FQCNs, signatures,
+  stale 1.x architecture claims, dead example links, missing 1.3/2.x
+  service references).
+
 ## [2.3.0] - 2026-07-06
 
 ### Added
@@ -40,9 +70,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   gating via the shared ConfigGate (a failed gate means the check is never
   registered), and the standard toArray/toJson surface. The definition IS
   a DoctorCheck, so everything existing keeps working.
-- **Package attribution**: doctor report rows (table, JSON, health
-  endpoint) now carry the registering package's name as `group`; the boot
-  step passes it automatically.
+- **Package attribution**: `DoctorService::register()` takes an optional
+  `$group` and report rows carry it (surfaced in the `DoctorReporter`
+  table/JSON and `HealthResponder` shapes); the provider's boot step
+  passes the registering package's name automatically.
 - `DoctorResult` implements `Arrayable`.
 - `WritablePathCheck` accepts a plain list of paths (paths label
   themselves) alongside the label => path map.

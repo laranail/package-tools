@@ -8,7 +8,7 @@ own package fluently inside `configurePackage(Package $package)`.
 
 ```php
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 final class FooServiceProvider extends PackageServiceProvider
 {
@@ -207,7 +207,10 @@ Since 2.0 **every** middleware method — the core
 **one boot step**, `bootPackageMiddleware(Router $router)`:
 
 1. every alias via `$router->aliasMiddleware()`,
-2. every group via `$router->middlewareGroup()`,
+2. every group — **appended** into an already-defined group via
+   `$router->pushMiddlewareToGroup()` (so `addToMiddlewareGroup('web', …)`
+   extends the host's `web` group rather than clobbering it), or defined
+   fresh via `$router->middlewareGroup()` when the group does not exist yet,
 3. every global middleware via the HTTP kernel's `pushMiddleware()`.
 
 The pre-2.0 eager path — where the enhanced methods wrote to the router
@@ -378,7 +381,7 @@ use seeding.
 | `hasCommand(string $commandClassName)` / `hasCommands(string\|array ...$names)` | Register Artisan commands. |
 | `hasConsoleCommand(string $commandClassName)` / `hasConsoleCommands(...)` | Register console-only commands. |
 | `hasInstallCommand(InstallCommandDefinition\|callable $definition)` | Register the package install command — a fluent step definition (primary form), or the legacy callable. |
-| `autoLoadCommands(?string $dir = null)` | Auto-discover `Illuminate\Console\Command` subclasses under `src/Commands` (override `$dir`) and register each via `hasCommands()`. No-ops if the directory is missing or the package namespace can't be resolved. |
+| `autoLoadCommands(?string $dir = null)` | Auto-discover `Illuminate\Console\Command` subclasses under `src/Commands` (override `$dir`) and register each via `hasCommands()`. No-ops if the directory is missing or the package namespace can't be resolved. **Protected** — invoked through `loadAllResources(['commands'])`, not called directly. |
 
 The fluent `InstallCommandDefinition` declares named steps that run in
 **declaration order** — built-ins and custom steps interleave freely (the
@@ -386,6 +389,7 @@ legacy form ran a fixed pipeline with only start/end hooks). Definitions
 are built lazily, console-only: nothing is constructed on web requests.
 
 ```php
+use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
 
 $package->hasInstallCommand(
@@ -445,9 +449,10 @@ flowchart LR
 
 At replay, arguments are normalized so typed values flow through magic
 dispatch uniformly: a `BackedEnum` becomes its value, a `TimeOfDay`
-becomes its `format24()` string, and a `CronExpressible` becomes its
-`toExpression()` string. That is what makes the enums below usable
-directly:
+becomes its `format24()` string, a `CronExpressible` becomes its
+`toExpression()` string, and arrays are normalized recursively (so an
+array of enum cases works like the variadic form). That is what makes
+the enums below usable directly:
 
 ```php
 use Simtabi\Laranail\Package\Tools\Enums\Environment;
@@ -637,9 +642,9 @@ consume.
 | Method | Purpose |
 |---|---|
 | `discoversWithAttributes(?string $directory = null, ?string $namespace = null)` | Scan `src/` for classes carrying `#[AsArtisanCommand]`, `#[AsRoute]`, `#[AsViewComposer]` and wire them automatically. Defaults to the package `src/` and detected namespace. |
-| `hasDoctorCheck(string\|DoctorCheck $check)` / `hasDoctorChecks(array $checks)` | Register one or many `DoctorCheck`s for `php artisan laranail::package-tools.doctor` — the fluent `DoctorCheckDefinition` (factories, `named`/`describe`, `whenConfig` gates) is the primary form; see [doctor](tools/doctor.md). |
+| `hasDoctorCheck(string\|DoctorCheck $check)` / `hasDoctorChecks(iterable $checks)` | Register one or many `DoctorCheck`s for `php artisan laranail::package-tools.doctor` — the fluent `DoctorCheckDefinition` (factories, `named`/`describe`, `whenConfig` gates) is the primary form; see [doctor](tools/doctor.md). |
 | `hasValidationRule(string $name, string $ruleClass, ?string $message = null)` / `hasValidationRules(array $rules)` | Register a custom validator rule (or a batch keyed by name, each value a `class-string` or `[class-string, message]`). |
-| `hasAboutSection(AboutSectionDefinition\|string $label, ?callable $data)` / `hasAboutSections(array $sections)` | Add one or many `php artisan about` sections: a fluent `AboutSectionDefinition`, or the legacy label + callable form. |
+| `hasAboutSection(AboutSectionDefinition\|string $label, ?callable $data = null)` / `hasAboutSections(array $sections)` | Add one or many `php artisan about` sections: a fluent `AboutSectionDefinition`, or the legacy label + callable form. |
 
 The fluent form declares fields one by one — scalars render as-is, closures
 resolve per field only when the about command actually runs, and the section
@@ -654,7 +659,7 @@ $package->hasAboutSection(
         ->field('Posts', fn (): string => (string) Post::count())   // lazy, per field
         ->fieldsUsing(fn (): array => $diagnostics->summary())      // whole-array source;
                                                                     // explicit fields win
-        ->whenConfig('acme.blog.about', true),                      // config gate
+        ->whenConfig('acme.blog.about', true),                      // config gate, evaluated at boot
 );
 ```
 
@@ -735,23 +740,25 @@ its own. Details and a usage example are in
 
 ## Worked example
 
-[`examples/`](https://github.com/laranail/package-tools/tree/main/examples) is a cohesive `Acme\Hello` package that exercises
+[`docs/examples/`](https://github.com/laranail/package-tools/tree/main/docs/examples) is a cohesive `Acme\Hello` package that exercises
 every package-tools feature end to end. Start with the provider, which ties
 the rest together:
 
-- [HelloPackageServiceProvider.php](https://github.com/laranail/package-tools/blob/main/examples/HelloPackageServiceProvider.php)
+- [HelloPackageServiceProvider.php](https://github.com/laranail/package-tools/blob/main/docs/examples/HelloPackageServiceProvider.php)
   — the fluent builder (config, views, components, translations, assets,
   routes plain and config-gated, migrations, commands), scheduled commands
   with the enums and gates, policies, a config-driven morph map, an
-  observer, a rate limiter, gated Livewire components, the install-command
-  flow, `db:seed`-time package seeders, attribute discovery, two doctor
-  checks, and both override and closure lifecycle hooks.
-- [Console/HelloCommand.php](https://github.com/laranail/package-tools/blob/main/examples/Console/HelloCommand.php) — a command
+  observer, a rate limiter, gated Livewire components, a fluent
+  `php artisan about` section, a definition-based install command,
+  `db:seed`-time package seeders, attribute discovery, doctor checks in
+  both the definition and plain forms, and both override and closure
+  lifecycle hooks.
+- [Console/HelloCommand.php](https://github.com/laranail/package-tools/blob/main/docs/examples/Console/HelloCommand.php) — a command
   registered via `hasCommand()`.
-- [Database/Seeders/GreetingSeeder.php](https://github.com/laranail/package-tools/blob/main/examples/Database/Seeders/GreetingSeeder.php)
+- [Database/Seeders/GreetingSeeder.php](https://github.com/laranail/package-tools/blob/main/docs/examples/Database/Seeders/GreetingSeeder.php)
   — a seeder run through `hasPackageSeeders()`, with the
   `SeedingStarted`/`SeedingFinished` events noted inline.
-- [Doctor/HelloHealthCheck.php](https://github.com/laranail/package-tools/blob/main/examples/Doctor/HelloHealthCheck.php) — the
+- [Doctor/HelloHealthCheck.php](https://github.com/laranail/package-tools/blob/main/docs/examples/Doctor/HelloHealthCheck.php) — the
   `DoctorCheck` wired via `hasDoctorCheck()`.
 
 ## See also

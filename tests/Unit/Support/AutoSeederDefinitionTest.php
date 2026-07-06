@@ -86,6 +86,29 @@ final class AutoSeederDefinitionTest extends TestCase
     }
 
     #[Test]
+    public function duplicate_explicit_seeders_resolve_once(): void
+    {
+        $definition = AutoSeederDefinition::make('acme/blog')
+            ->seeders([AlphaFixtureSeeder::class, BetaFixtureSeeder::class, AlphaFixtureSeeder::class]);
+
+        // a seeder listed twice must not run twice
+        $this->assertSame(
+            [AlphaFixtureSeeder::class, BetaFixtureSeeder::class],
+            $definition->resolveSeeders('/irrelevant-default'),
+        );
+    }
+
+    #[Test]
+    public function discovery_over_a_missing_directory_resolves_to_nothing(): void
+    {
+        // a package that ships no seeders directory registers nothing —
+        // boot must not throw
+        $definition = AutoSeederDefinition::make('acme/blog');
+
+        $this->assertSame([], $definition->resolveSeeders('/definitely/not/a/real/path'));
+    }
+
+    #[Test]
     public function an_empty_result_after_exclusion_is_not_an_error(): void
     {
         $definition = AutoSeederDefinition::make('acme/blog')

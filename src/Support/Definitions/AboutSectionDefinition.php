@@ -54,7 +54,9 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
     public function fields(array $fields): self
     {
         foreach ($fields as $name => $value) {
-            $this->field($name, $value);
+            // php silently turns numeric-string keys into ints; cast back so
+            // a '2026' field name never hits the string-typed field() as int
+            $this->field((string) $name, $value);
         }
 
         return $this;

@@ -71,6 +71,9 @@ final class DeferredCallQueue
     private function normalize(mixed $arg): mixed
     {
         return match (true) {
+            // recurse into arrays so environments([Environment::Production])
+            // normalizes the same as the variadic form
+            is_array($arg) => array_map($this->normalize(...), $arg),
             $arg instanceof BackedEnum => $arg->value,
             $arg instanceof TimeOfDay => $arg->format24(),
             $arg instanceof CronExpressible => $arg->toExpression(),

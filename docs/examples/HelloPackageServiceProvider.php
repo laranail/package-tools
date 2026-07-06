@@ -12,8 +12,9 @@ declare(strict_types=1);
 | your composer.json autoload, and you have a package with config, views,
 | components (blade + livewire), translations, assets, routes (plain and
 | config-gated), migrations, commands, scheduled commands, policies, morph
-| maps, observers, rate limiters, an install command, attribute discovery,
-| db:seed-time seeders, and a doctor check.
+| maps, observers, rate limiters, a fluent `php artisan about` section, a
+| definition-based install command, attribute discovery, db:seed-time
+| seeders, and doctor checks in both the definition and plain forms.
 |
 | Companion example files (same Acme\Hello namespace):
 |   Console/HelloCommand.php       a plain Artisan command (hasCommand)
@@ -37,7 +38,6 @@ use Acme\Hello\Database\Seeders\GreetingSeeder;
 use Acme\Hello\Database\Seeders\LegacyGreetingSeeder;
 use Acme\Hello\Doctor\HelloHealthCheck;
 use Acme\Hello\Doctor\StorageWritableCheck;
-use Acme\Hello\Http\GreetingComposer;
 use Acme\Hello\Livewire\GreetingBoard;
 use Acme\Hello\Models\Greeting;
 use Acme\Hello\Observers\GreetingObserver;
@@ -47,13 +47,17 @@ use Acme\Hello\View\Components\Button;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
 use Simtabi\Laranail\Package\Tools\Enums\Environment;
 use Simtabi\Laranail\Package\Tools\Enums\Timezone;
 use Simtabi\Laranail\Package\Tools\Enums\Weekday;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
 use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
 
@@ -65,7 +69,7 @@ final class HelloPackageServiceProvider extends PackageServiceProvider
             ->name('acme/hello')                                      // vendor extracted, short name is "hello"
             ->hasConfigFile()                                         // publishes config/hello.php
             ->hasViews()                                              // resources/views, namespaced "hello"
-            ->hasViewComponents('hello', GreetingComposer::class)     // <x-hello-...> Blade components by prefix
+            ->hasViewComponents('hello', Button::class)               // <x-hello-...> Blade components by prefix
             ->hasTranslations()                                       // resources/lang
             ->hasAssets()                                             // resources/assets -> public/vendor/hello
             ->hasRoute('web')                                         // routes/web.php
@@ -145,16 +149,34 @@ final class HelloPackageServiceProvider extends PackageServiceProvider
                     ->options(['fire_events' => true]), // emits SeedingStarted / SeedingFinished
             )
 
-            // Install command: `php artisan hello:install`. Each step maps to
-            // a concern under src/Commands/Concerns/.
-            ->hasInstallCommand(fn ($command) => $command
-                ->startWith(fn ($cmd) => $cmd->info('Installing the Hello package...'))
-                ->publishConfigFile()                                 // vendor:publish --tag=hello-config
-                ->publishMigrations()                                 // vendor:publish --tag=hello-migrations
-                ->publishAssets()                                     // vendor:publish --tag=hello-assets
-                ->askToRunMigrations()                                // prompts, then `php artisan migrate`
-                ->askToStarRepoOnGitHub('acme/hello')                 // opens the repo in a browser if confirmed
-                ->endWith(fn ($cmd) => $cmd->info('Read the docs at https://opensource.simtabi.com/documentation/laranail/package-tools')))
+            // Install command (fluent definition): `php artisan hello:install`,
+            // hidden from `php artisan list` by default. Steps run in
+            // declaration order — built-ins and custom step()s interleave
+            // freely — and the command is built lazily, console-only.
+            // publishes() tries the namespaced tag (acme::hello-{tag}) and
+            // the legacy hello-{tag} form, so it works either way. The legacy
+            // callable form — hasInstallCommand(fn ($cmd) => $cmd
+            // ->publishConfigFile()->askToRunMigrations()...) — still works.
+            ->hasInstallCommand(
+                InstallCommandDefinition::make()
+                    ->step('welcome', fn (InstallCommand $cmd) => $cmd->info('Installing the Hello package...'))
+                    ->publishes('config', 'migrations', 'assets')     // vendor:publish, namespaced + legacy tags
+                    ->asksToRunMigrations()                           // prompts, then `php artisan migrate`
+                    ->asksToStarRepo('acme/hello')                    // prompts, then opens the repo in a browser
+                    ->step('docs pointer', fn (InstallCommand $cmd) => $cmd->info(
+                        'Read the docs at https://opensource.simtabi.com/documentation/laranail/package-tools',
+                    )),
+            )
+
+            // `php artisan about` section (fluent definition): scalars render
+            // as-is, closures resolve per field only when `about` runs, and
+            // the whole section is config-gated (evaluated at boot).
+            ->hasAboutSection(
+                AboutSectionDefinition::make('Acme Hello')
+                    ->field('Version', '1.0.0')
+                    ->field('Greetings', fn (): string => (string) Greeting::query()->count())
+                    ->whenConfig('hello.about.enabled', true),
+            )
 
             // Optionally ship the provider itself so apps can publish & edit it.
             ->publishesServiceProvider('HelloServiceProvider')
@@ -162,7 +184,18 @@ final class HelloPackageServiceProvider extends PackageServiceProvider
             // Scan src/ for #[AsArtisanCommand], #[AsRoute], #[AsViewComposer].
             ->discoversWithAttributes()
 
-            // Two doctor checks for `php artisan laranail::package-tools.doctor`.
+            // Doctor checks for `php artisan laranail::package-tools.doctor`:
+            // fluent DoctorCheckDefinition factories over the bundled check
+            // library, plus two hand-written DoctorCheck classes. The report
+            // attributes every check to acme/hello automatically; a failed
+            // whenConfig gate means the check is never registered.
+            ->hasDoctorChecks([
+                DoctorCheckDefinition::phpExtensions(['pdo', 'mbstring'])
+                    ->named('hello:extensions'),
+                DoctorCheckDefinition::configPresent(['API key' => 'hello.api.key'], required: false)
+                    ->describe('The key the hello sync worker needs.')
+                    ->whenConfig('hello.doctor.config_check', true),
+            ])
             ->hasDoctorCheck(HelloHealthCheck::class)
             ->hasDoctorCheck(StorageWritableCheck::class);
 

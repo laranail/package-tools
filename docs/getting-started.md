@@ -26,7 +26,7 @@ final class AcmeBlogServiceProvider extends PackageServiceProvider
             ->name('acme/blog')          // config resolves under config('acme.blog.*')
             ->hasConfigFile()
             ->hasViews()
-            ->hasMigrations()
+            ->hasMigration('create_posts_table')
             ->hasCommands([/* … */]);
     }
 }

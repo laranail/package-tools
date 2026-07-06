@@ -87,7 +87,13 @@ final class CronBuilder implements Arrayable, CronExpressible, Jsonable, JsonSer
 
     public function everyHours(int $step): self
     {
-        return $this->minute(0)->hour('*/' . $this->assertStep($step, 23));
+        // keep an explicitly set minute (minute(30)->everyHours(4) means
+        // ':30 past'); only default to :00 when the minute is untouched
+        if ($this->minute === '*') {
+            $this->minute(0);
+        }
+
+        return $this->hour('*/' . $this->assertStep($step, 23));
     }
 
     /**
@@ -292,15 +298,31 @@ final class CronBuilder implements Arrayable, CronExpressible, Jsonable, JsonSer
 
         $value = trim($value);
 
-        // wildcard, step ('*/5'), range ('5-20'), range-step ('1-30/2'),
-        // list parts handled above; validate every numeric atom in range
-        if (preg_match('/^(\*|\d+)(-\d+)?(\/\d+)?$/', $value) !== 1) {
+        // wildcard, single value ('5'), or range ('5-20') — each optionally
+        // stepped ('*/5', '1-30/2'); list parts are handled above. ranges
+        // only follow a number (no '*-5'), never invert, and every value
+        // atom honours the field's own min-max while the step divisor is
+        // 1..max regardless of the field minimum (so '*/0' cannot slip by).
+        if (preg_match('/^(?:\*|(?<start>\d+)(?:-(?<end>\d+))?)(?:\/(?<step>\d+))?$/', $value, $m) !== 1) {
             throw new InvalidArgumentException(sprintf('"%s" is not a valid cron field value', $value));
         }
 
-        foreach (array_map(intval(...), array_filter(preg_split('/[^\d]+/', $value) ?: [], static fn (string $part): bool => $part !== '')) as $atom) {
-            // step divisors are bounded by the field width, same range check
-            $this->assertRange($atom, 0, $max);
+        if (($m['start'] ?? '') !== '') {
+            $start = (int) $m['start'];
+            $this->assertRange($start, $min, $max);
+
+            if (($m['end'] ?? '') !== '') {
+                $end = (int) $m['end'];
+                $this->assertRange($end, $min, $max);
+
+                if ($start > $end) {
+                    throw new InvalidArgumentException(sprintf('cron range %d-%d is inverted', $start, $end));
+                }
+            }
+        }
+
+        if (($m['step'] ?? '') !== '') {
+            $this->assertStep((int) $m['step'], $max);
         }
 
         return $value;

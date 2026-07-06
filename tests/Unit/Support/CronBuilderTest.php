@@ -99,6 +99,66 @@ final class CronBuilderTest extends TestCase
     }
 
     #[Test]
+    public function step_strings_reject_a_zero_divisor(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('step must be 1-59, got 0');
+
+        CronBuilder::make()->minute('*/0');
+    }
+
+    #[Test]
+    public function step_strings_reject_a_divisor_beyond_the_field_width(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('step must be 1-12, got 13');
+
+        CronBuilder::make()->month('*/13');
+    }
+
+    #[Test]
+    public function inverted_ranges_are_rejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('cron range 5-2 is inverted');
+
+        CronBuilder::make()->minute('5-2');
+    }
+
+    #[Test]
+    public function string_atoms_honour_the_field_minimum(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside 1-31');
+
+        CronBuilder::make()->dayOfMonth('0');
+    }
+
+    #[Test]
+    public function range_starts_honour_the_field_minimum(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside 1-12');
+
+        CronBuilder::make()->month('0-5');
+    }
+
+    #[Test]
+    public function wildcard_ranges_are_rejected(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('not a valid cron field value');
+
+        CronBuilder::make()->minute('*-5');
+    }
+
+    #[Test]
+    public function a_full_width_stepped_range_is_valid(): void
+    {
+        $this->assertSame('0-59/2 * * * *', CronBuilder::make()->minute('0-59/2')->toExpression());
+    }
+
+    #[Test]
     public function at_accepts_a_string_time(): void
     {
         $this->assertSame('0 2 * * *', CronBuilder::make()->at('02:00')->toExpression());
@@ -163,6 +223,12 @@ final class CronBuilderTest extends TestCase
     public function every_hours_sets_an_hour_step_at_minute_zero(): void
     {
         $this->assertSame('0 */4 * * *', CronBuilder::make()->everyHours(4)->toExpression());
+    }
+
+    #[Test]
+    public function every_hours_keeps_an_explicitly_set_minute(): void
+    {
+        $this->assertSame('30 */4 * * *', CronBuilder::make()->minute(30)->everyHours(4)->toExpression());
     }
 
     #[Test]

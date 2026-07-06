@@ -57,7 +57,9 @@ final class PackageDoctorCommand extends Command
 
         foreach ($report as $row) {
             $status = $row['result']->status;
-            $name = $row['check']->name();
+            $name = ($row['group'] ?? null) !== null
+                ? "[{$row['group']}] " . $row['check']->name()
+                : $row['check']->name();
             $msg = $row['result']->message;
             $color = $status->ansiColor();
             $reset = "\033[0m";
@@ -98,6 +100,7 @@ final class PackageDoctorCommand extends Command
             'summary' => $counts,
             'checks' => array_map(fn (array $row): array => [
                 'name' => $row['check']->name(),
+                'group' => $row['group'] ?? null,
                 'description' => $row['check']->description(),
                 'status' => $row['result']->status->value,
                 'message' => $row['result']->message,

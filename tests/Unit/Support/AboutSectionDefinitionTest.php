@@ -59,6 +59,15 @@ final class AboutSectionDefinitionTest extends TestCase
         $this->assertSame(['One' => '1', 'Two' => '2'], $section->resolve());
     }
 
+    public function test_fields_accepts_numeric_string_keys(): void
+    {
+        // php turns '2026' into an int key; fields() must cast it back
+        // instead of tripping the string type on field()
+        $section = AboutSectionDefinition::make('Demo')->fields(['2026' => 'planned']);
+
+        $this->assertSame(['2026' => 'planned'], $section->resolve());
+    }
+
     public function test_config_gates_control_display(): void
     {
         config()->set('about.on', true);

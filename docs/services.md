@@ -1,4 +1,4 @@
-# Services Reference
+# Services reference
 
 `laranail/package-tools` ships a set of focused, single-responsibility
 service and support classes under `Simtabi\Laranail\Package\Tools\`. They
@@ -49,10 +49,17 @@ below are exact fully-qualified names.
 
 | Class | Purpose |
 |---|---|
-| `Services\Database\SeederExecutor` | Executes per-package seeders from the registry, with optional FK toggling and event emission. |
+| `Services\Database\SeederBuilder` | Fluent discovery + filtering + register/execute (`from`, `classes`, `only`, `except`, `execute`). |
+| `Services\Database\SeederBundle` | One package's registered bundle: typed, per-bundle-isolated options (FK guard, events, parameters, priority). |
+| `Services\Database\SeederConsoleFormatter` | Optional tree-structured, colourised console output for a seeding run (contract: `Contracts\SeederConsoleFormatterInterface`). |
+| `Services\Database\SeederExecutor` | Executes registered bundles in priority order, with per-bundle FK toggling and event emission. |
+| `Services\Database\SeederManager` | Standalone entry point (`autoSeed` / `seeders` / `run` / `registry`); backs the `PackageSeeder` facade. |
 | `Services\Database\SeederPathDiscoverer` | Discovers seeder classes from PHP files via tokenization (no autoloader needed). |
-| `Services\Database\SeederRegistry` | In-memory store of per-package seeder configurations and run options. |
+| `Services\Database\SeederRegistry` | In-memory store of per-package `SeederBundle`s. |
 | `Services\Database\SeederResolverHook` | Hooks the container so registered seeders run when `DatabaseSeeder` resolves. |
+
+The seeding subsystem end to end — both the `Package` builder path and
+the standalone path — is documented in [seeding.md](seeding.md).
 
 ## Discovery (`Services\Discovery`)
 
@@ -65,9 +72,15 @@ below are exact fully-qualified names.
 | Class | Purpose |
 |---|---|
 | `Services\Doctor\DoctorCheck` | Contract for a single health-check unit. |
-| `Services\Doctor\DoctorResult` | Outcome of one check: status, message, optional detail. |
-| `Services\Doctor\DoctorService` | Runs registered checks and produces a report with pass/warn/fail/skip counts. Backs `laranail::package-tools.doctor`. |
+| `Services\Doctor\DoctorReporter` | Static table/JSON renderer for a doctor run: summary + conventional exit code. |
+| `Services\Doctor\DoctorResult` | Outcome of one check: status, message, optional detail. `Arrayable`. |
+| `Services\Doctor\DoctorService` | Runs registered checks (with optional per-check group attribution and (group, name) dedup) and produces a report with pass/warn/fail/skip counts. Backs `laranail::package-tools.doctor`. |
 | `Services\Doctor\DoctorStatus` | Enum of check outcomes (Pass, Warn, Fail, Skip) with ANSI color mapping. |
+| `Services\Doctor\HealthResponder` | Static one-liner for HTTP health endpoints: `200 healthy` / `503 degraded` JSON. |
+| `Services\Doctor\Checks\*` | The bundled parameterised check library (`PhpVersionCheck`, `PhpExtensionCheck`, `ConfigPresentCheck`, `WritablePathCheck`, `ReachabilityCheck`, `SoftDependencyCheck`, `CallbackCheck`). |
+
+The check library, the fluent `DoctorCheckDefinition`, and the render
+shapes are documented in [tools/doctor.md](tools/doctor.md).
 
 ## Event (`Services\Event`)
 
@@ -137,10 +150,33 @@ The `PKG_HTTP_*` defaults are documented in
 | Class | Purpose |
 |---|---|
 | `Support\ConfigDetector` | Auto-detects project namespace, vendor, and package name from `composer.json`. |
+| `Support\ConfigGate` | The single config-gating implementation behind every `whenConfig()` / `whenConfigNotNull()`: truthy and not-null modes, evaluated at `passes()` time. |
+| `Support\DeferredCallQueue` | Generic capture/replay of fluent calls onto a later target, with recursive argument normalization (`BackedEnum` → value, `TimeOfDay` → `'H:i'`, `CronExpressible` → expression, arrays recursed) and unknown-method validation. |
 | `Support\FluentPackageHelper` | Fluent helper for package-specific operations (config, routes, assets, views, translations). |
 | `Support\ForeignKeyCheckGuard` | Disables FK-constraint enforcement around a callback, with safe nesting and exception-safe restoration. |
+| `Support\GateMode` | Enum of the two `ConfigGate` modes (`Truthy`, `NotNull`). |
 | `Support\PathResolver` | Cross-platform path resolution: normalization, traversal protection, package-root detection. |
 | `Support\RuntimeConfigurator` | Fluent PHP runtime configuration (memory, timeouts, error reporting, debug tooling). |
+
+## Support / Scheduling (`Support\Scheduling`)
+
+| Class | Purpose |
+|---|---|
+| `Support\Scheduling\CronBuilder` | Standalone, validated cron-expression designer (implements `Contracts\CronExpressible`); the single home of the cron-expressible frequency vocabulary. |
+| `Support\Scheduling\TimeOfDay` | Fluent time-of-day value: 24h/12h parsing, `am()`/`pm()`, minute arithmetic with midnight wrap, canonical `format24()`. |
+
+## Support / Definitions (`Support\Definitions`)
+
+Fluent value objects consumed by the `Package` builder — see
+[configuration.md](configuration.md) for the behavior reference of each.
+
+| Class | Purpose |
+|---|---|
+| `Support\Definitions\AboutSectionDefinition` | A `php artisan about` section: per-field lazy closures, `fieldsUsing()` bulk sources, config gates. |
+| `Support\Definitions\AutoSeederDefinition` | A package's seeder bundle for `db:seed`-time execution: explicit list or discovery, ignore list, gates, priority. |
+| `Support\Definitions\DoctorCheckDefinition` | A fluent `DoctorCheck` wrapper: bundled-library factories, `named()`/`describe()`, config gates. |
+| `Support\Definitions\InstallCommandDefinition` | A fluent install command: named steps in declaration order, built lazily and console-only. |
+| `Support\Definitions\ScheduledCommandDefinition` | A scheduled package command: two-tier dispatch over `CronBuilder` + `DeferredCallQueue`, cadences, config gates. |
 
 ## Support / ErrorStorage (`Support\ErrorStorage`)
 

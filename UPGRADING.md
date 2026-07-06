@@ -14,6 +14,8 @@ seeder resolver hook; the boot-time execution path is gone.
 semantics:
 
 ```php
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
+
 // before (1.x — ran at boot)
 $package->hasPackageSeeders('acme/blog', [BlogSeeder::class], 'Acme\\Blog', ['fire_events' => true]);
 
@@ -65,6 +67,30 @@ $registry->get('acme/blog')['seeders'];
 // after
 $registry->get('acme/blog')->seeders();
 ```
+
+## 2.x point releases
+
+2.1 (about sections), 2.2 (doctor definitions), and 2.3 (install
+definitions) are additive — no code changes are required. Two behavior
+changes are worth knowing about:
+
+### Doctor checks no longer duplicate on double boots (2.2)
+
+`DoctorService::register()` now replaces an entry when the same
+(group, name) pair registers twice, instead of stacking duplicate report
+rows. If your doctor output previously showed the same check more than
+once (a provider booting twice), it now appears once — summary counts
+shrink accordingly.
+
+### Install publishing now actually publishes namespaced tags (2.3)
+
+`publishConfigFile()` / `publishMigrations()` / `publishAssets()` (and
+the new definition's `publishes()`) previously published only the legacy
+`{short-name}-{tag}` tag — a silent no-op for every package whose
+publishables are registered under the namespaced `vendor::pkg-{tag}`
+form. Both tags are now attempted, so install commands that "ran but
+copied nothing" will start publishing files. Remove any workaround that
+called `vendor:publish --tag=vendor::pkg-config` manually after install.
 
 ---
 

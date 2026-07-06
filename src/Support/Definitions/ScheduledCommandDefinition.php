@@ -62,6 +62,8 @@ final class ScheduledCommandDefinition implements Arrayable, Jsonable, JsonSeria
 
     private ?string $cadenceConfigDefault = null;
 
+    private bool $configCadenceApplied = false;
+
     public function __construct(
         private readonly string $command,
         private readonly CronBuilder $cron = new CronBuilder,
@@ -194,7 +196,13 @@ final class ScheduledCommandDefinition implements Arrayable, Jsonable, JsonSeria
         }
 
         if (is_string($value) && $value !== '') {
-            $this->applyCadenceString($value);
+            // apply once per definition: the schedule can resolve more than
+            // once per process (tests, octane), and re-applying would record
+            // the same deferred event calls again — double replay
+            if (! $this->configCadenceApplied) {
+                $this->applyCadenceString($value);
+                $this->configCadenceApplied = true;
+            }
 
             return true;
         }
@@ -268,7 +276,11 @@ final class ScheduledCommandDefinition implements Arrayable, Jsonable, JsonSeria
             return;
         }
 
-        if (preg_match('/^\S+(\s+\S+){4}$/', $value) === 1) {
+        // a raw 5-field cron: five tokens shaped like their field (numeric
+        // minute/hour; names allowed in month/day-of-week) — any five words
+        // ('daily and more words here') must not be swallowed as cron, but
+        // fall through to method dispatch and fail loudly at replay
+        if (preg_match('/^[\d*,\/-]+\s+[\d*,\/-]+\s+[\d*,\/LW?-]+\s+[\dA-Za-z*,\/-]+\s+[\dA-Za-z*,\/L#?-]+$/', $value) === 1) {
             $this->cron($value);
 
             return;

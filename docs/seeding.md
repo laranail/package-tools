@@ -107,12 +107,15 @@ $package->hasPackageSeeders(
 | `options(array $options)` | Legacy string-keyed `SeederRegistry` options passthrough. |
 
 Explicit list vs discovery, precisely: when `seeders()` holds a
-non-empty list, that list is used verbatim (in order); otherwise the
+non-empty list, that list is used in order, de-duplicated (a seeder
+listed twice runs once; the first occurrence keeps its position);
+otherwise the
 `SeederPathDiscoverer` tokenises the `*.php` files under `discoverIn()`'s
 path — or, if none was given, the package's `database/seeders`
 directory — and keeps the `Illuminate\Database\Seeder` subclasses it
-finds. Either way the `ignoreSeeders()` list is then subtracted. An
-empty result registers nothing, which is not an error.
+finds. A discovery directory that does not exist yields nothing (not a
+boot error). Either way the `ignoreSeeders()` list is then subtracted.
+An empty result registers nothing, which is not an error.
 
 `discoverPackageSeedersIn(string $path, ?string $namespace = null)` on
 the `Package` is sugar over discovery mode:
