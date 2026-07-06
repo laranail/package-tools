@@ -5,6 +5,29 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-07-06
+
+### Added
+
+- **Fluent install commands**: `hasInstallCommand()` accepts an
+  `InstallCommandDefinition` — named steps executed in declaration order
+  (built-ins and custom `step()`s interleave freely, replacing the fixed
+  pipeline), `publishes()`/`runsMigrations()`/`asksToRunMigrations()`/
+  `copiesServiceProvider()`/`asksToStarRepo()` built-ins, `named()` and
+  `visible()` overrides, and the standard toArray/toJson surface.
+  Definition commands are built lazily and console-only — nothing is
+  constructed on web requests (the legacy callable form constructed the
+  command eagerly at configure time, and still works unchanged).
+- `InstallCommand::getPackage()`, `starRepoNow()`, `copyProviderNow()`
+  public step triggers; constructor accepts optional signature/hidden
+  overrides.
+
+### Fixed
+
+- **Install publishing was silently a no-op for namespaced packages**:
+  both the definition and legacy paths now try the namespaced publish tag
+  (`vendor::pkg-{tag}`) as well as the legacy `{short-name}-{tag}` form.
+
 ## [2.2.0] - 2026-07-06
 
 ### Added

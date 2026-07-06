@@ -42,6 +42,14 @@ trait PublishesResources
             $name = str_replace('-', ' ', $tag);
             $this->comment("Publishing {$name}...");
 
+            // packages register publishables under the namespaced tag
+            // (vendor::pkg-{tag}); the bare {short-name}-{tag} form is the
+            // legacy fallback. try both so publishing works either way —
+            // publishing only the legacy form was silently a no-op for
+            // every namespaced package.
+            $this->callSilently('vendor:publish', [
+                '--tag' => $this->package->getNamespacedPublishTag($tag),
+            ]);
             $this->callSilently('vendor:publish', [
                 '--tag' => "{$this->package->shortName()}-{$tag}",
             ]);

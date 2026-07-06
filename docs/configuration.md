@@ -377,15 +377,36 @@ use seeding.
 |---|---|
 | `hasCommand(string $commandClassName)` / `hasCommands(string\|array ...$names)` | Register Artisan commands. |
 | `hasConsoleCommand(string $commandClassName)` / `hasConsoleCommands(...)` | Register console-only commands. |
-| `hasInstallCommand(callable $callable)` | Register an interactive install command (e.g. `->publishConfigFile()->askToRunMigrations()`). |
+| `hasInstallCommand(InstallCommandDefinition\|callable $definition)` | Register the package install command — a fluent step definition (primary form), or the legacy callable. |
 | `autoLoadCommands(?string $dir = null)` | Auto-discover `Illuminate\Console\Command` subclasses under `src/Commands` (override `$dir`) and register each via `hasCommands()`. No-ops if the directory is missing or the package namespace can't be resolved. |
 
-The closure passed to `hasInstallCommand()` receives the install command
-and can chain these steps (`src/Commands/Concerns/`):
-`publishConfigFile()`, `publishAssets()`, `publishMigrations()`,
-`askToRunMigrations()`, `askToStarRepoOnGitHub(string $vendorSlashRepo, bool $defaultAnswer = false)`,
-`copyAndRegisterServiceProviderInApp()`, `startWith(callable)`, and
-`endWith(callable)`.
+The fluent `InstallCommandDefinition` declares named steps that run in
+**declaration order** — built-ins and custom steps interleave freely (the
+legacy form ran a fixed pipeline with only start/end hooks). Definitions
+are built lazily, console-only: nothing is constructed on web requests.
+
+```php
+use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
+
+$package->hasInstallCommand(
+    InstallCommandDefinition::make()               // signature: {short-name}:install
+        ->publishes('config', 'migrations')        // namespaced + legacy tags both attempted
+        ->runsMigrations()                          // or ->asksToRunMigrations()
+        ->step('seed defaults', fn (InstallCommand $cmd) => $cmd->call('db:seed'))
+        ->copiesServiceProvider()
+        ->asksToStarRepo('acme/blog')
+        ->visible(),                                // list in `php artisan list` (hidden by default)
+);
+```
+
+`named('acme:setup')` overrides the derived signature. The legacy closure
+form still works and can chain the original steps
+(`publishConfigFile()`, `publishAssets()`, `publishMigrations()`,
+`askToRunMigrations()`, `askToStarRepoOnGitHub()`,
+`copyAndRegisterServiceProviderInApp()`, `startWith()`, `endWith()`).
+Publishing in BOTH forms now tries the namespaced publish tag
+(`vendor::pkg-{tag}`) before the legacy `{short-name}-{tag}` — the legacy
+form alone was silently a no-op for every namespaced package.
 
 ### Scheduled commands
 

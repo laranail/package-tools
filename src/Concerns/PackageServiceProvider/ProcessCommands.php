@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
+use Simtabi\Laranail\Package\Tools\Commands\DefinedInstallCommand;
+
 trait ProcessCommands
 {
     protected function bootPackageCommands(): self
@@ -19,7 +21,17 @@ trait ProcessCommands
 
     protected function bootPackageConsoleCommands(): self
     {
-        if (empty($this->package->consoleCommands) || ! $this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
+            return $this;
+        }
+
+        // definition-based install commands are constructed here — lazily,
+        // console only — instead of eagerly at configure time
+        foreach ($this->package->getInstallCommandDefinitions() as $definition) {
+            $this->commands([new DefinedInstallCommand($this->package, $definition)]);
+        }
+
+        if (empty($this->package->consoleCommands)) {
             return $this;
         }
 

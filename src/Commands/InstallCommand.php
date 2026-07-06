@@ -24,10 +24,12 @@ class InstallCommand extends Command
 
     /**
      * @param Package $package The package to install
+     * @param string|null $signature Override the default `{short-name}:install`
+     * @param bool|null $hidden Override the hidden-by-default listing
      */
-    public function __construct(Package $package)
+    public function __construct(Package $package, ?string $signature = null, ?bool $hidden = null)
     {
-        $this->signature = $package->shortName() . ':install';
+        $this->signature = $signature ?? $package->shortName() . ':install';
 
         $this->description = 'Install ' . $package->name;
 
@@ -35,10 +37,32 @@ class InstallCommand extends Command
 
         // Hidden from `php artisan list` by default. Surface the install
         // command through your README instead. Override `$hidden = false` in a
-        // subclass to list it.
-        $this->hidden = true;
+        // subclass (or pass $hidden) to list it.
+        $this->hidden = $hidden ?? true;
 
         parent::__construct();
+    }
+
+    public function getPackage(): Package
+    {
+        return $this->package;
+    }
+
+    /**
+     * Run the star-repo prompt immediately (the definition-based install
+     * runs steps in declaration order instead of a fixed pipeline).
+     */
+    public function starRepoNow(): self
+    {
+        return $this->processStarRepo();
+    }
+
+    /**
+     * Copy and register the publishable service provider immediately.
+     */
+    public function copyProviderNow(): self
+    {
+        return $this->copyServiceProviderInApp();
     }
 
     public function handle(): int
