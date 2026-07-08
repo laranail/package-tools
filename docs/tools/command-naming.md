@@ -9,7 +9,7 @@ laranail::<package-slug>.<command>
 - `laranail` — the org namespace.
 - `::` — the namespace separator.
 - `<package-slug>` — the composer slug suffix, so the source package is
-  unambiguous: `package-tools`, `package-scaffolder`, `database-tools`, …
+  unambiguous: `package-tools`, `package-scaffolder`, `db-tools`, …
 - `.<command>` — the command itself, after a dot.
 
 This package's own commands follow it: `laranail::package-tools.doctor`,
