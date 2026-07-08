@@ -4,64 +4,65 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
+use Illuminate\Console\OutputStyle;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Database\Seeder;
-use WeakReference;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
+use Throwable;
 
 /**
- * Hooks the container so that every package's registered seeders run
- * automatically the first time the host app's `DatabaseSeeder` resolves
- * (typically when `php artisan db:seed` runs without `--class`).
+ * Runs every registered package seeder bundle when the host app's ROOT
+ * seeder resolves — i.e. a plain `php artisan db:seed`.
  *
- * Idempotent: the same registry can attach repeatedly without stacking
- * duplicate listeners. WeakReference keeps the hook from holding a strong
- * reference to the registry/executor pair.
+ * The hook binds ONLY to exact root-seeder classes
+ * (`Database\Seeders\DatabaseSeeder` plus any FQCNs listed in
+ * `package-tools.seeders.root_seeders`). It deliberately does NOT bind to
+ * the abstract `Seeder` type: a type-wide callback fired for
+ * `db:seed --class=SomeSpecificSeeder`, for web-request resolutions, and
+ * even for the executor's own `make()` calls — running every package's
+ * seeders as a side effect. Root-only binding kills all three footguns.
+ *
+ * Bundles already executed this process (see {@see SeederAutorun}'s ledger)
+ * are skipped, so `migrate --seed` never double-runs an autorun bundle.
  */
 final class SeederResolverHook
 {
+    public const string DEFAULT_ROOT_SEEDER = 'Database\\Seeders\\DatabaseSeeder';
+
     private bool $attached = false;
 
     public function __construct(
         private readonly Application $app,
         private readonly SeederRegistry $registry,
         private readonly SeederExecutor $executor,
+        private readonly SeederAutorun $autorun,
     ) {}
 
     /**
-     * Attach the resolver. The hook fires at most once per request /
-     * console invocation, even if multiple packages call `attach()`.
+     * Attach resolving callbacks for the given root seeders (defaults to
+     * `Database\Seeders\DatabaseSeeder` + the `root_seeders` config list).
+     * Idempotent — repeated calls never stack duplicate listeners.
      */
-    public function attach(string $rootSeeder = 'Database\\Seeders\\DatabaseSeeder'): self
+    public function attach(string ...$rootSeeders): self
     {
         if ($this->attached) {
             return $this;
         }
         $this->attached = true;
 
-        $registryRef = WeakReference::create($this->registry);
-        $executorRef = WeakReference::create($this->executor);
-        $fired = false;
+        if ($rootSeeders === []) {
+            $configured = config('package-tools.seeders.root_seeders', []);
+            $rootSeeders = [self::DEFAULT_ROOT_SEEDER, ...(is_array($configured) ? $configured : [])];
+        }
 
-        $listener = function () use ($registryRef, $executorRef, &$fired): void {
-            if ($fired) {
-                return;
-            }
-
-            $registry = $registryRef->get();
-            $executor = $executorRef->get();
-            if ($registry === null || $executor === null) {
-                return;
-            }
-
-            $fired = true;
-            $executor->run($registry);
+        $listener = function (): void {
+            $this->runPendingBundles();
         };
 
-        // The host app may resolve `DatabaseSeeder` either by FQCN or
-        // by string id; cover both so the hook is reliable across the
-        // common call paths Laravel uses.
-        $this->app->resolving(Seeder::class, $listener);
-        $this->app->resolving($rootSeeder, $listener);
+        foreach (array_unique($rootSeeders) as $rootSeeder) {
+            $this->app->resolving($rootSeeder, $listener);
+        }
 
         return $this;
     }
@@ -69,5 +70,67 @@ final class SeederResolverHook
     public function isAttached(): bool
     {
         return $this->attached;
+    }
+
+    /**
+     * Execute every registered bundle not already run this process, mark
+     * them in the shared ledger, and surface failures on the console
+     * (db:seed previously exited 0 with silent failures).
+     */
+    private function runPendingBundles(): void
+    {
+        $scoped = new SeederRegistry;
+        $keys = [];
+
+        foreach ($this->registry->all() as $key => $bundle) {
+            if ($this->autorun->hasExecuted($key)) {
+                continue;
+            }
+
+            $scoped->registerBundle($bundle);
+            $keys[] = $key;
+        }
+
+        if ($keys === []) {
+            return;
+        }
+
+        $this->autorun->markExecuted(...$keys);
+
+        try {
+            $stats = $this->executor->run($scoped);
+        } catch (Throwable $e) {
+            $this->consoleFormatter()?->writeError("Package seeding failed: {$e->getMessage()}");
+
+            return;
+        }
+
+        if ($stats->hasFailures()) {
+            $this->consoleFormatter()?->writeWarning($stats->getSummary());
+
+            foreach ($stats->errors as $error) {
+                $this->consoleFormatter()?->writeError(sprintf(
+                    '  %s: %s',
+                    $error['class'],
+                    $error['message'],
+                ));
+            }
+        }
+    }
+
+    private function consoleFormatter(): ?SeederConsoleFormatterInterface
+    {
+        if (! $this->app->runningInConsole()) {
+            return null;
+        }
+
+        try {
+            $formatter = $this->app->make(SeederConsoleFormatterInterface::class);
+            $formatter->setOutput(new OutputStyle(new ArrayInput([]), new ConsoleOutput));
+
+            return $formatter;
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

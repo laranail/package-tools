@@ -26,13 +26,21 @@ final class SeederRegistry
      */
     public function register(string $key, array $seeders, ?string $namespace = null, array $options = []): self
     {
-        $this->bundles[$key] = SeederBundle::fromOptions($key, $seeders, $namespace, $options);
-
-        return $this;
+        return $this->registerBundle(SeederBundle::fromOptions($key, $seeders, $namespace, $options));
     }
 
     public function registerBundle(SeederBundle $bundle): self
     {
+        // Replacement wins (last registration is authoritative) but is never
+        // silent — two packages colliding on a key is almost always a bug.
+        if (isset($this->bundles[$bundle->key()])) {
+            trigger_error(
+                "Package seeder bundle '{$bundle->key()}' was replaced by a later registration; " .
+                'use distinct keys per package to seed both.',
+                E_USER_WARNING,
+            );
+        }
+
         $this->bundles[$bundle->key()] = $bundle;
 
         return $this;

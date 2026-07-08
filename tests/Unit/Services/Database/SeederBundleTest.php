@@ -113,6 +113,9 @@ final class SeederBundleTest extends TestCase
             'disable_foreign_key_checks' => true,
             'fire_events' => true,
             'parameters' => ['tenant' => 'acme'],
+            'autorun' => false,
+            'stop_on_failure' => false,
+            'autorun_environments' => [],
         ], $bundle->toArray());
     }
 }

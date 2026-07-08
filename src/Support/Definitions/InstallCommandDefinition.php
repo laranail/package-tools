@@ -78,12 +78,40 @@ final class InstallCommandDefinition implements Arrayable, Jsonable, JsonSeriali
 
     /**
      * run the migrations without prompting.
+     *
+     * note: autorun-flagged seeder bundles run automatically after this
+     * step when migrations were pending (the Migrator fires MigrationsEnded
+     * even for nested `call('migrate')`). when nothing is pending, add
+     * runsSeeders() explicitly.
      */
     public function runsMigrations(): self
     {
         return $this->step('run migrations', static function (InstallCommand $command): void {
             $command->comment('Running migrations...');
             $command->call('migrate');
+        });
+    }
+
+    /**
+     * execute the package's registered seeder bundles now (those not
+     * already run this process), with console output. covers the install
+     * case where the database is already migrated so MigrationsEnded never
+     * fires.
+     */
+    public function runsSeeders(): self
+    {
+        return $this->step('run seeders', static function (InstallCommand $command): void {
+            $command->comment('Running package seeders...');
+
+            /** @var \Simtabi\Laranail\Package\Tools\Services\Database\SeederManager $manager */
+            $manager = $command->getLaravel()->make(\Simtabi\Laranail\Package\Tools\Services\Database\SeederManager::class);
+            $stats = $manager->runAutorun($command->getOutput());
+
+            if ($stats->isEmpty()) {
+                $command->comment('No pending package seeders.');
+            } else {
+                $command->info($stats->getSummary());
+            }
         });
     }
 

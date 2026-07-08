@@ -21,14 +21,30 @@ final class SeederRegistryTest extends TestCase
         $this->assertTrue($bundle->shouldFireEvents());
     }
 
-    public function test_register_replaces_existing_entry_for_same_key(): void
+    public function test_register_replaces_existing_entry_for_same_key_with_a_warning(): void
     {
         $r = new SeederRegistry;
         $r->register('k', ['A']);
-        $r->register('k', ['B', 'C']);
+
+        // Replacement wins but is no longer silent (3.0): capture the
+        // E_USER_WARNING instead of letting PHPUnit surface it.
+        $warnings = [];
+        set_error_handler(static function (int $errno, string $message) use (&$warnings): bool {
+            $warnings[] = $message;
+
+            return true;
+        }, E_USER_WARNING);
+
+        try {
+            $r->register('k', ['B', 'C']);
+        } finally {
+            restore_error_handler();
+        }
 
         $this->assertSame(['B', 'C'], $r->get('k')->seeders());
         $this->assertSame(1, $r->count());
+        $this->assertCount(1, $warnings);
+        $this->assertStringContainsString("'k' was replaced", $warnings[0]);
     }
 
     public function test_forget_removes_entry(): void

@@ -62,6 +62,61 @@ final class SeederPathDiscovererTest extends TestCase
         $this->assertSame([], (new SeederPathDiscoverer)->classesIn('/no/such/file.php'));
     }
 
+    public function test_discover_requires_non_autoloaded_files_itself(): void
+    {
+        // Deliberately NOT require'd here — 3.0 honors the "no autoloader
+        // required" contract by loading scanned files on demand.
+        $ns = 'Tests\\SeederFx\\Lazy' . uniqid();
+        File::put($this->sandbox . '/LazySeeder.php', <<<PHP
+<?php
+namespace {$ns};
+class LazySeeder extends \\Illuminate\\Database\\Seeder
+{
+    public function run(): void {}
+}
+PHP);
+
+        $found = (new SeederPathDiscoverer)->discover($this->sandbox);
+
+        $this->assertContains("{$ns}\\LazySeeder", $found);
+    }
+
+    public function test_discover_excludes_abstract_seeders(): void
+    {
+        $ns = 'Tests\\SeederFx\\Abs' . uniqid();
+        File::put($this->sandbox . '/AbstractBaseSeeder.php', <<<PHP
+<?php
+namespace {$ns};
+abstract class AbstractBaseSeeder extends \\Illuminate\\Database\\Seeder
+{
+}
+PHP);
+
+        $found = (new SeederPathDiscoverer)->discover($this->sandbox);
+
+        $this->assertNotContains("{$ns}\\AbstractBaseSeeder", $found);
+    }
+
+    public function test_discover_descends_recursively_when_asked(): void
+    {
+        $ns = 'Tests\\SeederFx\\Deep' . uniqid();
+        File::ensureDirectoryExists($this->sandbox . '/nested');
+        File::put($this->sandbox . '/nested/DeepSeeder.php', <<<PHP
+<?php
+namespace {$ns};
+class DeepSeeder extends \\Illuminate\\Database\\Seeder
+{
+    public function run(): void {}
+}
+PHP);
+
+        $flat = (new SeederPathDiscoverer)->discover($this->sandbox);
+        $deep = (new SeederPathDiscoverer)->discover($this->sandbox, recursive: true);
+
+        $this->assertNotContains("{$ns}\\DeepSeeder", $flat);
+        $this->assertContains("{$ns}\\DeepSeeder", $deep);
+    }
+
     private function writeSeeder(string $name, string $namespace): void
     {
         $fqcn = $namespace . '\\' . $name;

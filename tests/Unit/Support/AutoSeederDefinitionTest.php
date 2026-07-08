@@ -149,6 +149,69 @@ final class AutoSeederDefinitionTest extends TestCase
     }
 
     #[Test]
+    public function autorun_is_off_by_default_and_autorun_now_is_an_alias(): void
+    {
+        $this->assertFalse(AutoSeederDefinition::make('a')->isAutorun());
+
+        $primary = AutoSeederDefinition::make('a')->autorunAfterMigrations();
+        $alias = AutoSeederDefinition::make('b')->autorunNow();
+
+        $this->assertTrue($primary->isAutorun());
+        $this->assertTrue($alias->isAutorun());
+        $this->assertSame(
+            $primary->toArray()['autorun'],
+            $alias->toArray()['autorun'],
+        );
+
+        $this->assertFalse(AutoSeederDefinition::make('c')->autorunNow(false)->isAutorun());
+    }
+
+    #[Test]
+    public function autorun_environments_accept_enums_and_strings(): void
+    {
+        $definition = AutoSeederDefinition::make('a')->autorunInEnvironments(
+            \Simtabi\Laranail\Package\Tools\Enums\Environment::Local,
+            'staging',
+        );
+
+        $this->assertSame(['local', 'staging'], $definition->autorunEnvironmentsValue());
+    }
+
+    #[Test]
+    public function add_seeders_appends_in_order_and_dedupes(): void
+    {
+        $definition = AutoSeederDefinition::make('a')
+            ->seeders([AlphaFixtureSeeder::class])
+            ->addSeeders(BetaFixtureSeeder::class, AlphaFixtureSeeder::class)
+            ->addSeeders(GammaFixtureSeeder::class);
+
+        $this->assertSame(
+            [AlphaFixtureSeeder::class, BetaFixtureSeeder::class, GammaFixtureSeeder::class],
+            $definition->toArray()['seeders'],
+        );
+    }
+
+    #[Test]
+    public function stop_on_failure_flag_round_trips(): void
+    {
+        $this->assertFalse(AutoSeederDefinition::make('a')->shouldStopOnFailure());
+        $this->assertTrue(AutoSeederDefinition::make('a')->stopOnFailure()->shouldStopOnFailure());
+    }
+
+    #[Test]
+    public function explicit_priority_is_tracked_separately_from_the_default(): void
+    {
+        // The A9 fix: a never-called priority() must not clobber an
+        // options(['priority' => …]) value at boot-merge time.
+        $this->assertFalse(AutoSeederDefinition::make('a')->hasExplicitPriority());
+        $this->assertSame(0, AutoSeederDefinition::make('a')->priorityValue());
+
+        $explicit = AutoSeederDefinition::make('a')->priority(7);
+        $this->assertTrue($explicit->hasExplicitPriority());
+        $this->assertSame(7, $explicit->priorityValue());
+    }
+
+    #[Test]
     public function should_register_honours_a_truthy_gate(): void
     {
         config()->set('acme.seed', false);
@@ -195,6 +258,9 @@ final class AutoSeederDefinitionTest extends TestCase
             'namespace' => 'Acme\\Blog',
             'gate' => ['key' => 'acme.seed', 'default' => true, 'mode' => 'truthy'],
             'priority' => 3,
+            'autorun' => false,
+            'autorun_environments' => [],
+            'stop_on_failure' => false,
             'options' => ['fire_events' => true],
         ];
 

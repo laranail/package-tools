@@ -7,22 +7,28 @@ namespace Simtabi\Laranail\Package\Tools\Services\Database;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
+use ReflectionClass;
+use Throwable;
+use Simtabi\Laranail\Package\Tools\Exceptions\SeederException;
 
 /**
  * Walks a directory of seeder source files and yields the FQCNs of every
  * concrete `Seeder` subclass it can resolve.
  *
- * Tokeniser-based, no autoloader required. Callers require the files on
- * demand; the discoverer only reads file contents.
+ * Tokeniser-based; no autoloader required — files whose classes are not
+ * already autoloadable are require'd on demand (a parse error surfaces as
+ * a SeederException rather than a silent drop).
  */
 final class SeederPathDiscoverer
 {
     /**
-     * Discover every Seeder subclass declared in `$path`.
+     * Discover every concrete Seeder subclass declared in `$path`.
+     * Abstract seeders are excluded — they register fine but explode at
+     * execution time.
      *
      * @return list<class-string<Seeder>>
      */
-    public function discover(string $path): array
+    public function discover(string $path, bool $recursive = false): array
     {
         if (! File::isDirectory($path)) {
             throw new InvalidArgumentException(
@@ -30,16 +36,43 @@ final class SeederPathDiscoverer
             );
         }
 
+        $files = $recursive
+            ? array_map(static fn ($file): string => $file->getPathname(), File::allFiles($path))
+            : (File::glob(rtrim($path, '/') . '/*.php') ?: []);
+
         $found = [];
-        foreach (File::glob(rtrim($path, '/') . '/*.php') ?: [] as $file) {
-            foreach ($this->classesIn($file) as $fqcn) {
-                if (class_exists($fqcn) && is_subclass_of($fqcn, Seeder::class)) {
-                    $found[] = $fqcn;
+        foreach ($files as $file) {
+            if (! str_ends_with((string) $file, '.php')) {
+                continue;
+            }
+
+            foreach ($this->classesIn((string) $file) as $fqcn) {
+                if (! class_exists($fqcn)) {
+                    $this->requireFile((string) $file, $path);
                 }
+
+                if (! class_exists($fqcn) || ! is_subclass_of($fqcn, Seeder::class)) {
+                    continue;
+                }
+
+                if (! (new ReflectionClass($fqcn))->isInstantiable()) {
+                    continue;
+                }
+
+                $found[] = $fqcn;
             }
         }
 
         return array_values(array_unique($found));
+    }
+
+    private function requireFile(string $file, string $path): void
+    {
+        try {
+            require_once $file;
+        } catch (Throwable $e) {
+            throw SeederException::discoveryFailed($path, "failed loading {$file}: {$e->getMessage()}");
+        }
     }
 
     /**

@@ -89,7 +89,17 @@ final class BootPackageDeferredHooksTest extends TestCase
     {
         $package = $this->app->make(TestPackageProvider::class)->package;
 
-        $this->assertContains('database/seeders/Test', $package->getSeederPaths());
+        // loadSeedersFrom() now feeds the definition pipeline (3.0): the
+        // path lands as a discovery definition instead of a dead array.
+        $paths = array_map(
+            static fn ($definition): ?string => $definition->toArray()['discovery_path'],
+            $package->getPackageSeederDefinitions(),
+        );
+
+        $this->assertNotEmpty(array_filter(
+            $paths,
+            static fn (?string $path): bool => $path !== null && str_contains($path, 'database/seeders/Test'),
+        ));
     }
 
     public function test_policy_registers_at_boot(): void

@@ -17,17 +17,12 @@ use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoSeeders\DiscoveredAlphaSee
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoSeeders\DiscoveredBetaSeeder;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoSeeders\DiscoveredIgnoredSeeder;
 
-// the discoverer only reads sources; class_exists() must already know the
-// classes, so load the discovery fixtures up front
-require_once dirname(__DIR__) . '/fixtures/auto-seeders/DiscoveredAlphaSeeder.php';
-require_once dirname(__DIR__) . '/fixtures/auto-seeders/DiscoveredBetaSeeder.php';
-require_once dirname(__DIR__) . '/fixtures/auto-seeders/DiscoveredIgnoredSeeder.php';
-
 /**
  * hasPackageSeeders() must REGISTER bundles with the shared SeederManager
  * at boot (gates evaluated then) and EXECUTE nothing until the host's
- * db:seed path resolves a Seeder through the container — the
- * SeederResolverHook's contract.
+ * db:seed path resolves a ROOT seeder through the container — the
+ * SeederResolverHook's contract. (The discoverer requires non-autoloaded
+ * fixture files itself since 3.0 — no require_once shims here.)
  */
 final class BootPackageAutoSeedersTest extends TestCase
 {
@@ -48,6 +43,13 @@ final class BootPackageAutoSeedersTest extends TestCase
             AutoSeederLowPriorityProvider::class,
             AutoSeederDiscoveryProvider::class,
         ];
+    }
+
+    protected function defineEnvironment($app): void
+    {
+        // The default root (Database\Seeders\DatabaseSeeder) doesn't exist
+        // in the Testbench skeleton; register a fixture root instead.
+        $app['config']->set('package-tools.seeders.root_seeders', [TestRootSeeder::class]);
     }
 
     protected function disableSeedGate(Application $app): void
@@ -76,17 +78,27 @@ final class BootPackageAutoSeedersTest extends TestCase
         $this->assertSame([], SeederRunLedger::$order);
     }
 
-    public function test_resolving_a_seeder_through_the_container_triggers_execution(): void
+    public function test_resolving_the_root_seeder_triggers_execution(): void
     {
         $this->assertFalse(SeederFixtureAlpha::$ran);
 
-        // db:seed resolves the root seeder through the container; any Seeder
-        // resolution fires the SeederResolverHook listener
-        $this->app->make(SeederFixtureAlpha::class);
+        // db:seed resolves the root seeder through the container; ONLY the
+        // exact root FQCNs fire the SeederResolverHook listener.
+        $this->app->make(TestRootSeeder::class);
 
         $this->assertTrue(SeederFixtureAlpha::$ran);
         $this->assertContains(SeederFixtureHigh::class, SeederRunLedger::$order);
         $this->assertContains(SeederFixtureLow::class, SeederRunLedger::$order);
+    }
+
+    public function test_resolving_an_arbitrary_seeder_does_not_trigger_execution(): void
+    {
+        // Regression guard for the 2.x footgun: any Seeder resolution ran
+        // every package bundle (db:seed --class=X, web requests, the
+        // executor's own make() calls).
+        $this->app->make(SeederFixtureAlpha::class);
+
+        $this->assertSame([], SeederRunLedger::$order);
     }
 
     public function test_discovery_mode_resolves_classes_and_honors_the_ignore_list(): void
@@ -101,7 +113,7 @@ final class BootPackageAutoSeedersTest extends TestCase
 
     public function test_cross_bundle_execution_order_follows_priority_lowest_first(): void
     {
-        $this->app->make(SeederFixtureAlpha::class);
+        $this->app->make(TestRootSeeder::class);
 
         $lowIndex = array_search(SeederFixtureLow::class, SeederRunLedger::$order, true);
         $highIndex = array_search(SeederFixtureHigh::class, SeederRunLedger::$order, true);
@@ -135,6 +147,11 @@ final class SeederRunLedger
     {
         self::$order = [];
     }
+}
+
+class TestRootSeeder extends Seeder
+{
+    public function run(): void {}
 }
 
 final class SeederFixtureAlpha extends Seeder

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
-use Exception;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Event;
@@ -125,9 +124,17 @@ final readonly class SeederExecutor
         $errors = [];
 
         $lastIndex = count($seederClasses) - 1;
+        $aborted = false;
 
         foreach ($seederClasses as $index => $class) {
             $isLast = $index === $lastIndex;
+
+            if ($aborted) {
+                $this->formatter?->displaySeederSkipped($class, 'previous seeder in bundle failed', $isLast);
+
+                continue;
+            }
+
             $start = microtime(true);
 
             if ($fireEvents) {
@@ -153,19 +160,31 @@ final readonly class SeederExecutor
                 $durationMs = (microtime(true) - $start) * 1000;
                 $totalTime += $durationMs;
                 $failed++;
-                $errors[] = ['class' => $class, 'message' => $e->getMessage(), 'package' => $group];
+
+                $wrapped = $e instanceof SeederException ? $e : SeederException::executionFailed($class, $e);
+                $errors[] = [
+                    'class' => $class,
+                    'message' => $e->getMessage(),
+                    'exception' => $e::class,
+                    'package' => $group,
+                ];
 
                 if ($fireEvents) {
                     Event::dispatch(new SeederFailed($class, $e, $group));
                 }
-                $this->formatter?->displaySeederError($class, $this->toException($e), $durationMs / 1000, $isLast);
+                $this->formatter?->displaySeederError($class, $wrapped, $durationMs / 1000, $isLast);
 
                 Log::error("Package seeder failed: {$class}", [
                     'package' => $group,
                     'message' => $e->getMessage(),
+                    'exception' => $e::class,
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
                 ]);
+
+                if ($bundle->shouldStopOnFailure()) {
+                    $aborted = true;
+                }
             }
         }
 
@@ -198,19 +217,13 @@ final readonly class SeederExecutor
         $reflection = new ReflectionClass($class);
         $ctor = $reflection->getConstructor();
 
-        if ($ctor === null || $ctor->getNumberOfParameters() === 0) {
-            return $this->app->make($class);
-        }
+        $seeder = $ctor === null || $ctor->getNumberOfParameters() === 0
+            ? $this->app->make($class)
+            : $this->app->make($class, $parameters);
 
-        return $this->app->make($class, $parameters);
-    }
-
-    /**
-     * The console formatter's error display expects an \Exception; wrap any
-     * Throwable that isn't already one.
-     */
-    private function toException(Throwable $e): Exception
-    {
-        return $e instanceof Exception ? $e : new Exception($e->getMessage(), $e->getCode(), $e);
+        // Match Laravel's own `db:seed` behavior: without a container the
+        // base Seeder's __invoke() bypasses method injection (run(FooService
+        // $svc) fatals) and $this->call() is unusable.
+        return $seeder->setContainer($this->app);
     }
 }

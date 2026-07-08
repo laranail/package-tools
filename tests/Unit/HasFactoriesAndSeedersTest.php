@@ -6,18 +6,31 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\HasFactoriesAndSeeders;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * HasFactoriesAndSeedersTest - Test factory & seeder management
  *
- * Covers Phase 6 factories & seeders features
+ * The seeder half asserts against the definition pipeline: since 3.0,
+ * loadSeedersFrom()/registerSeeder() create real AutoSeederDefinitions
+ * (they were silent no-ops before).
  */
 class HasFactoriesAndSeedersTest extends TestCase
 {
     use HasFactoriesAndSeeders;
 
     protected string $basePath = '/var/www/test-package';
+
+    private function makePackage(): Package
+    {
+        $package = new Package;
+        $package->name('acme/blog');
+        $package->basePath = '/var/www/test-package';
+
+        return $package;
+    }
 
     #[Test]
     public function it_loads_factories_from_path(): void
@@ -42,55 +55,73 @@ class HasFactoriesAndSeedersTest extends TestCase
     }
 
     #[Test]
-    public function it_loads_seeders_from_path(): void
+    public function it_creates_a_discovery_definition_per_seeder_path(): void
     {
-        $this->loadSeedersFrom('database/seeders');
+        $package = $this->makePackage();
+        $package->loadSeedersFrom('database/seeders');
+        $package->loadSeedersFrom('tests/seeders');
 
-        $paths = $this->getSeederPaths();
+        $definitions = $package->getPackageSeederDefinitions();
 
-        $this->assertCount(1, $paths);
-        $this->assertContains('database/seeders', $paths);
+        $this->assertCount(2, $definitions);
+
+        foreach ($definitions as $definition) {
+            $this->assertInstanceOf(AutoSeederDefinition::class, $definition);
+            $this->assertNotNull($definition->toArray()['discovery_path']);
+        }
+
+        // Distinct paths must yield distinct keys — no registry clobbering.
+        $keys = array_map(static fn (AutoSeederDefinition $d): string => $d->key(), $definitions);
+        $this->assertSame($keys, array_unique($keys));
     }
 
     #[Test]
-    public function it_loads_multiple_seeder_paths(): void
+    public function it_resolves_seeder_paths_relative_to_the_package_root(): void
     {
-        $this->loadSeedersFrom('database/seeders');
-        $this->loadSeedersFrom('tests/seeders');
+        $package = $this->makePackage();
+        $package->loadSeedersFrom('database/seeders');
 
-        $paths = $this->getSeederPaths();
+        [$definition] = $package->getPackageSeederDefinitions();
 
-        $this->assertCount(2, $paths);
+        $this->assertStringContainsString('test-package', (string) $definition->toArray()['discovery_path']);
     }
 
     #[Test]
-    public function it_registers_seeder_class(): void
+    public function registered_seeders_append_to_one_shared_definition_in_call_order(): void
     {
-        $this->registerSeeder('Database\Seeders\BlogSeeder');
+        $package = $this->makePackage();
+        $package->registerSeeder('Database\Seeders\BlogSeeder');
+        $package->registerSeeder('Database\Seeders\UserSeeder');
 
-        $seeders = $this->getRegisteredSeeders();
+        $definitions = $package->getPackageSeederDefinitions();
 
-        $this->assertCount(1, $seeders);
-        $this->assertContains('Database\Seeders\BlogSeeder', $seeders);
+        $this->assertCount(1, $definitions);
+        $this->assertSame(
+            ['Database\Seeders\BlogSeeder', 'Database\Seeders\UserSeeder'],
+            $definitions[0]->toArray()['seeders'],
+        );
+        // name('acme/blog') splits the vendor prefix off; the package part
+        // keys the shared default definition.
+        $this->assertSame('blog', $definitions[0]->key());
     }
 
     #[Test]
-    public function it_registers_multiple_seeder_classes(): void
+    public function duplicate_seeder_registrations_are_ignored(): void
     {
-        $this->registerSeeder('BlogSeeder');
-        $this->registerSeeder('UserSeeder');
+        $package = $this->makePackage();
+        $package->registerSeeder('Database\Seeders\BlogSeeder');
+        $package->registerSeeder('Database\Seeders\BlogSeeder');
 
-        $seeders = $this->getRegisteredSeeders();
+        [$definition] = $package->getPackageSeederDefinitions();
 
-        $this->assertCount(2, $seeders);
+        $this->assertCount(1, $definition->toArray()['seeders']);
     }
 
     #[Test]
     public function it_returns_empty_arrays_when_nothing_registered(): void
     {
         $this->assertEmpty($this->getFactoryPaths());
-        $this->assertEmpty($this->getSeederPaths());
-        $this->assertEmpty($this->getRegisteredSeeders());
+        $this->assertEmpty($this->makePackage()->getPackageSeederDefinitions());
     }
 
     #[Test]
@@ -106,22 +137,20 @@ class HasFactoriesAndSeedersTest extends TestCase
     #[Test]
     public function it_chains_seeder_registrations(): void
     {
-        $result = $this->loadSeedersFrom('database/seeders')
+        $package = $this->makePackage();
+        $result = $package->loadSeedersFrom('database/seeders')
             ->registerSeeder('BlogSeeder');
 
-        $this->assertInstanceOf(static::class, $result);
+        $this->assertSame($package, $result);
+        $this->assertCount(2, $package->getPackageSeederDefinitions());
     }
 
     #[Test]
-    public function it_supports_fluent_api(): void
+    public function autorun_seeders_flag_is_stored(): void
     {
-        $this->loadFactoriesFrom('database/factories')
-            ->loadSeedersFrom('database/seeders')
-            ->registerSeeder('BlogSeeder');
+        $package = $this->makePackage();
 
-        $this->assertCount(1, $this->getFactoryPaths());
-        $this->assertCount(1, $this->getSeederPaths());
-        $this->assertCount(1, $this->getRegisteredSeeders());
+        $this->assertSame($package, $package->autorunSeeders());
     }
 
     #[Test]

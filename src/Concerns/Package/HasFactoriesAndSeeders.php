@@ -19,14 +19,18 @@ trait HasFactoriesAndSeeders
     /** @var array<string> Registered factory paths */
     protected array $factoryPaths = [];
 
-    /** @var array<string> Registered seeder paths */
-    protected array $seederPaths = [];
-
-    /** @var array<string> Registered seeders */
-    protected array $seeders = [];
-
     /** @var list<AutoSeederDefinition> */
     protected array $packageSeederDefinitions = [];
+
+    /**
+     * The lazily-created definition backing registerSeeder() calls.
+     */
+    private ?AutoSeederDefinition $defaultSeederDefinition = null;
+
+    /**
+     * Package-level autorun switch applied to every definition at boot.
+     */
+    protected bool $autorunAllSeeders = false;
 
     /**
      * Load factories from a directory
@@ -46,27 +50,53 @@ trait HasFactoriesAndSeeders
     }
 
     /**
-     * Load seeders from a directory
+     * Discover Seeder subclasses under `$path` (relative to the package
+     * root) and register them for db:seed-time execution. Sugar over the
+     * definition pipeline — each path gets its own discovery definition.
      *
      * @param string $path Path to seeders directory (relative to package root)
      */
     public function loadSeedersFrom(string $path): static
     {
-        $this->seederPaths[] = $path;
+        $resolved = $this->basePath('/' . ltrim($path, '/'));
+
+        return $this->hasPackageSeeders(
+            AutoSeederDefinition::make("{$this->name}:seeders:" . md5($resolved))->discoverIn($resolved),
+        );
+    }
+
+    /**
+     * Register a single seeder class for db:seed-time execution. Repeated
+     * calls append (in call order) to one shared per-package definition.
+     *
+     * @param class-string<Seeder> $seederClass
+     */
+    public function registerSeeder(string $seederClass): static
+    {
+        $this->defaultSeederDefinition()->addSeeders($seederClass);
 
         return $this;
     }
 
     /**
-     * Register a seeder class
-     *
-     * @param string $seederClass Seeder class name
+     * Opt EVERY seeder definition of this package into post-migration
+     * autorun (equivalent to autorunAfterMigrations() on each).
      */
-    public function registerSeeder(string $seederClass): static
+    public function autorunSeeders(bool $autorun = true): static
     {
-        $this->seeders[] = $seederClass;
+        $this->autorunAllSeeders = $autorun;
 
         return $this;
+    }
+
+    private function defaultSeederDefinition(): AutoSeederDefinition
+    {
+        if (! $this->defaultSeederDefinition instanceof AutoSeederDefinition) {
+            $this->defaultSeederDefinition = AutoSeederDefinition::make($this->name);
+            $this->packageSeederDefinitions[] = $this->defaultSeederDefinition;
+        }
+
+        return $this->defaultSeederDefinition;
     }
 
     /**
@@ -137,7 +167,9 @@ trait HasFactoriesAndSeeders
      */
     public function discoverPackageSeedersIn(string $path, ?string $namespace = null): static
     {
-        $key = $namespace ?? 'discovered:' . md5($path);
+        // Key on namespace AND path: two calls sharing a namespace (or two
+        // packages picking the same one) must not clobber each other.
+        $key = ($namespace ?? 'discovered') . ':' . md5($path);
 
         return $this->hasPackageSeeders(
             AutoSeederDefinition::make($key)->discoverIn($path)->inNamespace($namespace),
@@ -168,6 +200,10 @@ trait HasFactoriesAndSeeders
         /** @var SeederManager $manager */
         $manager = app(SeederManager::class);
 
+        // Per-package autorun kill-switch: the host can veto this package's
+        // autorun wholesale via {vendor}.{package}.seeders.autorun => false.
+        $autorunVetoed = $this->packageAutorunVetoed();
+
         foreach ($this->packageSeederDefinitions as $definition) {
             if (! $definition->shouldRegister()) {
                 continue;
@@ -179,13 +215,38 @@ trait HasFactoriesAndSeeders
                 continue;
             }
 
+            // Options first; an explicit fluent priority() overrides an
+            // options(['priority' => …]) value, but a never-set fluent
+            // priority no longer clobbers it with the default 0.
+            $options = $definition->optionsValue();
+            if ($definition->hasExplicitPriority() || ! array_key_exists('priority', $options)) {
+                $options['priority'] = $definition->priorityValue();
+            }
+
+            $options['autorun'] = ! $autorunVetoed
+                && ($definition->isAutorun() || $this->autorunAllSeeders);
+            $options['stop_on_failure'] = $definition->shouldStopOnFailure()
+                || (bool) ($options['stop_on_failure'] ?? false);
+            $options['autorun_environments'] = $definition->autorunEnvironmentsValue();
+
             $manager->autoSeed(
                 $definition->key(),
                 $seeders,
                 $definition->namespace(),
-                [...$definition->optionsValue(), 'priority' => $definition->priorityValue()],
+                $options,
             );
         }
+    }
+
+    private function packageAutorunVetoed(): bool
+    {
+        if (! method_exists($this, 'getDottedNamespace')) {
+            return false;
+        }
+
+        $key = $this->getDottedNamespace() . '.seeders.autorun';
+
+        return config($key, true) === false;
     }
 
     /**
@@ -225,23 +286,4 @@ trait HasFactoriesAndSeeders
         return $this->factoryPaths;
     }
 
-    /**
-     * Get all seeder paths
-     *
-     * @return array<string>
-     */
-    public function getSeederPaths(): array
-    {
-        return $this->seederPaths;
-    }
-
-    /**
-     * Get all registered seeders
-     *
-     * @return array<string>
-     */
-    public function getRegisteredSeeders(): array
-    {
-        return $this->seeders;
-    }
 }

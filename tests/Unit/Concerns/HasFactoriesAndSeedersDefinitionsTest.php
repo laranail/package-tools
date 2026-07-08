@@ -74,7 +74,9 @@ class HasFactoriesAndSeedersDefinitionsTest extends TestCase
 
         $definition = $this->package->getPackageSeederDefinitions()[0];
 
-        $this->assertSame('Acme\\Blog', $definition->key());
+        // Keys include the path hash so same-namespace calls with different
+        // paths never clobber each other in the shared registry.
+        $this->assertSame('Acme\\Blog:' . md5('/pkg/database/seeders'), $definition->key());
         $this->assertSame('Acme\\Blog', $definition->namespace());
         $this->assertSame([], $definition->toArray()['seeders']);
         $this->assertSame('/pkg/database/seeders', $definition->toArray()['discovery_path']);

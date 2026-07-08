@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
-use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Console\OutputStyle;
 use Illuminate\Database\Seeder;
 use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 
@@ -17,21 +17,23 @@ use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
  * PackageSeeder::autoSeed('Acme\\Blog', [BlogSeeder::class]); // runs on db:seed
  * $stats = PackageSeeder::seeders()->from($path)->execute();  // run now
  * ```
+ *
+ * The db:seed resolver hook is attached once by PackageToolsServiceProvider
+ * (not lazily here), so bundles registered at any point in the process —
+ * before or after the first resolution — are all picked up.
  */
 final class SeederManager
 {
-    private ?SeederResolverHook $hook = null;
-
     public function __construct(
-        private readonly Application $app,
         private readonly SeederRegistry $registry,
         private readonly SeederExecutor $executor,
         private readonly SeederPathDiscoverer $discoverer,
+        private readonly SeederAutorun $autorun,
     ) {}
 
     /**
-     * Register a bundle of seeders to run automatically when the host
-     * app's `DatabaseSeeder` resolves (e.g. `php artisan db:seed`).
+     * Register a bundle of seeders to run with the host app's
+     * `php artisan db:seed` (root-seeder resolution).
      *
      * @param list<class-string<Seeder>> $seeders
      * @param array<string, mixed> $options
@@ -39,10 +41,6 @@ final class SeederManager
     public function autoSeed(string $key, array $seeders, ?string $namespace = null, array $options = []): self
     {
         $this->registry->register($key, $seeders, $namespace, $options);
-
-        // Single shared hook; attach() is idempotent so repeated calls are safe.
-        $this->hook ??= new SeederResolverHook($this->app, $this->registry, $this->executor);
-        $this->hook->attach();
 
         return $this;
     }
@@ -56,11 +54,44 @@ final class SeederManager
     }
 
     /**
-     * Execute everything currently registered.
+     * Execute everything currently registered, marking every bundle in the
+     * per-process ledger so a later db:seed doesn't run them again.
      */
     public function run(): SeederExecutionStats
     {
+        $keys = array_keys($this->registry->all());
+
+        if ($keys !== []) {
+            $this->autorun->markExecuted(...$keys);
+        }
+
         return $this->executor->run($this->registry);
+    }
+
+    /**
+     * Execute the autorun-flagged bundles that have not yet run this
+     * process (the same path the post-migration listener uses).
+     */
+    public function runAutorun(?OutputStyle $output = null): SeederExecutionStats
+    {
+        return $this->autorun->runPending($output);
+    }
+
+    /**
+     * The shared run-state coordinator (per-process executed-key ledger).
+     */
+    public function autorunState(): SeederAutorun
+    {
+        return $this->autorun;
+    }
+
+    /**
+     * Clear the per-process executed-key ledger — multi-tenant seeding
+     * loops and tests that intentionally re-run bundles.
+     */
+    public function resetRunState(): void
+    {
+        $this->autorun->reset();
     }
 
     public function registry(): SeederRegistry

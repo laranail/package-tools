@@ -24,6 +24,13 @@ final class SeederBundle implements Arrayable
 
     private bool $fireEvents = false;
 
+    private bool $autorun = false;
+
+    private bool $stopOnFailure = false;
+
+    /** @var list<string> */
+    private array $autorunEnvironments = [];
+
     /** @var array<string, mixed> */
     private array $parameters = [];
 
@@ -58,6 +65,11 @@ final class SeederBundle implements Arrayable
         $bundle->fireEvents = (bool) ($options['fire_events'] ?? false);
         $bundle->parameters = is_array($options['parameters'] ?? null) ? $options['parameters'] : [];
         $bundle->priority = (int) ($options['priority'] ?? 0);
+        $bundle->autorun = (bool) ($options['autorun'] ?? false);
+        $bundle->stopOnFailure = (bool) ($options['stop_on_failure'] ?? false);
+        $bundle->autorunEnvironments = is_array($options['autorun_environments'] ?? null)
+            ? array_values($options['autorun_environments'])
+            : [];
 
         return $bundle;
     }
@@ -103,6 +115,41 @@ final class SeederBundle implements Arrayable
         return $this;
     }
 
+    /**
+     * Opt this bundle into automatic execution after a successful
+     * `migrate` run (subject to the SeederAutorun safety gates).
+     */
+    public function autoruns(bool $autorun = true): self
+    {
+        $this->autorun = $autorun;
+
+        return $this;
+    }
+
+    /**
+     * Skip the bundle's remaining seeders after the first failure
+     * (cross-bundle isolation is always preserved regardless).
+     */
+    public function stopsOnFailure(bool $stop = true): self
+    {
+        $this->stopOnFailure = $stop;
+
+        return $this;
+    }
+
+    /**
+     * Restrict autorun to these environment names. A non-empty list
+     * REPLACES the production config gate for this bundle.
+     *
+     * @param list<string> $environments
+     */
+    public function autorunsInEnvironments(array $environments): self
+    {
+        $this->autorunEnvironments = array_values($environments);
+
+        return $this;
+    }
+
     public function key(): string
     {
         return $this->key;
@@ -144,6 +191,24 @@ final class SeederBundle implements Arrayable
         return $this->parameters;
     }
 
+    public function isAutorun(): bool
+    {
+        return $this->autorun;
+    }
+
+    public function shouldStopOnFailure(): bool
+    {
+        return $this->stopOnFailure;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function autorunEnvironments(): array
+    {
+        return $this->autorunEnvironments;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -157,6 +222,9 @@ final class SeederBundle implements Arrayable
             'disable_foreign_key_checks' => $this->disableForeignKeyChecks,
             'fire_events' => $this->fireEvents,
             'parameters' => $this->parameters,
+            'autorun' => $this->autorun,
+            'stop_on_failure' => $this->stopOnFailure,
+            'autorun_environments' => $this->autorunEnvironments,
         ];
     }
 }
