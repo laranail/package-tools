@@ -31,6 +31,16 @@ final class SeederBundle implements Arrayable
     /** @var list<string> */
     private array $autorunEnvironments = [];
 
+    private bool $background = false;
+
+    private ?string $queue = null;
+
+    private ?string $connection = null;
+
+    private bool $notify = true;
+
+    private ?int $withoutOverlapping = null;
+
     /** @var array<string, mixed> */
     private array $parameters = [];
 
@@ -70,6 +80,13 @@ final class SeederBundle implements Arrayable
         $bundle->autorunEnvironments = is_array($options['autorun_environments'] ?? null)
             ? array_values($options['autorun_environments'])
             : [];
+        $bundle->background = (bool) ($options['background'] ?? false);
+        $bundle->queue = isset($options['queue']) ? (string) $options['queue'] : null;
+        $bundle->connection = isset($options['connection']) ? (string) $options['connection'] : null;
+        $bundle->notify = (bool) ($options['notify'] ?? true);
+        $bundle->withoutOverlapping = isset($options['without_overlapping'])
+            ? (int) $options['without_overlapping']
+            : null;
 
         return $bundle;
     }
@@ -209,6 +226,34 @@ final class SeederBundle implements Arrayable
         return $this->autorunEnvironments;
     }
 
+    public function isBackground(): bool
+    {
+        return $this->background;
+    }
+
+    public function queue(): ?string
+    {
+        return $this->queue;
+    }
+
+    public function connection(): ?string
+    {
+        return $this->connection;
+    }
+
+    public function shouldNotify(): bool
+    {
+        return $this->notify;
+    }
+
+    /**
+     * Cache-lock TTL in minutes, or null when overlapping runs are allowed.
+     */
+    public function withoutOverlappingMinutes(): ?int
+    {
+        return $this->withoutOverlapping;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -225,6 +270,11 @@ final class SeederBundle implements Arrayable
             'autorun' => $this->autorun,
             'stop_on_failure' => $this->stopOnFailure,
             'autorun_environments' => $this->autorunEnvironments,
+            'background' => $this->background,
+            'queue' => $this->queue,
+            'connection' => $this->connection,
+            'notify' => $this->notify,
+            'without_overlapping' => $this->withoutOverlapping,
         ];
     }
 }

@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
 use BackedEnum;
+use Closure;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Database\Seeder;
+
+use function Illuminate\Support\enum_value;
+
 use JsonSerializable;
+use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
+use Simtabi\Laranail\Package\Tools\Enums\Cadence;
 use Simtabi\Laranail\Package\Tools\Enums\Environment;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
-
-use function Illuminate\Support\enum_value;
+use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
 
 /**
  * a package's seeder bundle for db:seed-time execution: an explicit,
@@ -46,6 +51,18 @@ final class AutoSeederDefinition implements Arrayable, Jsonable, JsonSerializabl
 
     /** @var list<string> */
     private array $autorunEnvironments = [];
+
+    private bool $background = false;
+
+    private ?string $queue = null;
+
+    private ?string $queueConnection = null;
+
+    private bool $notify = true;
+
+    private Cadence|CronExpressible|string|Closure|null $cadence = null;
+
+    private ?int $overlapExpiresAt = null;
 
     /** @var array<string, mixed> */
     private array $options = [];
@@ -107,6 +124,8 @@ final class AutoSeederDefinition implements Arrayable, Jsonable, JsonSerializabl
     /**
      * Append seeders to the explicit list without replacing it — the
      * incremental counterpart to seeders(). Duplicates are ignored.
+     *
+     * @param class-string<Seeder> ...$seeders
      */
     public function addSeeders(string ...$seeders): self
     {
@@ -157,6 +176,87 @@ final class AutoSeederDefinition implements Arrayable, Jsonable, JsonSerializabl
     public function stopOnFailure(bool $stop = true): self
     {
         $this->stopOnFailure = $stop;
+
+        return $this;
+    }
+
+    /**
+     * Execute this bundle via a queued job instead of inline — for large
+     * datasets that would block a request/console session. The job carries
+     * only the bundle key; the worker's own boot re-registers the bundle.
+     */
+    public function runsInBackground(bool $background = true): self
+    {
+        $this->background = $background;
+
+        return $this;
+    }
+
+    /**
+     * Alias of runsInBackground().
+     */
+    public function queued(bool $background = true): self
+    {
+        return $this->runsInBackground($background);
+    }
+
+    /**
+     * Queue name and/or connection for background execution. Accepts any
+     * backed enum (your own AppQueue::Seeding, the shipped QueueConnection
+     * cases) or a raw string; null defers to package-tools.seeders.queue.*.
+     */
+    public function onQueue(BackedEnum|string|null $queue = null, BackedEnum|string|null $connection = null): self
+    {
+        $this->queue = $queue === null ? null : (string) enum_value($queue);
+        $this->queueConnection = $connection === null ? null : (string) enum_value($connection);
+
+        return $this->runsInBackground();
+    }
+
+    /**
+     * Schedule this bundle daily at the given time — sugar for
+     * `cadence("dailyAt:HH:MM")`. Last cadence call wins.
+     */
+    public function scheduledAt(TimeOfDay|string $time): self
+    {
+        $timeOfDay = $time instanceof TimeOfDay ? $time : TimeOfDay::parse($time);
+
+        return $this->cadence('dailyAt:' . $timeOfDay->format24());
+    }
+
+    /**
+     * Schedule recurring execution — the same union the scheduled-command
+     * definition accepts: a Cadence enum case, a CronExpressible, a
+     * scheduler-method string ('daily', 'dailyAt:02:00', a raw cron), or a
+     * closure receiving the schedule Event. Last call wins (single slot).
+     */
+    public function cadence(Cadence|CronExpressible|string|Closure $cadence): self
+    {
+        $this->cadence = $cadence;
+
+        return $this;
+    }
+
+    /**
+     * Guard every execution path with a cache lock (plus schedule-level
+     * withoutOverlapping for scheduled runs) so two triggers can't seed
+     * the same bundle concurrently.
+     */
+    public function withoutOverlapping(int $expiresAtMinutes = 1440): self
+    {
+        $this->overlapExpiresAt = $expiresAtMinutes;
+
+        return $this;
+    }
+
+    /**
+     * PackageSeeding* events fire for every run by default — pass false
+     * to opt this bundle out (the global kill-switch is
+     * package-tools.seeders.events.enabled).
+     */
+    public function notifiesOnCompletion(bool $notify = true): self
+    {
+        $this->notify = $notify;
 
         return $this;
     }
@@ -244,6 +344,41 @@ final class AutoSeederDefinition implements Arrayable, Jsonable, JsonSerializabl
         return $this->autorunEnvironments;
     }
 
+    public function isBackground(): bool
+    {
+        return $this->background;
+    }
+
+    public function queueValue(): ?string
+    {
+        return $this->queue;
+    }
+
+    public function queueConnectionValue(): ?string
+    {
+        return $this->queueConnection;
+    }
+
+    public function shouldNotify(): bool
+    {
+        return $this->notify;
+    }
+
+    public function cadenceValue(): Cadence|CronExpressible|string|Closure|null
+    {
+        return $this->cadence;
+    }
+
+    public function hasCadence(): bool
+    {
+        return $this->cadence !== null;
+    }
+
+    public function overlapExpiresAtValue(): ?int
+    {
+        return $this->overlapExpiresAt;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -293,6 +428,16 @@ final class AutoSeederDefinition implements Arrayable, Jsonable, JsonSerializabl
             'autorun' => $this->autorun,
             'autorun_environments' => $this->autorunEnvironments,
             'stop_on_failure' => $this->stopOnFailure,
+            'background' => $this->background,
+            'queue' => $this->queue,
+            'queue_connection' => $this->queueConnection,
+            'notify' => $this->notify,
+            'cadence' => $this->cadence instanceof Closure ? 'closure' : (
+                $this->cadence instanceof CronExpressible ? $this->cadence->toExpression() : (
+                    $this->cadence instanceof Cadence ? $this->cadence->value : $this->cadence
+                )
+            ),
+            'without_overlapping' => $this->overlapExpiresAt,
             'options' => $this->options,
         ];
     }

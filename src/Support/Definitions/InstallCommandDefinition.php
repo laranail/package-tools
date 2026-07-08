@@ -9,6 +9,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
 use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 
 /**
  * a fluent install-command definition: named steps executed in declaration
@@ -103,8 +104,8 @@ final class InstallCommandDefinition implements Arrayable, Jsonable, JsonSeriali
         return $this->step('run seeders', static function (InstallCommand $command): void {
             $command->comment('Running package seeders...');
 
-            /** @var \Simtabi\Laranail\Package\Tools\Services\Database\SeederManager $manager */
-            $manager = $command->getLaravel()->make(\Simtabi\Laranail\Package\Tools\Services\Database\SeederManager::class);
+            /** @var SeederManager $manager */
+            $manager = $command->getLaravel()->make(SeederManager::class);
             $stats = $manager->runAutorun($command->getOutput());
 
             if ($stats->isEmpty()) {

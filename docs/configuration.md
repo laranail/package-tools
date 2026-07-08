@@ -326,8 +326,10 @@ $package->registerRateLimiter(
 | `hasMigration(string $migrationFileName)` / `hasMigrations(string\|array ...$names)` | Register migration files. |
 | `runsMigrations(bool $runsMigrations = true)` | Auto-run package migrations. |
 | `discoversMigrations(bool $discoversMigrations = true, string $path = '/database/migrations')` | Auto-discover migrations from a path. |
-| `loadFactoriesFrom(string $path)` / `loadSeedersFrom(string $path)` | Load factories / seeders from a path. |
-| `registerSeeder(string $seederClass)` | Register a single seeder. |
+| `loadFactoriesFrom(string $path)` | Load factories from a path. |
+| `loadSeedersFrom(string $path)` | Discover Seeder subclasses under a package-relative path and register them for `db:seed`-time execution (sugar over the definition pipeline; each path gets its own discovery definition). |
+| `registerSeeder(string $seederClass)` | Register a single seeder class (appends, in call order, to one shared per-package definition). |
+| `autorunSeeders(bool $autorun = true)` | Opt EVERY definition of this package into post-migration autorun. |
 | `hasPackageSeeders(AutoSeederDefinition\|string $key, array $seeders = [])` / `discoverPackageSeedersIn(string $path, ?string $namespace = null)` | Register or discover per-package seeders for `db:seed`-time execution. See [Package seeders](#package-seeders) below. |
 
 #### Package seeders
@@ -336,9 +338,15 @@ $package->registerRateLimiter(
 classes for **`db:seed`-time execution**. Seeders NEVER run at package
 boot: boot only evaluates each definition's config gate and registers
 the surviving bundles with the shared `SeederManager`; execution happens
-when the host app's `Database\Seeders\DatabaseSeeder` resolves
-(typically `php artisan db:seed` with no `--class`). The pre-2.0
-boot-time-immediate path was removed.
+when a **root seeder** resolves (`Database\Seeders\DatabaseSeeder` or a
+`package-tools.seeders.root_seeders` entry — never an arbitrary
+`--class`), after `migrate` for autorun-opted bundles, on a schedule for
+cadenced bundles, or via `laranail::package-tools.seed`. See the
+[seeding guide](seeding.md) for autorun, background execution,
+scheduling, and completion events; global defaults live in the shipped
+`config/package-tools.php` (`seeders.*`, `logging.*`), and per-package
+logging overrides at `{vendor}.{package}.logging.*` (see
+[logging](tools/logging.md)).
 
 The simple shape is a key plus an explicit class list (execution order =
 array order); for full control pass a fluent `AutoSeederDefinition`

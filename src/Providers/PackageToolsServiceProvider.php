@@ -12,6 +12,7 @@ use Simtabi\Laranail\Package\Tools\Commands\PackageAuditCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
+use Simtabi\Laranail\Package\Tools\Commands\PackageSeedCommand;
 use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederBuilder;
@@ -86,6 +87,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
                 PackageSbomCommand::class,
                 PackageAuditCommand::class,
                 PackageIdeHelperCommand::class,
+                PackageSeedCommand::class,
             ]);
         }
     }

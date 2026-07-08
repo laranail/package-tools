@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Database\Seeder;
 use Orchestra\Testbench\TestCase;
+use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
@@ -161,9 +162,9 @@ final class NotOptedInSeeder extends Seeder
 
 final class ExplosiveAutorunSeeder extends Seeder
 {
-    public function run(): void
+    public function run(): never
     {
-        throw new \RuntimeException('boom');
+        throw new RuntimeException('boom');
     }
 }
 

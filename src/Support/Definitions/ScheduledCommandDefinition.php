@@ -34,6 +34,7 @@ use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
  * without being reimplemented.
  *
  * CronBuilder-native frequencies (forwarded directly):
+ *
  * @method self daily()
  * @method self weekly(Weekday|int $day = \Simtabi\Laranail\Package\Tools\Enums\Weekday::Sunday)
  * @method self monthly(int $day = 1)

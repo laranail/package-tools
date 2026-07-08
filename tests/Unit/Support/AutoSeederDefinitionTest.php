@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
 use PHPUnit\Framework\Attributes\Test;
+use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Simtabi\Laranail\Package\Tools\Enums\Environment;
+use Simtabi\Laranail\Package\Tools\Enums\QueueConnection;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
+use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Seeders\AlphaFixtureSeeder;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Seeders\BetaFixtureSeeder;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Seeders\GammaFixtureSeeder;
@@ -170,7 +174,7 @@ final class AutoSeederDefinitionTest extends TestCase
     public function autorun_environments_accept_enums_and_strings(): void
     {
         $definition = AutoSeederDefinition::make('a')->autorunInEnvironments(
-            \Simtabi\Laranail\Package\Tools\Enums\Environment::Local,
+            Environment::Local,
             'staging',
         );
 
@@ -196,6 +200,62 @@ final class AutoSeederDefinitionTest extends TestCase
     {
         $this->assertFalse(AutoSeederDefinition::make('a')->shouldStopOnFailure());
         $this->assertTrue(AutoSeederDefinition::make('a')->stopOnFailure()->shouldStopOnFailure());
+    }
+
+    #[Test]
+    public function on_queue_normalizes_enums_and_strings_equivalently(): void
+    {
+        $viaEnum = AutoSeederDefinition::make('a')->onQueue(
+            QueueConnection::Redis,
+            connection: QueueConnection::Database,
+        );
+        $viaString = AutoSeederDefinition::make('b')->onQueue('redis', connection: 'database');
+
+        $this->assertSame('redis', $viaEnum->queueValue());
+        $this->assertSame('database', $viaEnum->queueConnectionValue());
+        $this->assertSame($viaEnum->queueValue(), $viaString->queueValue());
+        $this->assertSame($viaEnum->queueConnectionValue(), $viaString->queueConnectionValue());
+
+        // onQueue implies background execution.
+        $this->assertTrue($viaEnum->isBackground());
+    }
+
+    #[Test]
+    public function queued_is_an_alias_for_runs_in_background(): void
+    {
+        $this->assertFalse(AutoSeederDefinition::make('a')->isBackground());
+        $this->assertTrue(AutoSeederDefinition::make('a')->queued()->isBackground());
+        $this->assertTrue(AutoSeederDefinition::make('a')->runsInBackground()->isBackground());
+        $this->assertFalse(AutoSeederDefinition::make('a')->queued(false)->isBackground());
+    }
+
+    #[Test]
+    public function scheduled_at_accepts_time_of_day_and_strings(): void
+    {
+        $viaObject = AutoSeederDefinition::make('a')
+            ->scheduledAt(TimeOfDay::at(2));
+        $viaString = AutoSeederDefinition::make('b')->scheduledAt('02:00');
+
+        $this->assertSame('dailyAt:02:00', $viaObject->cadenceValue());
+        $this->assertSame($viaObject->cadenceValue(), $viaString->cadenceValue());
+        $this->assertTrue($viaObject->hasCadence());
+    }
+
+    #[Test]
+    public function the_last_cadence_call_wins(): void
+    {
+        $definition = AutoSeederDefinition::make('a')
+            ->scheduledAt('02:00')
+            ->cadence(Cadence::Daily);
+
+        $this->assertSame(Cadence::Daily, $definition->cadenceValue());
+    }
+
+    #[Test]
+    public function notifications_default_on_with_per_bundle_opt_out(): void
+    {
+        $this->assertTrue(AutoSeederDefinition::make('a')->shouldNotify());
+        $this->assertFalse(AutoSeederDefinition::make('a')->notifiesOnCompletion(false)->shouldNotify());
     }
 
     #[Test]
@@ -261,6 +321,12 @@ final class AutoSeederDefinitionTest extends TestCase
             'autorun' => false,
             'autorun_environments' => [],
             'stop_on_failure' => false,
+            'background' => false,
+            'queue' => null,
+            'queue_connection' => null,
+            'notify' => true,
+            'cadence' => null,
+            'without_overlapping' => null,
             'options' => ['fire_events' => true],
         ];
 

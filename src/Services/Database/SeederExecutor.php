@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
+use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use ReflectionClass;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
+use Simtabi\Laranail\Package\Tools\Events\PackageSeedingCompleted;
+use Simtabi\Laranail\Package\Tools\Events\PackageSeedingFailed;
+use Simtabi\Laranail\Package\Tools\Events\PackageSeedingStarted;
 use Simtabi\Laranail\Package\Tools\Events\SeederExecuted;
 use Simtabi\Laranail\Package\Tools\Events\SeederExecuting;
 use Simtabi\Laranail\Package\Tools\Events\SeederFailed;
@@ -38,9 +44,11 @@ final readonly class SeederExecutor
     ) {}
 
     /**
-     * Execute every bundle registered in `$registry`.
+     * Execute every bundle registered in `$registry`. `$mode` records how
+     * the run was initiated (inline/queued/scheduled) — carried by the
+     * PackageSeeding* events and the run tracker.
      */
-    public function run(SeederRegistry $registry): SeederExecutionStats
+    public function run(SeederRegistry $registry, SeederExecutionMode $mode = SeederExecutionMode::Inline): SeederExecutionStats
     {
         if ($registry->isEmpty()) {
             return SeederExecutionStats::empty();
@@ -67,11 +75,24 @@ final readonly class SeederExecutor
         $lastIndex = count($bundles) - 1;
 
         foreach ($bundles as $index => $bundle) {
-            $execute = fn (): SeederExecutionStats => $this->runBundle($bundle, $index === $lastIndex);
+            $execute = fn (): SeederExecutionStats => $this->runBundle($bundle, $index === $lastIndex, $mode);
 
-            $stats = $bundle->disablesForeignKeyChecks()
-                ? ($this->fkGuard ?? new ForeignKeyCheckGuard)->run($execute)
-                : $execute();
+            $lock = $this->acquireOverlapLock($bundle);
+            if ($lock === false) {
+                $this->formatter?->writeWarning(
+                    "Skipping '{$bundle->key()}': another run holds its overlap lock.",
+                );
+
+                continue;
+            }
+
+            try {
+                $stats = $bundle->disablesForeignKeyChecks()
+                    ? ($this->fkGuard ?? new ForeignKeyCheckGuard)->run($execute)
+                    : $execute();
+            } finally {
+                $lock?->release();
+            }
 
             $success += $stats->success;
             $failed += $stats->failed;
@@ -109,12 +130,21 @@ final readonly class SeederExecutor
         return $bundles;
     }
 
-    private function runBundle(SeederBundle $bundle, bool $isLastBundle): SeederExecutionStats
+    private function runBundle(SeederBundle $bundle, bool $isLastBundle, SeederExecutionMode $mode): SeederExecutionStats
     {
         $group = $bundle->namespace() ?? 'Default';
         $seederClasses = $bundle->seeders();
         $fireEvents = $bundle->shouldFireEvents();
+        $notify = $this->shouldNotify($bundle);
         $parameters = $bundle->parametersValue();
+        $tracker = $this->tracker();
+        $bundleStart = microtime(true);
+
+        $tracker?->start($bundle->key(), count($seederClasses));
+
+        if ($notify) {
+            Event::dispatch(new PackageSeedingStarted($group, $bundle->key(), count($seederClasses), $mode));
+        }
 
         $this->formatter?->displayGroupHeader($group, count($seederClasses), $isLastBundle);
 
@@ -151,6 +181,7 @@ final readonly class SeederExecutor
                 $durationMs = (microtime(true) - $start) * 1000;
                 $totalTime += $durationMs;
                 $success++;
+                $tracker?->advance($bundle->key());
 
                 if ($fireEvents) {
                     Event::dispatch(new SeederExecuted($class, $durationMs, $group));
@@ -160,6 +191,7 @@ final readonly class SeederExecutor
                 $durationMs = (microtime(true) - $start) * 1000;
                 $totalTime += $durationMs;
                 $failed++;
+                $tracker?->advance($bundle->key(), failed: true);
 
                 $wrapped = $e instanceof SeederException ? $e : SeederException::executionFailed($class, $e);
                 $errors[] = [
@@ -171,6 +203,16 @@ final readonly class SeederExecutor
 
                 if ($fireEvents) {
                     Event::dispatch(new SeederFailed($class, $e, $group));
+                }
+                if ($notify) {
+                    Event::dispatch(new PackageSeedingFailed(
+                        $group,
+                        $bundle->key(),
+                        $class,
+                        $e::class,
+                        $e->getMessage(),
+                        $mode,
+                    ));
                 }
                 $this->formatter?->displaySeederError($class, $wrapped, $durationMs / 1000, $isLast);
 
@@ -188,13 +230,70 @@ final readonly class SeederExecutor
             }
         }
 
-        return new SeederExecutionStats(
+        $stats = new SeederExecutionStats(
             total: $success + $failed,
             success: $success,
             failed: $failed,
             totalTime: $totalTime,
             errors: $errors,
+            group: $group,
         );
+
+        $tracker?->complete($bundle->key());
+
+        if ($notify) {
+            Event::dispatch(new PackageSeedingCompleted(
+                $group,
+                $bundle->key(),
+                $stats,
+                (microtime(true) - $bundleStart) * 1000,
+                $mode,
+            ));
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Bundle-level PackageSeeding* events fire by default; suppressed by
+     * the bundle's notifiesOnCompletion(false) or the global kill-switch.
+     */
+    private function shouldNotify(SeederBundle $bundle): bool
+    {
+        return $bundle->shouldNotify()
+            && (bool) config('package-tools.seeders.events.enabled', true);
+    }
+
+    private function tracker(): ?SeederRunTracker
+    {
+        try {
+            return $this->app->bound('cache') ? $this->app->make(SeederRunTracker::class) : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Cache lock guarding a bundle against concurrent execution when it
+     * opted in via withoutOverlapping(). Returns the held lock, null when
+     * no lock applies, or false when another run holds it.
+     */
+    private function acquireOverlapLock(SeederBundle $bundle): Lock|null|false
+    {
+        $minutes = $bundle->withoutOverlappingMinutes();
+
+        if ($minutes === null) {
+            return null;
+        }
+
+        try {
+            $lock = Cache::lock('package-tools:seeding:' . $bundle->key(), $minutes * 60);
+
+            return $lock->get() ? $lock : false;
+        } catch (Throwable) {
+            // A cache without lock support must not block seeding.
+            return null;
+        }
     }
 
     /**

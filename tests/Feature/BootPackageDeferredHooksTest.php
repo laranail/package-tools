@@ -18,6 +18,7 @@ use Override;
 use ReflectionClass;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 
 /**
  * Locks in the regression fix for the audit-identified gap:
@@ -92,7 +93,7 @@ final class BootPackageDeferredHooksTest extends TestCase
         // loadSeedersFrom() now feeds the definition pipeline (3.0): the
         // path lands as a discovery definition instead of a dead array.
         $paths = array_map(
-            static fn ($definition): ?string => $definition->toArray()['discovery_path'],
+            static fn (AutoSeederDefinition $definition): ?string => $definition->toArray()['discovery_path'],
             $package->getPackageSeederDefinitions(),
         );
 

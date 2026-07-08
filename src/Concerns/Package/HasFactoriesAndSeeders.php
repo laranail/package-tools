@@ -61,7 +61,7 @@ trait HasFactoriesAndSeeders
         $resolved = $this->basePath('/' . ltrim($path, '/'));
 
         return $this->hasPackageSeeders(
-            AutoSeederDefinition::make("{$this->name}:seeders:" . md5($resolved))->discoverIn($resolved),
+            AutoSeederDefinition::make("{$this->name}:seeders:" . md5((string) $resolved))->discoverIn($resolved),
         );
     }
 
@@ -228,6 +228,11 @@ trait HasFactoriesAndSeeders
             $options['stop_on_failure'] = $definition->shouldStopOnFailure()
                 || (bool) ($options['stop_on_failure'] ?? false);
             $options['autorun_environments'] = $definition->autorunEnvironmentsValue();
+            $options['background'] = $definition->isBackground() || (bool) ($options['background'] ?? false);
+            $options['queue'] = $definition->queueValue() ?? $options['queue'] ?? null;
+            $options['connection'] = $definition->queueConnectionValue() ?? $options['connection'] ?? null;
+            $options['notify'] = $definition->shouldNotify() && (bool) ($options['notify'] ?? true);
+            $options['without_overlapping'] = $definition->overlapExpiresAtValue() ?? $options['without_overlapping'] ?? null;
 
             $manager->autoSeed(
                 $definition->key(),
@@ -240,7 +245,10 @@ trait HasFactoriesAndSeeders
 
     private function packageAutorunVetoed(): bool
     {
-        if (! method_exists($this, 'getDottedNamespace')) {
+        // A name-less/vendor-less Package (partial trait usage in tests)
+        // has no per-package config namespace to consult. isset() is false
+        // for both an uninitialized and a null vendor.
+        if (! isset($this->configVendor)) {
             return false;
         }
 
@@ -285,5 +293,4 @@ trait HasFactoriesAndSeeders
     {
         return $this->factoryPaths;
     }
-
 }

@@ -116,6 +116,11 @@ final class SeederBundleTest extends TestCase
             'autorun' => false,
             'stop_on_failure' => false,
             'autorun_environments' => [],
+            'background' => false,
+            'queue' => null,
+            'connection' => null,
+            'notify' => true,
+            'without_overlapping' => null,
         ], $bundle->toArray());
     }
 }

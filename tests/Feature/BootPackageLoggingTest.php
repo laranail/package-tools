@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Orchestra\Testbench\TestCase;
+use Override;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
@@ -23,6 +25,7 @@ final class BootPackageLoggingTest extends TestCase
 {
     private static string $sandbox = '';
 
+    #[Override]
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();
@@ -55,7 +58,7 @@ final class BootPackageLoggingTest extends TestCase
         ];
     }
 
-    protected function disableViaPerPackageConfig($app): void
+    protected function disableViaPerPackageConfig(Application $app): void
     {
         $app['config']->set('acme.logdemo.logging.enabled', false);
     }

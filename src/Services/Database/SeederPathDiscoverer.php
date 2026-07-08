@@ -8,8 +8,9 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
 use ReflectionClass;
-use Throwable;
 use Simtabi\Laranail\Package\Tools\Exceptions\SeederException;
+use Symfony\Component\Finder\SplFileInfo;
+use Throwable;
 
 /**
  * Walks a directory of seeder source files and yields the FQCNs of every
@@ -37,7 +38,7 @@ final class SeederPathDiscoverer
         }
 
         $files = $recursive
-            ? array_map(static fn ($file): string => $file->getPathname(), File::allFiles($path))
+            ? array_map(static fn (SplFileInfo $file): string => $file->getPathname(), File::allFiles($path))
             : (File::glob(rtrim($path, '/') . '/*.php') ?: []);
 
         $found = [];
@@ -50,8 +51,10 @@ final class SeederPathDiscoverer
                 if (! class_exists($fqcn)) {
                     $this->requireFile((string) $file, $path);
                 }
-
-                if (! class_exists($fqcn) || ! is_subclass_of($fqcn, Seeder::class)) {
+                if (! class_exists($fqcn)) {
+                    continue;
+                }
+                if (! is_subclass_of($fqcn, Seeder::class)) {
                     continue;
                 }
 

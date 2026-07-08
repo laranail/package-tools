@@ -6,9 +6,9 @@ namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Illuminate\Console\OutputStyle;
 use Illuminate\Contracts\Foundation\Application;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Throwable;
 
 /**

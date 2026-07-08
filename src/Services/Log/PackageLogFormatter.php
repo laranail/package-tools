@@ -52,7 +52,7 @@ final class PackageLogFormatter extends LineFormatter
             $this->package,
             strtoupper((string) $levelLabel),
             is_string($label) && $label !== '' ? " [{$label}]" : '',
-            $this->stripInlineBreaks((string) $record->message),
+            $this->stripInlineBreaks($record->message),
         );
 
         if ($context !== []) {

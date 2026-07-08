@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\LogDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 

@@ -14,7 +14,7 @@ laranail::<package-slug>.<command>
 
 This package's own commands follow it: `laranail::package-tools.doctor`,
 `laranail::package-tools.sbom`, `laranail::package-tools.audit`,
-`laranail::package-tools.ide-helper`.
+`laranail::package-tools.ide-helper`, `laranail::package-tools.seed`.
 
 ## The problem
 
@@ -47,7 +47,7 @@ final class SyncCommand extends Command
 }
 ```
 
-All four built-in `laranail::package-tools.*` commands extend this base.
+All five built-in `laranail::package-tools.*` commands extend this base.
 
 ## The trait
 

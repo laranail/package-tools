@@ -24,6 +24,7 @@ use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLoggin
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessMigrations;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessRoutes;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessScheduledCommands;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessScheduledSeeders;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessServiceProviders;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessTranslations;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessValidationRules;
@@ -75,6 +76,7 @@ abstract class PackageServiceProvider extends ServiceProvider
     use ProcessMigrations;
     use ProcessRoutes;
     use ProcessScheduledCommands;
+    use ProcessScheduledSeeders;
     use ProcessServiceProviders;
     use ProcessTranslations;
     use ProcessValidationRules;
@@ -202,6 +204,7 @@ abstract class PackageServiceProvider extends ServiceProvider
             ->bootPackageCommands()
             ->bootPackageConsoleCommands()
             ->bootPackageScheduledCommands()
+            ->bootPackageScheduledSeeders()
             ->bootPackageConfigs()
             ->bootPackageInertia()
             ->bootPackageLivewireComponents()

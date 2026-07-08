@@ -22,13 +22,13 @@ use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
  * (not lazily here), so bundles registered at any point in the process —
  * before or after the first resolution — are all picked up.
  */
-final class SeederManager
+final readonly class SeederManager
 {
     public function __construct(
-        private readonly SeederRegistry $registry,
-        private readonly SeederExecutor $executor,
-        private readonly SeederPathDiscoverer $discoverer,
-        private readonly SeederAutorun $autorun,
+        private SeederRegistry $registry,
+        private SeederExecutor $executor,
+        private SeederPathDiscoverer $discoverer,
+        private SeederAutorun $autorun,
     ) {}
 
     /**

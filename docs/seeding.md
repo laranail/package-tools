@@ -53,22 +53,173 @@ src/Support/Definitions/
 
 ## When seeders run
 
-Package seeders **never execute at application boot**. The pre-2.0
-boot-time-immediate path (seeders running inside `packageBooted()`) was
-removed; there is now exactly one automatic execution point:
+Package seeders **never execute at application boot**, and since 3.0
+they never execute as a side effect of resolving an arbitrary seeder
+either. The execution points are:
 
 - **Boot** — the provider evaluates each definition's config gate,
   resolves its class list, and registers the surviving bundles with the
   shared `SeederManager`. Registration only.
-- **`db:seed` time** — the `SeederResolverHook` runs everything
-  registered the first time the host app's
-  `Database\Seeders\DatabaseSeeder` resolves (typically `php artisan
-  db:seed` without `--class`). The hook is idempotent — repeated
-  `attach()` calls never stack listeners — and fires at most once per
-  console invocation / request.
+- **`db:seed` time** — the `SeederResolverHook` runs every bundle not
+  already executed this process when a **root seeder** resolves:
+  `Database\Seeders\DatabaseSeeder` or any FQCN listed in
+  `package-tools.seeders.root_seeders`. `db:seed --class=SomeSeeder`
+  no longer triggers package bundles (the 2.x hook bound the abstract
+  `Seeder` type, so ANY seeder resolution — including web requests and
+  the executor's own `make()` calls — ran everything; that footgun is
+  gone).
+- **After `php artisan migrate`** — ONLY for bundles that opted in via
+  `autorunAfterMigrations()` / `autorunNow()`. See
+  [Autorun after migrations](#autorun-after-migrations).
+- **On a schedule** — ONLY for bundles that declared a cadence. See
+  [Scheduling seeders](#scheduling-seeders).
+- **`php artisan laranail::package-tools.seed`** — the explicit command
+  trigger (`--key=`, `--package=`, `--sync`, `--queued`, `--force`,
+  `--status`).
 
-Outside that, execution is always explicit: `PackageSeeder::run()`,
+Outside those, execution is always explicit: `PackageSeeder::run()`,
 `SeederBuilder::execute()`, or `SeederExecutor::run($registry)`.
+
+A shared per-process ledger keeps every trigger honest: a bundle that
+already ran (autorun, manual, or db:seed) is skipped by the others, so
+`migrate --seed` never double-runs. `PackageSeeder::resetRunState()` is
+the escape hatch for multi-tenant loops.
+
+## Autorun after migrations
+
+Seeders never run on their own unless a bundle opts in:
+
+```php
+$package->hasPackageSeeders(
+    AutoSeederDefinition::make('demo-data')
+        ->seeders([CountrySeeder::class, CurrencySeeder::class])
+        ->autorunAfterMigrations(),          // or the alias ->autorunNow()
+);
+
+$package->autorunSeeders(); // package-level: opt in every definition
+```
+
+The trigger is `Illuminate\Database\Events\MigrationsEnded` — fired once
+per Migrator batch, including nested `$command->call('migrate')` (so an
+install command's `runsMigrations()` step is covered automatically).
+Rollbacks (`method === 'down'`) and `--pretend` runs never trigger. When
+nothing is pending Laravel fires `NoPendingMigrations` instead, so
+autorun stays quiet — add `runsSeeders()` to your install command for
+the already-migrated case.
+
+Safety gates, all of which must pass:
+
+| Gate | Control |
+|---|---|
+| Global kill-switch | `package-tools.seeders.autorun.enabled` (default `true`) |
+| Console only | never fires on web requests or queue workers |
+| Unit tests | skipped unless `package-tools.seeders.autorun.in_tests` (default `false`) — `RefreshDatabase` never seeds by surprise |
+| Production | skipped unless `package-tools.seeders.autorun.in_production` (default `false`) |
+| Environment list | `autorunInEnvironments(Environment::Local, 'staging')` REPLACES the production gate for that bundle |
+| Per-package veto | `{vendor}.{package}.seeders.autorun => false` host config |
+| Once per process | the shared executed-key ledger |
+
+Autorun failures never abort `migrate`: they are reported to the console
+and the log, then swallowed. Write autorun seeders idempotently
+(`updateOrCreate` / `firstOrCreate`) — `migrate:fresh` re-runs them by
+design (there is deliberately no persisted "already seeded" marker).
+
+## Background execution
+
+Large bundles can run on the queue instead of blocking the console or
+request:
+
+```php
+use Simtabi\Laranail\Package\Tools\Enums\QueueConnection;
+
+$package->hasPackageSeeders(
+    AutoSeederDefinition::make('demo-data')
+        ->seeders([...])
+        ->runsInBackground()                                      // alias ->queued()
+        ->onQueue('seeding', connection: QueueConnection::Redis), // any BackedEnum|string
+);
+```
+
+Every execution surface honors the flag: the seed command dispatches a
+`RunSeederBundleJob` instead of running inline (`--sync` / `--queued`
+override per invocation). The job payload carries **only the bundle key**
+— the worker's own provider boot re-registers the bundle and the job
+re-resolves it (a vanished key warns and no-ops). Queue name, connection,
+tries, and timeout default from `package-tools.seeders.queue.*`.
+
+Progress is observable from any process sharing the cache:
+
+```
+php artisan laranail::package-tools.seed --status
+```
+
+renders each bundle's tracked state (pending / processing / completed /
+failed, processed counts, timestamps) via the cache-backed
+`SeederRunTracker`.
+
+`withoutOverlapping()` guards a bundle with a cache lock across ALL
+execution paths (plus schedule-level `withoutOverlapping` for scheduled
+runs), so two triggers can't seed the same bundle concurrently.
+
+## Scheduling seeders
+
+Bundles can recur on the scheduler — the cadence vocabulary is the same
+one `registerScheduledCommand()` uses (enum cases, cron expressions,
+scheduler-method strings, closures):
+
+```php
+use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
+
+$package->hasPackageSeeders(
+    AutoSeederDefinition::make('nightly-sync')
+        ->seeders([...])
+        ->scheduledAt(TimeOfDay::at(2))   // sugar for cadence('dailyAt:02:00')
+        ->withoutOverlapping(),
+);
+
+// or any cadence form:
+AutoSeederDefinition::make('weekly')->cadence(Cadence::Weekly);
+AutoSeederDefinition::make('custom')->cadence('0 */6 * * *');
+```
+
+Each cadenced bundle lands on the host schedule as
+`laranail::package-tools.seed --key=X --scheduled` (visible in
+`php artisan schedule:list`). The scheduler passes **no mode flag** —
+the bundle's own `runsInBackground()` choice decides queued vs inline;
+`--scheduled` only marks provenance in the events and tracker. The last
+`scheduledAt()`/`cadence()` call wins (one cadence slot per bundle).
+
+## Completion events & notifying users
+
+The package never notifies users itself — it emits typed events and the
+host decides who to tell and how (mail, Slack, database notification,
+broadcast):
+
+| Event | When | Payload |
+|---|---|---|
+| `PackageSeedingStarted` | bundle begins | `packageName`, `bundleKey`, `seederCount`, `SeederExecutionMode $mode` |
+| `PackageSeedingCompleted` | bundle finishes (inspect stats for failures) | + `SeederExecutionStats $stats`, `durationMs` |
+| `PackageSeedingFailed` | each seeder that throws | + `seederClass`, `exceptionClass`, `message` |
+
+Events fire for **every** mode (inline included) by default. Suppress
+per bundle with `notifiesOnCompletion(false)` or globally with
+`package-tools.seeders.events.enabled => false`.
+
+Host-app listener example:
+
+```php
+// AppServiceProvider::boot()
+Event::listen(function (PackageSeedingCompleted $event): void {
+    Notification::route('mail', config('ops.email'))->notify(
+        new SeedingFinishedNotification($event->packageName, $event->stats->getSummary()),
+    );
+});
+```
+
+Built-in observability on top: each package's own seeding outcomes also
+land in its [`$package->log()`](tools/logging.md) logfile with a
+`Seeder` label (`success`/`warning`/`error` by outcome).
 
 ## Through the `Package` builder: `AutoSeederDefinition`
 
@@ -98,13 +249,22 @@ $package->hasPackageSeeders(
 |---|---|
 | `AutoSeederDefinition::make(string $key)` | Create a definition keyed by an opaque label (typically the package name). |
 | `seeders(array $seeders = [])` | Explicit class list — execution order is the array order. Empty (or never called) switches the definition to **discovery mode**. |
-| `discoverIn(string $path)` | Discovery-source override; without it, discovery falls back to the package's `database/seeders` directory at boot. |
+| `addSeeders(string ...$seeders)` | Append to the explicit list without replacing it; duplicates ignored. |
+| `discoverIn(string $path, bool $recursive = false)` | Discovery-source override; without it, discovery falls back to the package's `database/seeders` directory at boot. `$recursive` descends into nested directories. |
 | `ignoreSeeders(array $seeders)` | Exclusion list, applied to **both** explicit and discovered lists. |
 | `inNamespace(?string $namespace)` | Group label used by events and console output. |
 | `whenConfig(string $key, bool $default = true)` | Truthy config gate: the bundle registers only when `(bool) config($key, $default)` is `true` at boot. |
 | `whenConfigNotNull(string $key)` | Not-null gate ("configured means on"): registers iff `config($key) !== null`. |
 | `priority(int $priority)` | Cross-package ordering — lower runs first; ties keep registration order (the sort is stable). |
-| `options(array $options)` | Legacy string-keyed `SeederRegistry` options passthrough. |
+| `autorunAfterMigrations(bool $autorun = true)` / `autorunNow(...)` | Opt in to automatic execution after `php artisan migrate` (see [Autorun after migrations](#autorun-after-migrations)). |
+| `autorunInEnvironments(Environment\|BackedEnum\|string ...$environments)` | Restrict autorun to these environments (replaces the production config gate for this bundle). |
+| `stopOnFailure(bool $stop = true)` | Skip the bundle's remaining seeders after the first failure. |
+| `runsInBackground(bool $background = true)` / `queued(...)` | Execute via a queued job (see [Background execution](#background-execution)). |
+| `onQueue(BackedEnum\|string\|null $queue = null, BackedEnum\|string\|null $connection = null)` | Queue name/connection for background execution; implies `runsInBackground()`. |
+| `scheduledAt(TimeOfDay\|string $time)` / `cadence(Cadence\|CronExpressible\|string\|Closure $cadence)` | Recurring execution (see [Scheduling seeders](#scheduling-seeders)); last call wins. |
+| `withoutOverlapping(int $expiresAtMinutes = 1440)` | Cache-lock every execution path against concurrent runs. |
+| `notifiesOnCompletion(bool $notify = true)` | Per-bundle opt-out for the `PackageSeeding*` events (default on). |
+| `options(array $options)` | Legacy string-keyed `SeederRegistry` options passthrough. An explicit fluent `priority()` overrides an options `priority`; a never-set fluent priority no longer clobbers it. |
 
 Explicit list vs discovery, precisely: when `seeders()` holds a
 non-empty list, that list is used in order, de-duplicated (a seeder

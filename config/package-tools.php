@@ -63,6 +63,25 @@ return [
             'in_tests' => false,
         ],
 
+        /*
+        | Defaults for background (queued) seeder bundles. null queue name
+        | means the connection's default queue — nothing hardcoded.
+        */
+        'queue' => [
+            'name' => null,
+            'connection' => null,
+            'tries' => 1,
+            'timeout' => 300,
+        ],
+
+        /*
+        | Kill-switch for the PackageSeedingStarted/Completed/Failed
+        | events (per-bundle opt-out: notifiesOnCompletion(false)).
+        */
+        'events' => [
+            'enabled' => true,
+        ],
+
     ],
 
 ];

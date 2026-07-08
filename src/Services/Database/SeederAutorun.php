@@ -7,10 +7,10 @@ namespace Simtabi\Laranail\Package\Tools\Services\Database;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Events\MigrationsEnded;
-use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Throwable;
 
 /**
@@ -82,10 +82,12 @@ final class SeederAutorun
         $pending = [];
 
         foreach ($this->registry->all() as $key => $bundle) {
-            if (! $bundle->isAutorun() || $this->hasExecuted($key)) {
+            if (! $bundle->isAutorun()) {
                 continue;
             }
-
+            if ($this->hasExecuted($key)) {
+                continue;
+            }
             if (! $this->passesEnvironmentGate($bundle)) {
                 continue;
             }
@@ -166,11 +168,7 @@ final class SeederAutorun
             return false;
         }
 
-        if ($this->app->runningUnitTests() && ! config('package-tools.seeders.autorun.in_tests', false)) {
-            return false;
-        }
-
-        return true;
+        return ! ($this->app->runningUnitTests() && ! config('package-tools.seeders.autorun.in_tests', false));
     }
 
     /**

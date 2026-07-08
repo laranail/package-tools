@@ -7,10 +7,11 @@ namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 use BackedEnum;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
-use JsonSerializable;
-use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
 
 use function Illuminate\Support\enum_value;
+
+use JsonSerializable;
+use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
 
 /**
  * a package's logging configuration: where the per-package logfile lives,
