@@ -37,6 +37,7 @@
     "illuminate/http": "^13.0",
     "illuminate/support": "^13.0",
     "illuminate/filesystem": "^13.0",
+    "illuminate/log": "^13.0",
     "laranail/console": "^1.0",
     "symfony/process": "^8.0"
   },

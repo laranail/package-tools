@@ -19,6 +19,28 @@ declare(strict_types=1);
 
 return [
 
+    'logging' => [
+
+        /*
+        | Global defaults for every $package->log() logger. Per-package
+        | overrides live at {vendor}.{package}.logging.* and win; a
+        | host-defined logging.channels.{vendor}-{package} entry wins
+        | wholesale. Keys left null defer to the package's LogDefinition
+        | (or the built-in defaults: daily, 14 days, debug, line format,
+        | storage/logs/{vendor}-{package}.log).
+        */
+        'enabled' => null,
+        'channel' => null,     // delegate every package logger to one host channel
+        'path' => null,
+        'directory' => null,
+        'driver' => null,      // 'daily' | 'single'
+        'days' => null,
+        'level' => null,
+        'format' => null,      // 'line' | 'json'
+        'permission' => null,
+
+    ],
+
     'seeders' => [
 
         /*

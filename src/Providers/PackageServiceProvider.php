@@ -20,6 +20,7 @@ use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessComman
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessConfigs;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessInertia;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLivewireComponents;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLogging;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessMigrations;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessRoutes;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessScheduledCommands;
@@ -70,6 +71,7 @@ abstract class PackageServiceProvider extends ServiceProvider
     use ProcessConfigs;
     use ProcessInertia;
     use ProcessLivewireComponents;
+    use ProcessLogging;
     use ProcessMigrations;
     use ProcessRoutes;
     use ProcessScheduledCommands;
@@ -117,6 +119,10 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->package = $this->newPackage();
         $this->package->setPathFrom($this->getPackageBaseDir());
 
+        // Arm early-logging: lines written inside configurePackage() buffer
+        // until the package's config merges (registerPackageLogging()).
+        $this->package->bufferEarlyLogs();
+
         $this->configurePackage($this->package);
 
         if ($this->package->name === '' || $this->package->name === '0') {
@@ -130,6 +136,8 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->loadPackageHelpers();
 
         $this->registerPackageConfigs();
+
+        $this->registerPackageLogging();
 
         $this->registerPackageChildProviders();
 
@@ -187,6 +195,7 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->bootingPackage();
 
         $this
+            ->bootPackageLogging()
             ->bootPackageAssets()
             ->bootPackageBladeComponents()
             ->bootPackageBladeDirectives()

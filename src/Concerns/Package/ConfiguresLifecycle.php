@@ -9,7 +9,7 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
  *
  * Hosts the `registeringPackage`, `packageRegistered`, `bootingPackage`,
  * `packageBooted` hooks consumers override, plus boot-time discovery, batch
- * loading, doctor checks, and validation.
+ * loading, doctor checks, logging, and validation.
  */
 trait ConfiguresLifecycle
 {
@@ -19,5 +19,6 @@ trait ConfiguresLifecycle
     use HasDoctorChecks;
     use HasEnhancedValidation;
     use HasLifecycleHooks;
+    use HasLogging;
     use HasValidationRules;
 }
