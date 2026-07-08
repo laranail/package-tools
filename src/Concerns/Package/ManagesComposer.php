@@ -20,9 +20,6 @@ trait ManagesComposer
 
     protected int $composerTimeout = 300;
 
-    /**
-     * @return $this
-     */
     public function withComposerErrors(bool $print = true): static
     {
         $this->printComposerErrors = $print;
@@ -32,7 +29,6 @@ trait ManagesComposer
 
     /**
      * @param int $timeout Timeout in seconds
-     * @return $this
      */
     public function withComposerTimeout(int $timeout): static
     {

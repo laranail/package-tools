@@ -167,8 +167,11 @@ final class SeederAutorun
         if (! $this->app->runningInConsole()) {
             return false;
         }
+        if (! $this->app->runningUnitTests()) {
+            return true;
+        }
 
-        return ! ($this->app->runningUnitTests() && ! config('package-tools.seeders.autorun.in_tests', false));
+        return (bool) config('package-tools.seeders.autorun.in_tests', false);
     }
 
     /**

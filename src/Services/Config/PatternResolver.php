@@ -82,7 +82,7 @@ class PatternResolver implements ResolverInterface
         preg_match_all('/\{(\w+)\}/', $pattern, $matches);
         $usedVariables = $matches[1];
 
-        return array_all($usedVariables, fn ($variable): bool => in_array($variable, $this->availableVariables, true));
+        return array_all($usedVariables, fn (string $variable): bool => in_array($variable, $this->availableVariables, true));
     }
 
     /**
