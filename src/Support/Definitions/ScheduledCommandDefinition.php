@@ -33,18 +33,30 @@ use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
  * validation — so the full laravel scheduler vocabulary works fluently
  * without being reimplemented.
  *
+ * CronBuilder-native frequencies (forwarded directly):
  * @method self daily()
  * @method self weekly(Weekday|int $day = \Simtabi\Laranail\Package\Tools\Enums\Weekday::Sunday)
  * @method self monthly(int $day = 1)
  * @method self quarterly()
  * @method self yearly()
+ * @method self twiceWeekly(Weekday|int $first = \Simtabi\Laranail\Package\Tools\Enums\Weekday::Monday, Weekday|int $second = \Simtabi\Laranail\Package\Tools\Enums\Weekday::Thursday)
+ * @method self twiceMonthly(int $first = 1, int $second = 16)
+ * @method self biWeekly()
+ * @method self biMonthly()
  * @method self at(TimeOfDay|string $time)
  * @method self everyMinutes(int $step)
  * @method self everyHours(int $step)
+ * @method self everyDays(int $step)
+ * @method self everyMonths(int $step)
  * @method self weekdays()
  * @method self weekends()
+ *
+ * Recorded and replayed on the scheduler Event (any Laravel
+ * Illuminate\Console\Scheduling\Event method works — representative set):
  * @method self hourly()
  * @method self everyFiveMinutes()
+ * @method self everyOddHour(int|string $offset = 0)
+ * @method self everySecond()
  * @method self withoutOverlapping(int $expiresAt = 1440)
  * @method self onOneServer()
  * @method self runInBackground()

@@ -42,8 +42,10 @@ use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
  * registration, and boot-time operations.
  *
  * Hooks, by phase:
- *   - registeringPackage(): log channels, Horizon supervisors, morph maps
- *     and other infrastructure that must exist before any service uses it.
+ *   - registeringPackage(): log channels, Horizon supervisors, and other
+ *     infrastructure that must exist before any service uses it. Declarative
+ *     morph maps (registerMorphMap()) apply at boot via
+ *     bootPackageDeferredHooks() — do not rely on them during register.
  *   - configurePackage(): package name, paths, and features.
  *   - packageRegistered(): singletons, bindings, and aliases (package
  *     config is available by now).
