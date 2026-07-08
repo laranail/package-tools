@@ -5,6 +5,102 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-07-08
+
+The seeder subsystem is redesigned around one rule — **seeders never run
+on their own unless you opt in** — and two new features land: per-package
+logging via `$package->log()` and scheduled/background seeding with
+completion events. See `UPGRADING.md` ("2.x to 3.0") for the migration.
+
+### Added
+
+- **`$package->log()` per-package logging**: full PSR-3 level set plus
+  `success()`, each with an optional label
+  (`->error('CountrySeeder failed', 'Seeder', [...])`), writing
+  beautifully formatted lines (`[ts] [vendor/pkg] [LEVEL] [Label] msg |
+  {json}`) to a dedicated `storage/logs/{vendor}-{package}.log`. Backed
+  by a real named channel `logging.channels.{vendor}-{package}` (a
+  host-defined channel of that name wins untouched); fluent
+  `LogDefinition` for author defaults; host overrides at
+  `{vendor}.{package}.logging.*` and `package-tools.logging.*`; early
+  lines written inside `configurePackage()` buffer with original
+  timestamps and flush at boot; logging never throws; container alias
+  `laranail.logger.{vendor}-{package}`.
+- **Autorun after migrations (opt-in)**:
+  `AutoSeederDefinition::autorunAfterMigrations()` / `autorunNow()` (and
+  package-level `autorunSeeders()`) run bundles once after a successful
+  `php artisan migrate` (`MigrationsEnded`, nested `call('migrate')`
+  included), gated by a global kill-switch, console-only,
+  tests/production opt-ins, `autorunInEnvironments(...)`, a per-package
+  host veto, and a shared per-process ledger (`migrate --seed` never
+  double-runs; `PackageSeeder::resetRunState()` escape hatch).
+- **Background execution**: `runsInBackground()`/`queued()` +
+  `onQueue(BackedEnum|string, connection:)` run a bundle via
+  `RunSeederBundleJob` (payload = bundle key + mode enum only); defaults
+  from `package-tools.seeders.queue.*`.
+- **Scheduled seeding**: `scheduledAt(TimeOfDay|string)` /
+  `cadence(Cadence|CronExpressible|string|Closure)` +
+  `withoutOverlapping()` put bundles on the host scheduler as
+  `laranail::package-tools.seed --key=X --scheduled`.
+- **`laranail::package-tools.seed` command**: explicit trigger with
+  `--key`/`--package`/`--sync`/`--queued`/`--force`, and `--status`
+  rendering the new cache-backed `SeederRunTracker` progress store.
+- **Completion events**: `PackageSeedingStarted` /
+  `PackageSeedingCompleted` / `PackageSeedingFailed` fire for every
+  execution mode (host attaches its own Notification/mail/broadcast
+  listener); suppress per bundle via `notifiesOnCompletion(false)` or
+  globally via `package-tools.seeders.events.enabled`. Outcomes also
+  land in the owning package's own logfile.
+- **New enums**: `QueueConnection`, `SeederExecutionMode`,
+  `SeederRunStatus` — every new fluent parameter takes
+  `BackedEnum|string`, so host apps can pass their own enums.
+- **Definition additions**: `addSeeders()`, `stopOnFailure()`,
+  `discoverIn($path, recursive: true)`,
+  `InstallCommandDefinition::runsSeeders()`.
+- **Shipped config** `config/package-tools.php` (`logging.*`,
+  `seeders.root_seeders`, `seeders.autorun.*`, `seeders.queue.*`,
+  `seeders.events.*`), publishable via tag `package-tools-config`.
+
+### Fixed
+
+- **`loadSeedersFrom()` / `registerSeeder()` actually work** — in 2.x
+  they stored state nothing consumed (silent no-ops); they now feed the
+  definition pipeline.
+- **Executed seeders receive the container** — `run()`-signature
+  dependency injection and `$this->call()` no longer fatal
+  (`SeederExecutor` now matches Laravel's own `db:seed` behavior).
+- **db:seed failures are visible** — the resolver hook reports failures
+  to the console instead of exiting 0 silently.
+- **Late registrations aren't lost** — the hook fires per root-seeder
+  resolution against the live registry (the 2.x one-shot flag dropped
+  bundles registered after the first firing).
+- **Discovery**: abstract seeders are excluded; non-autoloaded files are
+  `require`d on demand (honoring the documented contract); same-namespace
+  discovery keys no longer clobber each other (path hash in the key).
+- **Registry replacement warns** instead of silently clobbering.
+- **`options(['priority' => …])` is honored** — a never-set fluent
+  `priority()` no longer overwrites it with the default 0.
+- **`SeederException::executionFailed()`** wraps execution failures
+  (was dead code).
+
+### Changed (BREAKING)
+
+- Package bundles no longer run when an **arbitrary** seeder resolves —
+  only on root-seeder resolution (`Database\Seeders\DatabaseSeeder` +
+  `package-tools.seeders.root_seeders`), opt-in autorun, the schedule,
+  or explicit runs. `db:seed --class=X` no longer triggers package
+  bundles.
+- `Package::getSeederPaths()` / `getRegisteredSeeders()` removed — use
+  `getPackageSeederDefinitions()`.
+- `SeederResolverHook::attach()` takes variadic root-seeder FQCNs and
+  requires the shared `SeederAutorun` collaborator; the hook is attached
+  once by `PackageToolsServiceProvider` (no longer lazily by
+  `autoSeed()`).
+- `SeederManager` constructor drops `Application` and gains
+  `SeederAutorun`; `SeederManager::run()` marks the executed-key ledger.
+- `SeederExecutor::run()` gained an optional `SeederExecutionMode`
+  parameter and now emits bundle-level events/tracking.
+
 ## [2.3.1] - 2026-07-06
 
 ### Fixed

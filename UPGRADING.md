@@ -1,5 +1,65 @@
 # Upgrading
 
+## 2.x to 3.0
+
+The 3.0 theme: **seeders never run on their own unless you opt in.**
+Eight changes, three of which may need code edits.
+
+### 1. Arbitrary seeder resolution no longer triggers package seeding
+
+The 2.x resolver hook bound the abstract `Seeder` type, so resolving ANY
+seeder — `db:seed --class=X`, a web request, even the executor's own
+`make()` — ran every registered package bundle. In 3.0 only **root
+seeders** trigger: `Database\Seeders\DatabaseSeeder` plus anything you
+list in `package-tools.seeders.root_seeders`. If you relied on a custom
+root seeder class, add its FQCN to that config key.
+
+### 2. `loadSeedersFrom()` / `registerSeeder()` now actually register
+
+Both were silent no-ops in 2.x (their state was never consumed). Audit
+existing calls — those seeders WILL start running with `db:seed` after
+the upgrade. `getSeederPaths()` / `getRegisteredSeeders()` are removed;
+inspect `getPackageSeederDefinitions()` instead.
+
+### 3. Executed seeders receive the container (behavioral)
+
+`run()`-signature dependency injection and `$this->call()` now work in
+package bundles, matching `db:seed`. Seeders that (unknowingly) relied
+on NOT getting the container cannot exist — this only fixes crashes.
+
+### 4. Opt-in autorun replaces "never automatic"
+
+Nothing changes unless a bundle calls `autorunAfterMigrations()` /
+`autorunNow()` (or the package calls `autorunSeeders()`) — then it runs
+once after a successful `php artisan migrate`, console-only, gated (see
+`docs/seeding.md`). Autorun is OFF in production and unit tests by
+default.
+
+### 5. Service constructor/signature changes
+
+Only relevant if you constructed the internals directly:
+`SeederManager` drops `Application` and gains `SeederAutorun`;
+`SeederResolverHook::attach()` is variadic and the hook is attached once
+by `PackageToolsServiceProvider`; `SeederExecutor::run()` gained an
+optional `SeederExecutionMode` parameter.
+
+### 6. Registry replacement warns
+
+Registering two bundles under one key now raises an `E_USER_WARNING`
+(replacement still wins). Use distinct keys per package.
+
+### 7. `SeederManager::run()` marks the ledger
+
+A manual `PackageSeeder::run()` followed by `db:seed` in the same
+process no longer double-seeds. Call `PackageSeeder::resetRunState()`
+if you intentionally re-run (multi-tenant loops).
+
+### 8. New shipped config
+
+`config/package-tools.php` merges as the `package-tools.*` namespace
+(publish with `--tag=package-tools-config`). If your host app already
+defines a `package-tools` config key for something else, rename one.
+
 ## 1.x to 2.0
 
 Four behavior changes; everything else in 2.0 is additive.
