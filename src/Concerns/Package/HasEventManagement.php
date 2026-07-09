@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
+use Closure;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 use ReflectionNamedType;
+use Simtabi\Laranail\Package\Tools\Support\Configurators\EventConfigurator;
 
 /**
  * Registers event listeners and subscribers for a package on a deferred-array
@@ -20,6 +23,9 @@ trait HasEventManagement
 
     /** @var array<string> Event subscribers registry */
     protected array $eventSubscribers = [];
+
+    /** @var array<int, Closure> Closure subscribers (receive the dispatcher) */
+    protected array $eventSubscriberCallbacks = [];
 
     /**
      * Register event listener
@@ -80,6 +86,28 @@ trait HasEventManagement
         }
 
         return $this;
+    }
+
+    /**
+     * Register a closure subscriber — a callback that receives the event
+     * dispatcher at boot (`fn (Dispatcher $events) => $events->listen(...)`).
+     * The classic class-string subscriber store holds class names only, so
+     * closures get their own store, invoked in
+     * {@see self::bootPackageEventSubscriberCallbacks()}.
+     */
+    public function registerEventSubscriberCallback(Closure $subscriber): static
+    {
+        $this->eventSubscriberCallbacks[] = $subscriber;
+
+        return $this;
+    }
+
+    /**
+     * Fluent event sub-builder (`->event()->addListeners(...)->addSubscriber(...)`).
+     */
+    public function event(): EventConfigurator
+    {
+        return new EventConfigurator($this);
     }
 
     /**
@@ -168,6 +196,25 @@ trait HasEventManagement
         foreach ($this->eventSubscribers as $subscriber) {
             Event::subscribe($subscriber);
         }
+    }
+
+    /**
+     * Invoke every closure subscriber with the dispatcher. Call from the
+     * provider's boot().
+     */
+    public function bootPackageEventSubscriberCallbacks(Dispatcher $events): void
+    {
+        foreach ($this->eventSubscriberCallbacks as $callback) {
+            $callback($events);
+        }
+    }
+
+    /**
+     * @return array<int, Closure>
+     */
+    public function getEventSubscriberCallbacks(): array
+    {
+        return $this->eventSubscriberCallbacks;
     }
 
     /**

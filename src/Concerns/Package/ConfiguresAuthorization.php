@@ -9,5 +9,6 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
  */
 trait ConfiguresAuthorization
 {
+    use HasGates;
     use HasPolicies;
 }
