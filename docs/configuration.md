@@ -667,9 +667,15 @@ $package->hasAboutSection(
         ->field('Posts', fn (): string => (string) Post::count())   // lazy, per field
         ->fieldsUsing(fn (): array => $diagnostics->summary())      // whole-array source;
                                                                     // explicit fields win
+        ->fallback('n/a (not migrated)')                            // shown if a field closure throws
         ->whenConfig('acme.blog.about', true),                      // config gate, evaluated at boot
 );
 ```
+
+Field resolution is **failure-safe**: a closure that throws (e.g. a query
+against an unmigrated database) renders the `fallback` string instead of
+crashing `php artisan about`, so you never have to wrap fields in `rescue()`
+yourself. See [About sections](tools/about-sections.md) for the full reference.
 
 ## Lifecycle hooks
 

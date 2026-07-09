@@ -5,6 +5,18 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-07-08
+
+### Added
+
+- **`AboutSectionDefinition::fallback(string)`** and failure-safe field
+  resolution: a field closure that throws (e.g. a query against an
+  unmigrated database) now renders the section's fallback (`n/a` by
+  default) instead of crashing `php artisan about`; a throwing
+  whole-array `fieldsUsing()` source is skipped without affecting other
+  fields. Package authors no longer need to wrap each field in `rescue()`.
+- New `docs/tools/about-sections.md` reference page.
+
 ## [3.0.0] - 2026-07-08
 
 The seeder subsystem is redesigned around one rule — **seeders never run

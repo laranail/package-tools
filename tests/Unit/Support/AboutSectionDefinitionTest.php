@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
 use InvalidArgumentException;
+use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
@@ -115,5 +116,41 @@ final class AboutSectionDefinitionTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
         $package->hasAboutSection('NoData');
+    }
+
+    public function test_a_throwing_field_renders_the_fallback_not_a_crash(): void
+    {
+        $section = AboutSectionDefinition::make('Demo')
+            ->field('Ok', 'fine')
+            ->field('Boom', fn (): string => throw new RuntimeException('db not migrated'))
+            ->field('AlsoOk', fn (): string => 'still here');
+
+        // The throwing field is placeholdered; the section still renders whole.
+        $this->assertSame(
+            ['Ok' => 'fine', 'Boom' => 'n/a', 'AlsoOk' => 'still here'],
+            $section->resolve(),
+        );
+    }
+
+    public function test_custom_fallback_message(): void
+    {
+        $section = AboutSectionDefinition::make('Demo')
+            ->fallback('n/a (not migrated)')
+            ->field('Users', fn (): string => throw new RuntimeException('no table'));
+
+        $this->assertSame(['Users' => 'n/a (not migrated)'], $section->resolve());
+    }
+
+    public function test_a_throwing_bulk_source_is_skipped_without_crashing(): void
+    {
+        $section = AboutSectionDefinition::make('Demo')
+            ->fieldsUsing(fn (): array => throw new RuntimeException('boom'))
+            ->fieldsUsing(fn (): array => ['Survivor' => 'yes'])
+            ->field('Explicit', 'kept');
+
+        $this->assertSame(
+            ['Survivor' => 'yes', 'Explicit' => 'kept'],
+            $section->resolve(),
+        );
     }
 }

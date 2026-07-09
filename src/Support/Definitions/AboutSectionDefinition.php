@@ -9,6 +9,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
+use Throwable;
 
 /**
  * a fluent `php artisan about` section: fields are declared one by one as
@@ -16,10 +17,17 @@ use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
  * actually runs — no mega-closure closing over everything), optionally
  * gated on config through the shared ConfigGate.
  *
+ * Field resolution is failure-safe: a closure that throws (e.g. a
+ * `User::count()` against an unmigrated database) renders the section's
+ * fallback string instead of crashing `php artisan about` — so authors
+ * never have to hand-wrap each field in `rescue()`.
+ *
  * @implements Arrayable<string, mixed>
  */
 final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializable
 {
+    private const string DEFAULT_FALLBACK = 'n/a';
+
     /** @var array<string, Closure|bool|float|int|string> */
     private array $fields = [];
 
@@ -27,6 +35,8 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
     private array $bulkSources = [];
 
     private ?ConfigGate $gate = null;
+
+    private string $fallback = self::DEFAULT_FALLBACK;
 
     private function __construct(
         private readonly string $label,
@@ -73,6 +83,17 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
         return $this;
     }
 
+    /**
+     * the placeholder shown when a field's closure (or a bulk source)
+     * throws at render time. defaults to `n/a`.
+     */
+    public function fallback(string $fallback): self
+    {
+        $this->fallback = $fallback;
+
+        return $this;
+    }
+
     public function whenConfig(string $key, bool $default = true): self
     {
         $this->gate = ConfigGate::make($key, $default)->truthy();
@@ -99,6 +120,9 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
 
     /**
      * evaluate every source and field; called by the about command only.
+     * failure-safe: a throwing bulk source is skipped and a throwing field
+     * renders {@see $fallback}, so one broken value never crashes the whole
+     * `php artisan about` output.
      *
      * @return array<string, string>
      */
@@ -107,16 +131,42 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
         $resolved = [];
 
         foreach ($this->bulkSources as $source) {
-            foreach ($source() as $name => $value) {
-                $resolved[(string) $name] = $this->stringify($value);
+            try {
+                $rows = $source();
+            } catch (Throwable) {
+                // a broken whole-array source drops out entirely — its field
+                // names aren't known, so there is nothing to placeholder.
+                continue;
+            }
+
+            foreach ($rows as $name => $value) {
+                $resolved[(string) $name] = $this->safeStringify($value);
             }
         }
 
         foreach ($this->fields as $name => $value) {
-            $resolved[$name] = $this->stringify($value instanceof Closure ? $value() : $value);
+            $resolved[$name] = $this->resolveField($value);
         }
 
         return $resolved;
+    }
+
+    private function resolveField(Closure|bool|float|int|string $value): string
+    {
+        try {
+            return $this->stringify($value instanceof Closure ? $value() : $value);
+        } catch (Throwable) {
+            return $this->fallback;
+        }
+    }
+
+    private function safeStringify(mixed $value): string
+    {
+        try {
+            return $this->stringify($value);
+        } catch (Throwable) {
+            return $this->fallback;
+        }
     }
 
     /**
@@ -131,6 +181,7 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
                 $this->fields,
             ),
             'bulk_sources' => count($this->bulkSources),
+            'fallback' => $this->fallback,
             'gate' => $this->gate?->toArray(),
         ];
     }
