@@ -84,4 +84,21 @@ return [
 
     ],
 
+    'scheduling' => [
+
+        /*
+        | How a package's schedule-configuration failure (a bad cadence /
+        | unknown scheduler method / throwing schedulesUsing() callback) is
+        | handled when the Schedule resolves. Every failure is logged with
+        | context regardless; this only controls whether it also throws.
+        |
+        |   true  → strict: rethrow so the author sees the typo immediately.
+        |   false → lenient: skip the entry (one package's typo can't break
+        |           the whole scheduler); other tasks still register.
+        |   null  → auto: strict everywhere except production.
+        */
+        'strict' => env('PACKAGE_TOOLS_SCHEDULING_STRICT'),
+
+    ],
+
 ];

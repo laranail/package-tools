@@ -73,7 +73,17 @@ The callback runs once the `Schedule` resolves (console only), after every provi
 
 `ScheduledCommandDefinition` forwards the whole Laravel scheduler vocabulary (`daily()`, `everyFiveMinutes()`, `weekdays()`, `withoutOverlapping()`, `onOneServer()`, `runInBackground()`, `timezone()`, `environments()`, `between()`, …) plus `cadence()`, `cadenceFromConfig()`, `whenConfig()`, and `configure(fn (Event $e) => …)`.
 
-> A misconfigured cadence (an unknown scheduler method) throws **loudly** when the `Schedule` resolves — this is intentional fail-fast: a scheduling typo is an author bug that should surface immediately, not be silently dropped.
+## Error handling for a misconfigured schedule
+
+A bad cadence (an unknown scheduler method), or a `schedulesUsing()` callback that throws, surfaces when the `Schedule` resolves. Rather than a raw exception that aborts the *entire* scheduler (every package's tasks), the failure is wrapped in a typed `Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException` carrying the command/bundle and cause, **always logged** to the package's own logfile with structured context — then handled by policy:
+
+| `package-tools.scheduling.strict` | Behavior |
+|---|---|
+| `true` | **Strict** — rethrow so the author sees the typo immediately |
+| `false` | **Lenient** — skip that entry; every other package's tasks still register |
+| `null` (default) | **Auto** — strict everywhere except `production` |
+
+So in local/CI a scheduling typo fails fast and loud (you fix it immediately), but in production one package's mistake can't take down the whole app's scheduler. Set it explicitly with the `PACKAGE_TOOLS_SCHEDULING_STRICT` env var when you want to override the environment default.
 
 ---
 

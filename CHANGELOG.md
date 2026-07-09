@@ -5,6 +5,27 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-07-09
+
+### Changed
+
+- **Environment-aware error handling for misconfigured schedules.** A bad
+  cadence (unknown scheduler method) or a throwing `schedulesUsing()`
+  callback is now wrapped in a typed `ScheduleConfigurationException`
+  (with the command/bundle + cause as structured context), **always
+  logged** to the package's own logfile, then handled by policy: strict
+  (rethrow) outside production, lenient (skip, so one package's typo can't
+  abort the whole scheduler) in production. Override via
+  `package-tools.scheduling.strict` / `PACKAGE_TOOLS_SCHEDULING_STRICT`.
+  Previously a raw `InvalidArgumentException` propagated and aborted the
+  entire scheduler in every environment.
+
+### Added
+
+- `ScheduleConfigurationException` (`commandFailed` / `callbackFailed` /
+  `seederFailed` factories with `$context`).
+- `package-tools.scheduling.strict` config key + docs.
+
 ## [3.2.0] - 2026-07-09
 
 ### Changed

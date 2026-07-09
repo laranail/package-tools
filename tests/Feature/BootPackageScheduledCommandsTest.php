@@ -6,9 +6,9 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Illuminate\Console\Scheduling\Event as ScheduleEvent;
 use Illuminate\Console\Scheduling\Schedule;
-use InvalidArgumentException;
 use Orchestra\Testbench\TestCase;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
@@ -127,17 +127,41 @@ final class BootPackageScheduledCommandsTest extends TestCase
         $this->assertNotNull($this->findEvent('pkg-sched:from-closure'));
     }
 
-    public function test_unknown_cadence_method_throws_when_the_schedule_resolves(): void
+    public function test_unknown_cadence_is_wrapped_and_thrown_in_strict_mode(): void
     {
         // the bogus method survives shouldSchedule() (it records a deferred
         // event call) and blows up in DeferredCallQueue::replayOn() when the
-        // definition applies to the real event — i.e. at Schedule resolution
+        // definition applies to the real event — at Schedule resolution. In
+        // strict mode (the default outside production, incl. tests) it is
+        // wrapped in a typed exception carrying the command + cause.
         config()->set('test.sched.bad', 'nonsense_method');
 
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('nonsense_method');
+        try {
+            $this->app->make(Schedule::class);
+            $this->fail('expected a ScheduleConfigurationException');
+        } catch (ScheduleConfigurationException $e) {
+            $this->assertStringContainsString('nonsense_method', $e->getMessage());
+            $this->assertArrayHasKey('command', $e->context);
+            $this->assertArrayHasKey('reason', $e->context);
+        }
+    }
 
+    public function test_lenient_mode_logs_and_skips_a_bad_cadence_so_healthy_ones_survive(): void
+    {
+        // Lenient (production, or explicitly configured): a bad cadence is
+        // logged + skipped instead of aborting the whole scheduler, so the
+        // package's other scheduled commands still register.
+        config()->set('package-tools.scheduling.strict', false);
+        config()->set('test.sched.bad', 'nonsense_method');
+
+        // Must not throw.
         $this->app->make(Schedule::class);
+
+        // `twice-daily` is registered AFTER the bad one in the loop, so its
+        // presence proves iteration continued past the failure; `from-closure`
+        // proves the separate callback loop ran too.
+        $this->assertNotNull($this->findEvent('pkg-sched:twice-daily'));
+        $this->assertNotNull($this->findEvent('pkg-sched:from-closure'));
     }
 
     public function test_twice_daily_cadence_string_matches_the_native_scheduler_call(): void
