@@ -9,8 +9,8 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Log;
 use ReflectionClass;
+use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Events\PackageSeedingCompleted;
 use Simtabi\Laranail\Package\Tools\Events\PackageSeedingFailed;
@@ -22,6 +22,7 @@ use Simtabi\Laranail\Package\Tools\Events\SeedingFinished;
 use Simtabi\Laranail\Package\Tools\Events\SeedingStarted;
 use Simtabi\Laranail\Package\Tools\Exceptions\SeederException;
 use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
+use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
 use Simtabi\Laranail\Package\Tools\Support\ForeignKeyCheckGuard;
 use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 use Throwable;
@@ -81,6 +82,15 @@ final readonly class SeederExecutor
             if ($lock === false) {
                 $this->formatter?->writeWarning(
                     "Skipping '{$bundle->key()}': another run holds its overlap lock.",
+                );
+
+                $this->reporter()->cancelled(
+                    PackageActionType::Seeder,
+                    $bundle->key(),
+                    $bundle->namespace() ?? 'Default',
+                    "Skipped '{$bundle->key()}': another run holds its overlap lock.",
+                    ['bundleKey' => $bundle->key()],
+                    $mode,
                 );
 
                 continue;
@@ -146,6 +156,18 @@ final readonly class SeederExecutor
             Event::dispatch(new PackageSeedingStarted($group, $bundle->key(), count($seederClasses), $mode));
         }
 
+        // Cross-type lifecycle (the unified layer): fires independently of
+        // the per-bundle notify opt-out, behind the global events.lifecycle
+        // gate, so a bundle that silenced its detail events is still visible
+        // to a cross-type observer.
+        $this->reporter()->started(
+            PackageActionType::Seeder,
+            $bundle->key(),
+            $group,
+            ['bundleKey' => $bundle->key(), 'seeders' => count($seederClasses)],
+            $mode,
+        );
+
         $this->formatter?->displayGroupHeader($group, count($seederClasses), $isLastBundle);
 
         $success = 0;
@@ -161,6 +183,15 @@ final readonly class SeederExecutor
 
             if ($aborted) {
                 $this->formatter?->displaySeederSkipped($class, 'previous seeder in bundle failed', $isLast);
+
+                $this->reporter()->interrupted(
+                    PackageActionType::Seeder,
+                    $class,
+                    $group,
+                    "Skipped '{$class}': a previous seeder in bundle '{$bundle->key()}' failed.",
+                    ['bundleKey' => $bundle->key(), 'seeder' => $class],
+                    $mode,
+                );
 
                 continue;
             }
@@ -216,13 +247,17 @@ final readonly class SeederExecutor
                 }
                 $this->formatter?->displaySeederError($class, $wrapped, $durationMs / 1000, $isLast);
 
-                Log::error("Package seeder failed: {$class}", [
-                    'package' => $group,
-                    'message' => $e->getMessage(),
-                    'exception' => $e::class,
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                ]);
+                // Unified failure layer — always logs (at error) and, behind
+                // the events.failures gate, dispatches PackageActionFailed.
+                // The former inline Log::error lived here; the reporter now
+                // owns that log line.
+                $this->reporter()->seederFailed(
+                    $class,
+                    $group,
+                    $e,
+                    context: ['bundleKey' => $bundle->key(), 'seeder' => $class],
+                    mode: $mode,
+                );
 
                 if ($bundle->shouldStopOnFailure()) {
                     $aborted = true;
@@ -241,17 +276,42 @@ final readonly class SeederExecutor
 
         $tracker?->complete($bundle->key());
 
+        $bundleDurationMs = (microtime(true) - $bundleStart) * 1000;
+
         if ($notify) {
             Event::dispatch(new PackageSeedingCompleted(
                 $group,
                 $bundle->key(),
                 $stats,
-                (microtime(true) - $bundleStart) * 1000,
+                $bundleDurationMs,
                 $mode,
             ));
         }
 
+        // Unified success layer — only when the bundle completed cleanly;
+        // any per-seeder failure already emitted PackageActionFailed above.
+        if ($stats->failed === 0) {
+            $this->reporter()->success(
+                PackageActionType::Seeder,
+                $bundle->key(),
+                $group,
+                $bundleDurationMs,
+                ['bundleKey' => $bundle->key(), 'seeders' => $stats->success],
+                $mode,
+            );
+        }
+
         return $stats;
+    }
+
+    /**
+     * The shared action reporter, resolved lazily from the container so the
+     * `final readonly` executor needs no constructor change (every existing
+     * `new SeederExecutor($app)` call-site keeps compiling).
+     */
+    private function reporter(): PackageActionReporter
+    {
+        return $this->app->make(PackageActionReporter::class);
     }
 
     /**

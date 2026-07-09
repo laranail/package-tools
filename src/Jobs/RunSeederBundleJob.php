@@ -8,11 +8,14 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
+use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
+use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederBundle;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
 use Simtabi\Laranail\Package\Tools\Support\RuntimeConfigurator;
 use Throwable;
 
@@ -52,6 +55,7 @@ final class RunSeederBundleJob implements ShouldQueue
 
     public function handle(SeederRegistry $registry, SeederExecutor $executor, SeederAutorun $autorun): void
     {
+        $reporter = app(PackageActionReporter::class);
         $bundle = $registry->get($this->bundleKey);
 
         if (! $bundle instanceof SeederBundle) {
@@ -59,8 +63,20 @@ final class RunSeederBundleJob implements ShouldQueue
                 'job' => self::class,
             ]);
 
+            $reporter->cancelled(
+                PackageActionType::Job,
+                $this->bundleKey,
+                null,
+                "Seeder bundle '{$this->bundleKey}' is not registered in this process; skipping.",
+                $this->jobContext(),
+                $this->mode,
+            );
+
             return;
         }
+
+        $reporter->started(PackageActionType::Job, $this->bundleKey, null, $this->jobContext(), $this->mode);
+        $start = microtime(true);
 
         try {
             RuntimeConfigurator::forQueueJob()->timeout($this->timeout)->apply();
@@ -72,6 +88,51 @@ final class RunSeederBundleJob implements ShouldQueue
         $scoped->registerBundle($bundle);
 
         $autorun->markExecuted($this->bundleKey);
-        $executor->run($scoped, $this->mode);
+        $stats = $executor->run($scoped, $this->mode);
+
+        $durationMs = (microtime(true) - $start) * 1000;
+
+        if ($stats->failed === 0) {
+            $reporter->success(PackageActionType::Job, $this->bundleKey, null, $durationMs, $this->jobContext(['seeders' => $stats->success]), $this->mode);
+
+            return;
+        }
+
+        // The job itself did not throw, but seeders inside it failed (each
+        // already emitted a Seeder/Failed); surface a job-level failure too.
+        $reporter->fail(
+            PackageActionType::Job,
+            $this->bundleKey,
+            null,
+            "{$stats->failed} seeder(s) failed in bundle '{$this->bundleKey}'.",
+            FailureReason::Failed,
+            context: $this->jobContext(['failed' => $stats->failed]),
+            mode: $this->mode,
+        );
+    }
+
+    /**
+     * The framework's failure hook — fires when handle() throws or the job
+     * exhausts its attempts / times out. Resolve the reporter fresh (never a
+     * serialized property) and classify timeout/max-attempts as TimedOut.
+     */
+    public function failed(Throwable $e): void
+    {
+        app(PackageActionReporter::class)->jobFailed(
+            $this->bundleKey,
+            $e,
+            FailureReason::fromThrowable($e),
+            $this->jobContext(),
+            $this->mode,
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $extra
+     * @return array<string, mixed>
+     */
+    private function jobContext(array $extra = []): array
+    {
+        return ['bundleKey' => $this->bundleKey, 'job' => self::class, ...$extra];
     }
 }

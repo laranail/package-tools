@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Commands;
 
 use Override;
+use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
+use Simtabi\Laranail\Package\Tools\Facades\PackageActions;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
+use Throwable;
 
 /**
  * The install command built from an InstallCommandDefinition: steps run in
@@ -29,13 +32,28 @@ final class DefinedInstallCommand extends InstallCommand
     #[Override]
     public function handle(): int
     {
-        // steps are deliberately not wrapped in try/catch: an install step
-        // that throws should abort the run loudly (artisan renders the
+        $reporter = PackageActions::forPackage($this->package->log());
+        $name = $this->package->shortName();
+
+        $reporter->started(PackageActionType::Install, $name, $this->package->name);
+        $start = microtime(true);
+
+        // steps are deliberately not wrapped for control flow: an install
+        // step that throws should abort the run loudly (artisan renders the
         // exception and exits non-zero) rather than half-install quietly —
-        // same contract as the legacy fixed pipeline
-        foreach ($this->definition->steps() as $step) {
-            ($step['run'])($this);
+        // same contract as the legacy fixed pipeline. We only observe the
+        // failure (reporting it) then rethrow, preserving that contract.
+        try {
+            foreach ($this->definition->steps() as $step) {
+                ($step['run'])($this);
+            }
+        } catch (Throwable $e) {
+            $reporter->fromThrowable(PackageActionType::Install, $name, $this->package->name, $e);
+
+            throw $e;
         }
+
+        $reporter->success(PackageActionType::Install, $name, $this->package->name, (microtime(true) - $start) * 1000);
 
         $this->info("{$this->package->shortName()} has been installed!");
 
