@@ -85,6 +85,13 @@ already ran (autorun, manual, or db:seed) is skipped by the others, so
 `migrate --seed` never double-runs. `PackageSeeder::resetRunState()` is
 the escape hatch for multi-tenant loops.
 
+**Boot is crash-safe.** Registration happens at boot, so a malformed
+seeder source file (a parse or require failure surfacing from discovery)
+could otherwise take down the host app on every request. Instead the
+broken bundle is logged through the package's own
+[`$package->log()`](tools/logging.md) and skipped — healthy bundles still
+register, and the app boots.
+
 ## Autorun after migrations
 
 Seeders never run on their own unless a bundle opts in:

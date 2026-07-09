@@ -5,6 +5,17 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2026-07-09
+
+### Fixed
+
+- **Boot no longer crashes on a malformed seeder file.** A package
+  shipping a seeder source that throws during discovery (parse/require
+  failure) previously propagated out of `bootPackageAutoSeeders()` and
+  took down the host app on every request. The broken bundle is now
+  logged (via `$package->log()`) and skipped; healthy bundles still
+  register.
+
 ## [3.1.0] - 2026-07-08
 
 ### Added

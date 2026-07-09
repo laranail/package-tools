@@ -10,6 +10,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
+use Throwable;
 
 /**
  * Registers factory and seeder paths and boots them with Laravel.
@@ -209,38 +210,59 @@ trait HasFactoriesAndSeeders
                 continue;
             }
 
-            $seeders = $definition->resolveSeeders($defaultDiscoveryPath);
-
-            if ($seeders === []) {
-                continue;
+            // Registering one bundle must never crash app boot: a malformed
+            // seeder file surfacing from resolveSeeders() (discovery) is a
+            // developer error, logged and skipped — not a fatal that takes
+            // down every request in production.
+            try {
+                $this->registerSeederDefinition($manager, $definition, $defaultDiscoveryPath, $autorunVetoed);
+            } catch (Throwable $e) {
+                $this->log()->error(
+                    "Skipped seeder bundle '{$definition->key()}': {$e->getMessage()}",
+                    'Seeder',
+                    ['exception' => $e::class],
+                );
             }
-
-            // Options first; an explicit fluent priority() overrides an
-            // options(['priority' => …]) value, but a never-set fluent
-            // priority no longer clobbers it with the default 0.
-            $options = $definition->optionsValue();
-            if ($definition->hasExplicitPriority() || ! array_key_exists('priority', $options)) {
-                $options['priority'] = $definition->priorityValue();
-            }
-
-            $options['autorun'] = ! $autorunVetoed
-                && ($definition->isAutorun() || $this->autorunAllSeeders);
-            $options['stop_on_failure'] = $definition->shouldStopOnFailure()
-                || (bool) ($options['stop_on_failure'] ?? false);
-            $options['autorun_environments'] = $definition->autorunEnvironmentsValue();
-            $options['background'] = $definition->isBackground() || (bool) ($options['background'] ?? false);
-            $options['queue'] = $definition->queueValue() ?? $options['queue'] ?? null;
-            $options['connection'] = $definition->queueConnectionValue() ?? $options['connection'] ?? null;
-            $options['notify'] = $definition->shouldNotify() && (bool) ($options['notify'] ?? true);
-            $options['without_overlapping'] = $definition->overlapExpiresAtValue() ?? $options['without_overlapping'] ?? null;
-
-            $manager->autoSeed(
-                $definition->key(),
-                $seeders,
-                $definition->namespace(),
-                $options,
-            );
         }
+    }
+
+    private function registerSeederDefinition(
+        SeederManager $manager,
+        AutoSeederDefinition $definition,
+        string $defaultDiscoveryPath,
+        bool $autorunVetoed,
+    ): void {
+        $seeders = $definition->resolveSeeders($defaultDiscoveryPath);
+
+        if ($seeders === []) {
+            return;
+        }
+
+        // Options first; an explicit fluent priority() overrides an
+        // options(['priority' => …]) value, but a never-set fluent
+        // priority no longer clobbers it with the default 0.
+        $options = $definition->optionsValue();
+        if ($definition->hasExplicitPriority() || ! array_key_exists('priority', $options)) {
+            $options['priority'] = $definition->priorityValue();
+        }
+
+        $options['autorun'] = ! $autorunVetoed
+            && ($definition->isAutorun() || $this->autorunAllSeeders);
+        $options['stop_on_failure'] = $definition->shouldStopOnFailure()
+            || (bool) ($options['stop_on_failure'] ?? false);
+        $options['autorun_environments'] = $definition->autorunEnvironmentsValue();
+        $options['background'] = $definition->isBackground() || (bool) ($options['background'] ?? false);
+        $options['queue'] = $definition->queueValue() ?? $options['queue'] ?? null;
+        $options['connection'] = $definition->queueConnectionValue() ?? $options['connection'] ?? null;
+        $options['notify'] = $definition->shouldNotify() && (bool) ($options['notify'] ?? true);
+        $options['without_overlapping'] = $definition->overlapExpiresAtValue() ?? $options['without_overlapping'] ?? null;
+
+        $manager->autoSeed(
+            $definition->key(),
+            $seeders,
+            $definition->namespace(),
+            $options,
+        );
     }
 
     private function packageAutorunVetoed(): bool
