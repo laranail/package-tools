@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Providers;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
@@ -139,6 +140,8 @@ abstract class PackageServiceProvider extends ServiceProvider
 
         $this->registerPackageConfigs();
 
+        $this->registerPackageConfigDecorations();
+
         $this->registerPackageLogging();
 
         $this->registerPackageChildProviders();
@@ -173,6 +176,17 @@ abstract class PackageServiceProvider extends ServiceProvider
     public function packageRegistered(): void
     {
         // Override in child class to add custom post-registration logic.
+    }
+
+    /**
+     * Apply the package's declarative config-default merges
+     * (`mergesConfigDefaults()` / `mergesConfigDefaultsFrom()`) in the
+     * register phase, after registerPackageConfigs() so the package's own
+     * config is already present and host values win.
+     */
+    protected function registerPackageConfigDecorations(): void
+    {
+        $this->package->applyPackageConfigDefaults();
     }
 
     /**
@@ -240,9 +254,18 @@ abstract class PackageServiceProvider extends ServiceProvider
 
         $this->package->bootPackageEventListeners();
         $this->package->bootPackageEventSubscribers();
+        $this->package->bootPackageEventSubscriberCallbacks(
+            $this->app->make(Dispatcher::class)
+        );
         $this->package->bootPackagePolicies();
         $this->package->bootPackageObservers();
         $this->package->bootPackageRateLimiters();
+        $this->package->bootPackageGates();
+        $this->package->bootPackageRouteBindings(
+            $this->app->make(Router::class)
+        );
+        $this->package->bootPackageRuntimeTweaks();
+        $this->package->bootPackageConfigDecorators();
         $this->package->bootPackageFactories();
 
         // seeder registration only — execution belongs to db:seed (the

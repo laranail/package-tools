@@ -11,6 +11,7 @@ trait ConfiguresConfig
 {
     use HasAdditionalNamespaceFormats;
     use HasAdvancedConfig;
+    use HasConfigDecorations;
     use HasConfigManipulation;
     use HasConfigNamespace;
     use HasConfigs;

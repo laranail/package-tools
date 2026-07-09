@@ -20,5 +20,6 @@ trait ConfiguresLifecycle
     use HasEnhancedValidation;
     use HasLifecycleHooks;
     use HasLogging;
+    use HasRuntimeTweaks;
     use HasValidationRules;
 }
