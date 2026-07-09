@@ -6,7 +6,9 @@ namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Illuminate\Console\OutputStyle;
 use Illuminate\Contracts\Foundation\Application;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
+use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Throwable;
@@ -101,6 +103,17 @@ final class SeederResolverHook
             $stats = $this->executor->run($scoped);
         } catch (Throwable $e) {
             $this->consoleFormatter()?->writeError("Package seeding failed: {$e->getMessage()}");
+
+            // Per-seeder failures already surface through the executor; this
+            // catch is the batch-level safety net (an executor-level throw)
+            // that db:seed previously exited 0 on, silently.
+            $this->app->make(PackageActionReporter::class)->seederFailed(
+                'db:seed',
+                null,
+                $e,
+                context: ['bundles' => $keys, 'trigger' => 'resolver'],
+                mode: SeederExecutionMode::Inline,
+            );
 
             return;
         }

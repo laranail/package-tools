@@ -84,6 +84,42 @@ return [
 
     ],
 
+    'events' => [
+
+        /*
+        | The cross-type PackageAction{Started,Succeeded,Failed} lifecycle
+        | family (migrations, seeders, jobs, schedules, installs). Two
+        | independent gates: the high-frequency start/success stream can be
+        | silenced without ever muting failure LOGGING — a failure is always
+        | written to the log at error regardless of the 'failures' gate,
+        | which only controls whether the PackageActionFailed event is
+        | dispatched to listeners.
+        */
+        'lifecycle' => [
+            'enabled' => env('PACKAGE_TOOLS_LIFECYCLE_EVENTS', true),
+        ],
+        'failures' => [
+            'enabled' => env('PACKAGE_TOOLS_FAILURE_EVENTS', true),
+        ],
+
+    ],
+
+    'migrations' => [
+
+        /*
+        | Full-fidelity migration lifecycle observability. When enabled
+        | (console only), the migrator is decorated so each migration emits
+        | PackageActionStarted/Succeeded/Failed with the real migration name
+        | and exception — Laravel itself dispatches no migration-failure
+        | event. Composition-safe: never clobbers another package that has
+        | already decorated the migrator.
+        */
+        'failure_detection' => [
+            'enabled' => env('PACKAGE_TOOLS_MIGRATION_FAILURE_DETECTION', true),
+        ],
+
+    ],
+
     'scheduling' => [
 
         /*
