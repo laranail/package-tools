@@ -4,18 +4,25 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
+use BackedEnum;
 use Closure;
+use DateTimeInterface;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
+use Stringable;
 use Throwable;
+use UnitEnum;
 
 /**
- * a fluent `php artisan about` section: fields are declared one by one as
- * scalars or per-field lazy closures (evaluated only when the about command
- * actually runs — no mega-closure closing over everything), optionally
- * gated on config through the shared ConfigGate.
+ * a fluent `php artisan about` section. a field value may be ANY type —
+ * scalars, `null`, enums (backed → value, pure → name), dates, arrays and
+ * objects (rendered as compact JSON), `Stringable`/`__toString` objects,
+ * `Arrayable` — or a per-field lazy closure returning any of those,
+ * evaluated only when the about command actually runs (no mega-closure
+ * closing over everything). optionally gated on config through the shared
+ * ConfigGate.
  *
  * Field resolution is failure-safe: a closure that throws (e.g. a
  * `User::count()` against an unmigrated database) renders the section's
@@ -28,7 +35,7 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
 {
     private const string DEFAULT_FALLBACK = 'n/a';
 
-    /** @var array<string, Closure|bool|float|int|string> */
+    /** @var array<string, mixed> */
     private array $fields = [];
 
     /** @var list<Closure> whole-array lazy sources, merged at resolve time */
@@ -48,10 +55,10 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
     }
 
     /**
-     * one field: a scalar shown as-is, or a closure resolved when the
-     * about command runs.
+     * one field. `$value` may be any type — rendered per {@see stringify()}
+     * — or a `Closure` resolved lazily when the about command runs.
      */
-    public function field(string $name, Closure|bool|float|int|string $value): self
+    public function field(string $name, mixed $value): self
     {
         $this->fields[$name] = $value;
 
@@ -59,7 +66,7 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
     }
 
     /**
-     * @param array<string, Closure|bool|float|int|string> $fields
+     * @param array<string, mixed> $fields
      */
     public function fields(array $fields): self
     {
@@ -151,7 +158,7 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
         return $resolved;
     }
 
-    private function resolveField(Closure|bool|float|int|string $value): string
+    private function resolveField(mixed $value): string
     {
         try {
             return $this->stringify($value instanceof Closure ? $value() : $value);
@@ -177,7 +184,13 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
         return [
             'label' => $this->label,
             'fields' => array_map(
-                static fn (Closure|bool|float|int|string $value): bool|float|int|string => $value instanceof Closure ? 'closure' : $value,
+                fn (mixed $value): mixed => match (true) {
+                    $value instanceof Closure => 'closure',
+                    $value === null, is_scalar($value) => $value,
+                    // enums/dates/objects/arrays render to their display
+                    // string so the serialized form stays JSON-clean.
+                    default => $this->stringify($value),
+                },
                 $this->fields,
             ),
             'bulk_sources' => count($this->bulkSources),
@@ -199,12 +212,27 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
         return $this->toArray();
     }
 
+    /**
+     * render any value to its `php artisan about` display string.
+     */
     private function stringify(mixed $value): string
     {
         return match (true) {
+            $value === null => 'null',
             is_bool($value) => $value ? 'true' : 'false',
+            $value instanceof BackedEnum => (string) $value->value,
+            $value instanceof UnitEnum => $value->name,
+            $value instanceof DateTimeInterface => $value->format(DateTimeInterface::ATOM),
+            $value instanceof Arrayable => $this->encode($value->toArray()),
+            $value instanceof Stringable => (string) $value,
+            is_object($value) && method_exists($value, '__toString') => (string) $value,
             is_scalar($value) => (string) $value,
-            default => json_encode($value, JSON_THROW_ON_ERROR),
+            default => $this->encode($value),
         };
+    }
+
+    private function encode(mixed $value): string
+    {
+        return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 }

@@ -11,9 +11,10 @@ public function configurePackage(Package $package): void
 {
     $package->hasAboutSection(
         AboutSectionDefinition::make('Acme Blog')
-            ->field('Version', '3.0.0')
-            ->field('Posts', fn (): string => (string) Post::count())   // lazy
-            ->field('API', config('blog.features.api') ? 'exposed' : 'off')
+            ->field('Version', '3.1.1')                        // string
+            ->field('Posts', fn () => Post::count())           // int, resolved lazily
+            ->field('API enabled', config('blog.features.api'))// bool → "true"/"false"
+            ->field('Deployed', now())                         // date → ISO-8601
     );
 }
 ```
@@ -73,13 +74,41 @@ Hide the whole section unless a host config key allows it:
 
 Gating is evaluated at boot; a gated-off section is never registered with the `about` command.
 
+## Field value types
+
+A field value may be **any type** — or a `Closure` returning any type,
+resolved lazily. Each renders to a display string:
+
+| Value | Renders as |
+|---|---|
+| `string` / `int` / `float` | the value cast to string |
+| `bool` | `true` / `false` |
+| `null` | `null` |
+| backed enum (`SeederExecutionMode::Queued`) | its backing value (`queued`) |
+| pure enum (`Status::Active`) | its case name (`Active`) |
+| `DateTimeInterface` | ISO-8601 (`2026-07-09T08:30:00+00:00`) |
+| array | compact JSON (`{"a":1}`) |
+| `Arrayable` | JSON of `toArray()` |
+| `Stringable` / object with `__toString` | the cast string |
+| any other object | compact JSON |
+
+```php
+AboutSectionDefinition::make('Acme Blog')
+    ->field('Version', '3.1.1')                       // string
+    ->field('Posts', fn () => Post::count())          // int (lazy)
+    ->field('Mode', SeederExecutionMode::Queued)      // enum → "queued"
+    ->field('Deployed', now())                        // Carbon (DateTimeInterface)
+    ->field('Flags', ['api' => true, 'beta' => false])// array → JSON
+    ->field('Maintainer', null);                      // → "null"
+```
+
 ## Fluent reference
 
 | Method | Effect |
 |---|---|
 | `AboutSectionDefinition::make(string $label)` | start a section under `$label` |
-| `field(string $name, Closure\|bool\|float\|int\|string $value)` | one field; a closure is resolved lazily |
-| `fields(array $fields)` | register many fields at once |
+| `field(string $name, mixed $value)` | one field of **any type** (see above); a `Closure` is resolved lazily |
+| `fields(array<string, mixed> $fields)` | register many fields at once |
 | `fieldsUsing(Closure $source)` | a whole-array lazy source, merged before explicit fields |
 | `fallback(string $fallback)` | placeholder for a field/source that throws (default `n/a`) |
 | `whenConfig(string $key, bool $default = true)` / `whenConfigNotNull(string $key)` | gate the whole section on config |

@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
+use DateTimeImmutable;
+use Illuminate\Contracts\Support\Arrayable;
 use InvalidArgumentException;
 use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Stringable;
 
 final class AboutSectionDefinitionTest extends TestCase
 {
@@ -17,10 +21,55 @@ final class AboutSectionDefinitionTest extends TestCase
         $section = AboutSectionDefinition::make('Demo')
             ->field('Version', '1.2.3')
             ->field('Count', 42)
-            ->field('Enabled', true);
+            ->field('Ratio', 1.5)
+            ->field('Enabled', true)
+            ->field('Disabled', false);
 
         $this->assertSame(
-            ['Version' => '1.2.3', 'Count' => '42', 'Enabled' => 'true'],
+            ['Version' => '1.2.3', 'Count' => '42', 'Ratio' => '1.5', 'Enabled' => 'true', 'Disabled' => 'false'],
+            $section->resolve(),
+        );
+    }
+
+    public function test_field_accepts_every_data_type(): void
+    {
+        $section = AboutSectionDefinition::make('Types')
+            ->field('Null', null)
+            ->field('BackedEnum', SeederExecutionMode::Queued)          // → backing value
+            ->field('PureEnum', AboutPureEnumFixture::Beta)             // → case name
+            ->field('Date', new DateTimeImmutable('2026-07-09T08:30:00+00:00'))
+            ->field('Array', ['a' => 1, 'b' => 2])                      // → compact JSON
+            ->field('Arrayable', new AboutArrayableFixture(['x' => 'y']))
+            ->field('Stringable', new AboutStringableFixture('str'))
+            ->field('ObjectWithToString', new class
+            {
+                public function __toString(): string
+                {
+                    return 'obj';
+                }
+            });
+
+        $this->assertSame([
+            'Null' => 'null',
+            'BackedEnum' => 'queued',
+            'PureEnum' => 'Beta',
+            'Date' => '2026-07-09T08:30:00+00:00',
+            'Array' => '{"a":1,"b":2}',
+            'Arrayable' => '{"x":"y"}',
+            'Stringable' => 'str',
+            'ObjectWithToString' => 'obj',
+        ], $section->resolve());
+    }
+
+    public function test_closures_may_return_any_data_type(): void
+    {
+        $section = AboutSectionDefinition::make('Lazy types')
+            ->field('Enum', fn (): SeederExecutionMode => SeederExecutionMode::Inline)
+            ->field('List', fn (): array => [1, 2, 3])
+            ->field('Nullable', fn (): null => null);
+
+        $this->assertSame(
+            ['Enum' => 'inline', 'List' => '[1,2,3]', 'Nullable' => 'null'],
             $section->resolve(),
         );
     }
@@ -152,5 +201,33 @@ final class AboutSectionDefinitionTest extends TestCase
             ['Survivor' => 'yes', 'Explicit' => 'kept'],
             $section->resolve(),
         );
+    }
+}
+
+enum AboutPureEnumFixture
+{
+    case Alpha;
+    case Beta;
+}
+
+final readonly class AboutArrayableFixture implements Arrayable
+{
+    /** @param array<string, mixed> $data */
+    public function __construct(private array $data) {}
+
+    /** @return array<string, mixed> */
+    public function toArray(): array
+    {
+        return $this->data;
+    }
+}
+
+final readonly class AboutStringableFixture implements Stringable
+{
+    public function __construct(private string $value) {}
+
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }

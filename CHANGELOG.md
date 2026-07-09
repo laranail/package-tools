@@ -5,6 +5,24 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-07-09
+
+### Changed
+
+- **`AboutSectionDefinition::field()` accepts any type.** A field value
+  may now be any type — `null`, backed/pure enums, `DateTimeInterface`,
+  arrays, `Arrayable`, `Stringable`/`__toString` objects, or a closure
+  returning any of those — not just `Closure|bool|float|int|string`.
+  Each renders to a sensible display string (enums → value/name, dates →
+  ISO-8601, arrays/objects → compact JSON). Fully backward compatible.
+
+### Added
+
+- New `docs/tools/scheduling.md` reference covering
+  `registerScheduledCommand()`, `registerScheduledCommands()`, and the
+  `schedulesUsing(Closure)` raw scheduler callback.
+- `docs/tools/about-sections.md` gains a full field-value-types table.
+
 ## [3.1.1] - 2026-07-09
 
 ### Fixed
