@@ -6,6 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Illuminate\Foundation\Console\AboutCommand;
 use Override;
+use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
@@ -21,6 +23,14 @@ final class AboutSectionsTestPackageProvider extends PackageServiceProvider
                 AboutSectionDefinition::make('Fluent Section')
                     ->field('Static', 'v1')
                     ->field('Lazy', fn (): string => 'computed'),
+            )
+            ->hasAboutSection(
+                AboutSectionDefinition::make('Typed Section')
+                    ->field('Enum', SeederExecutionMode::Queued)     // → "queued"
+                    ->field('Bool', true)                            // → "true"
+                    ->field('Missing', null)                         // → "null"
+                    ->field('Boom', fn () => throw new RuntimeException('unmigrated'))
+                    ->fallback('n/a (unavailable)'),
             )
             ->hasAboutSection(
                 AboutSectionDefinition::make('Gated Section')
@@ -45,6 +55,18 @@ final class BootPackageAboutSectionsTest extends TestCase
             ->expectsOutputToContain('Fluent Section')
             ->expectsOutputToContain('computed')
             ->expectsOutputToContain('Legacy Section')
+            ->assertSuccessful();
+    }
+
+    public function test_mixed_types_and_failure_safety_render_through_the_command(): void
+    {
+        // Drives the real `php artisan about` and inspects rendered output:
+        // enums/bools/null render to display strings, and a throwing field
+        // shows the fallback rather than crashing the command.
+        $this->artisan('about')
+            ->expectsOutputToContain('Typed Section')
+            ->expectsOutputToContain('queued')
+            ->expectsOutputToContain('n/a (unavailable)')
             ->assertSuccessful();
     }
 
