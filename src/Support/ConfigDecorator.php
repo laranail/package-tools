@@ -95,9 +95,11 @@ final class ConfigDecorator
     }
 
     /**
-     * Run `$callback($this)` only when `$condition` is truthy.
+     * Run `$callback($this)` only when `$condition` is truthy. The callback's
+     * return value is ignored, so the natural chained form
+     * `fn ($c) => $c->set(...)` (where `set()` returns the decorator) is fine.
      *
-     * @param Closure(self): void $callback
+     * @param Closure(self): mixed $callback
      */
     public function when(bool $condition, Closure $callback): self
     {
