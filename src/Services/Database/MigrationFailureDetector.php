@@ -60,6 +60,12 @@ final class MigrationFailureDetector
 
     private function onStarted(MigrationStarted $event): void
     {
+        // A migration starting while another is still in flight means the
+        // previous one never emitted MigrationEnded — i.e. it failed. Report
+        // that failure now (flush() is a no-op when nothing is in flight), so
+        // a second migration in the same process can never swallow it.
+        $this->flush();
+
         $name = $this->nameOf($event);
         $direction = is_string($event->method) ? $event->method : 'up';
 

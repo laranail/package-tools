@@ -60,10 +60,16 @@ final class PackageActionReporter
      */
     public function starting(PackageActionStarted $event): PackageActionStarted
     {
-        $this->write(LogLevel::DEBUG, $this->line($event->type, 'started', $event->action), $event->type, $event->toArray());
+        // Never rethrow (class contract): a throwing lifecycle listener must
+        // not, e.g., abort an already-applied migration whose Started fired.
+        try {
+            $this->write(LogLevel::DEBUG, $this->line($event->type, 'started', $event->action), $event->type, $event->toArray());
 
-        if ($this->lifecycleDispatchEnabled()) {
-            Event::dispatch($event);
+            if ($this->lifecycleDispatchEnabled()) {
+                Event::dispatch($event);
+            }
+        } catch (Throwable) {
+            // Lifecycle reporting must never break the caller.
         }
 
         return $event;
@@ -74,10 +80,16 @@ final class PackageActionReporter
      */
     public function succeeded(PackageActionSucceeded $event): PackageActionSucceeded
     {
-        $this->write(LogLevel::DEBUG, $this->line($event->type, 'succeeded', $event->action), $event->type, $event->toArray());
+        // Never rethrow (class contract): the work has already succeeded by
+        // the time this fires, so a throwing listener must not undo/abort it.
+        try {
+            $this->write(LogLevel::DEBUG, $this->line($event->type, 'succeeded', $event->action), $event->type, $event->toArray());
 
-        if ($this->lifecycleDispatchEnabled()) {
-            Event::dispatch($event);
+            if ($this->lifecycleDispatchEnabled()) {
+                Event::dispatch($event);
+            }
+        } catch (Throwable) {
+            // Lifecycle reporting must never break the caller.
         }
 
         return $event;

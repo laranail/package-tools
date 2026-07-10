@@ -109,6 +109,29 @@ final class MigrationLifecycleTest extends TestCase
         $this->assertSame('2024_01_01_000009_boom', $captured[0]->action);
     }
 
+    public function test_the_detector_reports_a_prior_in_flight_failure_when_a_new_migration_starts(): void
+    {
+        $failed = [];
+        Event::listen(PackageActionFailed::class, function (PackageActionFailed $e) use (&$failed): void {
+            $failed[] = $e->action;
+        });
+
+        $detector = $this->app->make(MigrationFailureDetector::class);
+        $detector->register($this->app['events'], $this->app);
+
+        $migration = new class extends Migration {};
+        // Migration B starts and throws (no MigrationEnded); then, in the same
+        // process, migration C starts — B's failure must not be swallowed.
+        Event::dispatch(new MigrationStarted($migration, 'up', 'B_migration'));
+        Event::dispatch(new MigrationStarted($migration, 'up', 'C_migration'));
+
+        $this->assertContains('B_migration', $failed);
+
+        // C never ends either → flushed on shutdown.
+        $this->app->terminate();
+        $this->assertContains('C_migration', $failed);
+    }
+
     public function test_the_detector_reports_a_completed_migration_as_succeeded(): void
     {
         $captured = [];
