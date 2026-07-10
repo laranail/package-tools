@@ -1,5 +1,38 @@
 # Upgrading
 
+## 3.x to 4.0
+
+The 4.0 theme: **one reusable action-lifecycle event system, plus fluent
+provider builders.** It is largely additive — there is no hard API break to
+remediate. Two behavioral notes:
+
+### 1. The seeder failure log line moved (format change)
+
+Failure logging now lives in `PackageActionReporter` (the single choke
+point), not inline in the seeder executor. A failed seeder is still **always
+logged at error**, but the line's message/context shape changed. If you
+grep or parse package-tools failure logs, update the pattern. No code change
+is required.
+
+### 2. The migrator is decorated by default (console only, opt-out available)
+
+To emit migration lifecycle events (Laravel provides none), package-tools
+decorates the `migrator` when running in the console. It is composition-safe
+— if another package already decorated the migrator, package-tools leaves it
+alone and falls back to an event-based detector. Disable entirely with
+`package-tools.migrations.failure_detection.enabled = false` (or
+`PACKAGE_TOOLS_MIGRATION_FAILURE_DETECTION=false`).
+
+### Everything else is additive
+
+The new `PackageAction{Started,Succeeded,Failed}` family fires **alongside**
+the existing seeder events (unchanged), gated by `events.lifecycle` /
+`events.failures` (the failure *log* is never gated). The new fluent builders
+(`useHttps`, `setLocale`, `paginator`, `mergesConfigDefaults`,
+`configDecorator`, `registerGates`, `registerRouteGroup`,
+`registerRouteModel`/`registerRouteBinding`, `event()`) are new surface — no
+existing method changed signature.
+
 ## 2.x to 3.0
 
 The 3.0 theme: **seeders never run on their own unless you opt in.**
