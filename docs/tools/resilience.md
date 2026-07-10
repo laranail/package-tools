@@ -1,70 +1,57 @@
-# Resilience policy
+# Boot-wiring failures
 
-One failure policy for all package-author boot wiring: **strict in development, lenient in production.** A misconfiguration is always logged; in dev it also rethrows so you catch it before shipping, and in prod it is skipped so one package can never crash the host app at boot.
+How package-tools handles a failure in a package's own boot wiring, decided by one question: **does swallowing the failure leave a safe, working state?** Wiring that can't degrade safely fails loud (with an error that names the culprit); wiring that degrades safely is logged and skipped.
 
-## The rule
+## The split
 
-`Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy` decides strictness from `package-tools.resilience.strict` (`PACKAGE_TOOLS_STRICT`):
+`Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy` provides the two behaviours.
 
-| Value | Behaviour |
+### Fail loud — `rethrowing()`
+
+For boot wiring that does **not** degrade safely. Swallowing it boots a *silently broken* app, which is worse than a crash:
+
+| Builder | If swallowed |
 |---|---|
-| `true` | strict everywhere — rethrow (fail loud) |
-| `false` | lenient everywhere — log + skip |
-| `null` (default) | auto: strict everywhere **except** production |
+| `useHttps` | serves HTTP when HTTPS was required — a silent security misconfig |
+| `setLocale` | boots in the wrong locale |
+| `registerRouteModel(fn () => …)` | the binding vanishes, surfacing later as a 404 / wrong-record bug |
+| closure `addSubscriber(...)` | events go silently unhandled |
 
-The default keeps development tight (surface every issue before prod) while keeping production resilient.
+On failure the throwable is wrapped in a `Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException` that names which builder blew up (with the original as `getPrevious()`), then **rethrown** — so boot dies pointing straight at the culprit instead of a bare trace deep in a closure. It behaves the same in every environment: masking a real misconfiguration in production hides it in the worst possible place.
 
-## Where it applies
+### Degrade safe — `swallow()`
 
-The policy governs **package-author boot wiring** — the closures/config you declare that run when the provider boots:
+For boot wiring that **does** degrade to a safe, working state:
 
-- `configDecorator(...)` closures
-- runtime tweaks: `useHttps` / `setLocale` (closure/`*FromConfig` forms)
-- route model closures (`registerRouteModel(fn () => …)`)
-- closure event subscribers (`event()->addSubscriber(fn ($events) => …)`)
-- seeder discovery at boot (a malformed seeder file)
-- safe view-composer / view-creator registration
-- schedule configuration (`registerScheduledCommand` / `schedulesUsing`) — `scheduling.strict` overrides for scheduling specifically, else it defers here
+| Builder | Degrades to |
+|---|---|
+| `configDecorator(...)` | the undecorated config (still valid) |
+| boot-time seeder discovery | no seed data for that bundle |
+| view composer / creator registration | the composer simply isn't attached |
+| About-section fields | its fallback value (cosmetic) |
 
-Each failure is **always logged** (to the package's own logfile when available, else the default channel), then rethrown (strict) or skipped (lenient).
+On failure it is logged (to the package's own logfile when available, else the default channel) and skipped — one package can't crash host boot, and the app keeps behaving correctly.
 
-## What it does NOT touch
+## Why not strict/lenient by environment?
 
-Infrastructure that must never throw regardless of environment stays unconditionally safe and ignores this setting:
+An earlier design toggled strict (rethrow) in dev vs lenient (swallow) in prod for these sites. That is the wrong split: it makes production the one place a real misconfiguration gets masked, and gives you divergent failure modes between environments (a thing that crashes cleanly in dev limps along broken in prod). The safe-degradation split above is environment-independent.
 
-- per-package logging (`$package->log()`)
-- the seeder run tracker (best-effort cache writes)
-- doctor checks (they report failures as check results)
-- the `PackageActions` reporter (an observer — never rethrows)
-- the built-in CLI commands (they render their own errors)
-- per-seeder **execution** failures (governed by `stopOnFailure()` + the action-event system, not this policy)
-- `safelyRegisterComponent()` (collects errors into `getComponentErrors()` by contract)
+## Scheduling
 
-## Overriding
-
-```dotenv
-# force lenient everywhere (e.g. a dev box with an intentionally partial setup)
-PACKAGE_TOOLS_STRICT=false
-
-# force strict everywhere (e.g. fail CI/staging hard on any misconfig)
-PACKAGE_TOOLS_STRICT=true
-```
-
-Or per-environment in `config/package-tools.php` (`resilience.strict`). Scheduling keeps its own `scheduling.strict` override for finer control.
+Schedule-configuration failures keep their own policy (`scheduling.strict`): a bad cadence / unknown scheduler method is logged, then rethrown outside production (so authors catch the typo) or skipped in production (so one package can't take down the whole scheduler). See [Scheduling](scheduling.md).
 
 ## Reusing it
 
-The same policy is available to your own boot wiring:
+The same helpers are available for your own boot wiring:
 
 ```php
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
-FailurePolicy::guard(
-    fn () => $this->riskyBootStep(),
-    'MyFeature',
-    $package->log(),
-    ['context' => 'value'],
-);
+// wiring that must not fail silently
+FailurePolicy::rethrowing(fn () => $this->wireSomethingCritical(), 'my-critical-step');
+
+// wiring that degrades safely
+FailurePolicy::swallow(fn () => $this->optionalDecoration(), 'MyFeature', $package->log());
 ```
 
 ---

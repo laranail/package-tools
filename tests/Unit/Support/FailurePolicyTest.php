@@ -7,71 +7,62 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 use Illuminate\Support\Facades\Log;
 use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
- * The package-wide resilience policy: strict in dev (rethrow), lenient in
- * prod (log + skip), always logging, overridable via resilience.strict.
+ * Boot-wiring failure handling: rethrowing() fails loud with an annotated
+ * exception; swallow() degrades safely (logs + skips).
  */
 final class FailurePolicyTest extends TestCase
 {
-    public function test_it_is_strict_outside_production_by_default(): void
+    public function test_rethrowing_returns_the_result_on_success(): void
     {
-        $this->app->detectEnvironment(fn (): string => 'local');
-
-        $this->assertTrue(FailurePolicy::isStrict());
+        $this->assertSame(42, FailurePolicy::rethrowing(static fn (): int => 42, 'thing'));
     }
 
-    public function test_it_is_lenient_in_production_by_default(): void
+    public function test_rethrowing_wraps_and_rethrows_naming_the_subject(): void
     {
-        $this->app->detectEnvironment(fn (): string => 'production');
-
-        $this->assertFalse(FailurePolicy::isStrict());
+        try {
+            FailurePolicy::rethrowing(static function (): never {
+                throw new RuntimeException('scheme is bad');
+            }, 'useHttps');
+            $this->fail('rethrowing() must rethrow');
+        } catch (PackageBootException $e) {
+            $this->assertStringContainsString('[useHttps]', $e->getMessage());
+            $this->assertStringContainsString('scheme is bad', $e->getMessage());
+            $this->assertInstanceOf(RuntimeException::class, $e->getPrevious());
+        }
     }
 
-    public function test_the_config_flag_overrides_the_environment(): void
+    public function test_rethrowing_does_not_double_wrap_a_boot_exception(): void
     {
-        $this->app->detectEnvironment(fn (): string => 'production');
-        config()->set('package-tools.resilience.strict', true);
-        $this->assertTrue(FailurePolicy::isStrict());
-
-        $this->app->detectEnvironment(fn (): string => 'local');
-        config()->set('package-tools.resilience.strict', false);
-        $this->assertFalse(FailurePolicy::isStrict());
-    }
-
-    public function test_guard_rethrows_and_logs_when_strict(): void
-    {
-        config()->set('package-tools.resilience.strict', true);
-        Log::spy();
+        $original = PackageBootException::from('inner', new RuntimeException('x'));
 
         try {
-            FailurePolicy::guard(static function (): never {
-                throw new RuntimeException('boom');
-            }, 'Test');
-            $this->fail('strict guard should rethrow');
-        } catch (RuntimeException $e) {
-            $this->assertSame('boom', $e->getMessage());
+            FailurePolicy::rethrowing(static function () use ($original): never {
+                throw $original;
+            }, 'outer');
+            $this->fail('should rethrow');
+        } catch (PackageBootException $e) {
+            $this->assertSame($original, $e);
         }
-
-        Log::shouldHaveReceived('error')->once();
     }
 
-    public function test_guard_swallows_and_logs_and_returns_default_when_lenient(): void
+    public function test_swallow_logs_skips_and_returns_the_default(): void
     {
-        config()->set('package-tools.resilience.strict', false);
         Log::spy();
 
-        $result = FailurePolicy::guard(static function (): never {
+        $result = FailurePolicy::swallow(static function (): never {
             throw new RuntimeException('boom');
-        }, 'Test', default: 'fallback');
+        }, 'Config', default: 'fallback');
 
         $this->assertSame('fallback', $result);
         Log::shouldHaveReceived('error')->once();
     }
 
-    public function test_guard_returns_the_work_result_on_success(): void
+    public function test_swallow_returns_the_result_on_success(): void
     {
-        $this->assertSame(42, FailurePolicy::guard(static fn (): int => 42, 'Test'));
+        $this->assertSame(7, FailurePolicy::swallow(static fn (): int => 7, 'Config'));
     }
 }

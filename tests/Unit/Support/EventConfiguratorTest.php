@@ -7,6 +7,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Event;
 use Orchestra\Testbench\TestCase;
+use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
 use Simtabi\Laranail\Package\Tools\Package;
 
 /**
@@ -60,5 +62,21 @@ final class EventConfiguratorTest extends TestCase
         $responses = Event::dispatch('acme.ping');
 
         $this->assertSame(['pong'], $responses);
+    }
+
+    public function test_a_throwing_subscriber_closure_fails_loud_with_an_annotated_exception(): void
+    {
+        $package = (new Package)->name('acme/x');
+        $package->event()->addSubscriber(static function (Dispatcher $events): never {
+            throw new RuntimeException('subscriber wiring failed');
+        });
+
+        try {
+            $package->bootPackageEventSubscriberCallbacks($this->app->make(Dispatcher::class));
+            $this->fail('a throwing subscriber closure must fail loud');
+        } catch (PackageBootException $e) {
+            $this->assertStringContainsString('[event subscriber]', $e->getMessage());
+            $this->assertStringContainsString('subscriber wiring failed', $e->getMessage());
+        }
     }
 }

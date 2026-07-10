@@ -5,6 +5,35 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2026-07-10
+
+### Changed (BREAKING)
+
+- **Boot-wiring failures are now split by graceful degradation, not by
+  environment** — correcting the 5.0 strict-in-dev / lenient-in-prod policy.
+  The right question is: does swallowing a failure leave a safe, working
+  state?
+  - **Wiring that does NOT degrade safely fails loud** (in every
+    environment): `useHttps` / `setLocale` closures, route-model resolvers,
+    and closure event subscribers. Swallowing these boots a *silently broken*
+    app (HTTP when HTTPS was required, wrong locale, phantom 404s, unhandled
+    events) — worse than a crash. The throwable is now wrapped in a new
+    `Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException` that
+    **names the failing builder** (original as `getPrevious()`) and rethrown,
+    so boot dies pointing at the culprit.
+  - **Wiring that DOES degrade safely is logged + skipped** (in every
+    environment): `configDecorator`, boot-time seeder discovery, and view
+    composer/creator registration fall back to a valid state, so one package
+    can't crash host boot.
+- **Removed** the 5.0 `resilience.strict` config key / `PACKAGE_TOOLS_STRICT`
+  env and `FailurePolicy::isStrict()` / `guard()`. `FailurePolicy` now
+  exposes `rethrowing()` (fail loud, annotated) and `swallow()` (degrade safe).
+- Scheduling keeps its own `scheduling.strict` policy (unchanged from 4.x —
+  strict outside production, lenient in production).
+
+  See [`docs/tools/resilience.md`](docs/tools/resilience.md) and `UPGRADING.md`
+  (5.0 → 6.0).
+
 ## [5.0.0] - 2026-07-10
 
 ### Changed (BREAKING)

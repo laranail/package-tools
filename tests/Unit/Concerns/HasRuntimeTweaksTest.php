@@ -7,6 +7,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\App;
 use Orchestra\Testbench\TestCase;
+use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
 use Simtabi\Laranail\Package\Tools\Package;
 
 /**
@@ -66,6 +68,22 @@ final class HasRuntimeTweaksTest extends TestCase
         $this->assertSame('acme::pagination.simple', Paginator::$defaultSimpleView);
 
         Paginator::useTailwind();
+    }
+
+    public function test_a_throwing_locale_closure_fails_loud_with_an_annotated_exception(): void
+    {
+        $package = (new Package)->name('acme/x');
+        $package->setLocale(static function (): string {
+            throw new RuntimeException('locale lookup failed');
+        });
+
+        try {
+            $package->bootPackageRuntimeTweaks();
+            $this->fail('a throwing setLocale closure must fail loud');
+        } catch (PackageBootException $e) {
+            $this->assertStringContainsString('[setLocale]', $e->getMessage());
+            $this->assertStringContainsString('locale lookup failed', $e->getMessage());
+        }
     }
 
     public function test_the_paginator_sub_builder_chains_back_to_the_package(): void
