@@ -5,6 +5,17 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.1] - 2026-07-10
+
+### Fixed
+
+- **`ConfigDecorator::when()` accepts a chaining callback.** Its callback was
+  typed `Closure(self): void`, which flagged the natural fluent form
+  `fn ($c) => $c->set(...)` (where `set()` returns the decorator) under
+  stricter static analysis in consuming packages. The callback's return is
+  ignored, so the type is now `Closure(self): mixed`. Docblock-only — no
+  runtime change.
+
 ## [4.0.0] - 2026-07-10
 
 ### Added
