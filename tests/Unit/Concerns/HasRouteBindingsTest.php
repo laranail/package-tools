@@ -7,6 +7,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Routing\Router;
 use Orchestra\Testbench\TestCase;
+use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
 use Simtabi\Laranail\Package\Tools\Package;
 
 /**
@@ -53,5 +55,23 @@ final class HasRouteBindingsTest extends TestCase
         $package->bootPackageRouteBindings($router);
 
         $this->assertNull($router->getBindingCallback('ghost'));
+    }
+
+    public function test_a_throwing_model_closure_fails_loud_with_an_annotated_exception(): void
+    {
+        $router = $this->app->make(Router::class);
+
+        $package = (new Package)->name('acme/x');
+        $package->registerRouteModel('broken', static function (): string {
+            throw new RuntimeException('model resolution failed');
+        });
+
+        try {
+            $package->bootPackageRouteBindings($router);
+            $this->fail('a throwing route-model closure must fail loud');
+        } catch (PackageBootException $e) {
+            $this->assertStringContainsString('route model binding [broken]', $e->getMessage());
+            $this->assertStringContainsString('model resolution failed', $e->getMessage());
+        }
     }
 }

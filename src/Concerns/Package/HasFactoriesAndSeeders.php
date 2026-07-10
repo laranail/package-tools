@@ -211,10 +211,9 @@ trait HasFactoriesAndSeeders
             }
 
             // A malformed seeder file surfacing from resolveSeeders()
-            // (discovery) is a developer error → the resilience policy catches
-            // it loud in dev, and logs + skips in prod (one bad bundle can't
-            // take down every request).
-            FailurePolicy::guard(
+            // (discovery) degrades safely — the bundle just doesn't seed — so
+            // it is logged and skipped rather than taking down every request.
+            FailurePolicy::swallow(
                 fn () => $this->registerSeederDefinition($manager, $definition, $defaultDiscoveryPath, $autorunVetoed),
                 'Seeder',
                 $this->log(),

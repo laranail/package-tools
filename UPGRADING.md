@@ -1,5 +1,44 @@
 # Upgrading
 
+## 5.0 to 6.0
+
+6.0 corrects 5.0's boot-failure model. Instead of strict-in-dev /
+lenient-in-prod for *all* boot wiring, failures are split by whether
+swallowing leaves a **safe, working state**.
+
+### What changed
+
+- **Fail loud (every environment), wrapped in `PackageBootException`:**
+  `useHttps` / `setLocale` closures, `registerRouteModel(fn () => …)`
+  resolvers, closure `addSubscriber(...)`. These can't degrade safely —
+  swallowing them boots a silently broken app — so they now always rethrow
+  with a message naming the failing builder.
+- **Log + skip (every environment):** `configDecorator`, boot-time seeder
+  discovery, view composer/creator registration. These degrade to a valid
+  state, so they stay non-fatal.
+- **Removed:** `resilience.strict` config / `PACKAGE_TOOLS_STRICT` env, and
+  `FailurePolicy::isStrict()` / `guard()`. Use `FailurePolicy::rethrowing()`
+  (fail loud) or `FailurePolicy::swallow()` (degrade safe) if you called them
+  directly.
+
+### What you may need to do
+
+1. **A `useHttps`/`setLocale`/route-model/subscriber closure that throws will
+   now crash boot in production too** (it did in dev under 5.0). This is
+   intentional — a broken one of these was silently misconfiguring your app.
+   Fix the closure so it doesn't throw (guard its inputs, read config safely).
+2. **If you set `PACKAGE_TOOLS_STRICT`**, remove it — it no longer exists.
+3. **`configDecorator` / seeder-discovery / view-composer failures** now log
+   and continue in every environment (5.0 rethrew them in dev). If you relied
+   on the dev rethrow to catch these, watch the package logfile instead.
+
+### What did NOT change
+
+Scheduling keeps `scheduling.strict` (strict outside production, lenient in
+production). Infrastructure that must never throw (logging, run tracker,
+doctor checks, the `PackageActions` reporter, CLI commands, per-seeder
+execution, `safelyRegisterComponent`) is unaffected.
+
 ## 4.x to 5.0
 
 The 5.0 theme: **one resilience policy across the package — strict in

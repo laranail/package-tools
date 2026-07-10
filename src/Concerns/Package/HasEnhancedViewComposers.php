@@ -141,7 +141,7 @@ trait HasEnhancedViewComposers
     {
         foreach ($this->viewComposerRegistry as $viewName => $composers) {
             foreach ($composers as $composer) {
-                FailurePolicy::guard(
+                FailurePolicy::swallow(
                     static fn () => View::composer($viewName, is_string($composer) ? $composer : Closure::fromCallable($composer)),
                     'Views',
                     $this instanceof Package ? $this->log() : null,
@@ -152,7 +152,7 @@ trait HasEnhancedViewComposers
 
         foreach ($this->viewCreatorRegistry as $viewName => $creators) {
             foreach ($creators as $creator) {
-                FailurePolicy::guard(
+                FailurePolicy::swallow(
                     static fn () => View::creator($viewName, is_string($creator) ? $creator : Closure::fromCallable($creator)),
                     'Views',
                     $this instanceof Package ? $this->log() : null,

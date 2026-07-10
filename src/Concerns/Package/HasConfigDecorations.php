@@ -89,13 +89,14 @@ trait HasConfigDecorations
     }
 
     /**
-     * Run the boot-time config decorators under the resilience policy
-     * (strict in dev, lenient in prod). Call from the provider's boot().
+     * Run the boot-time config decorators. A failure degrades safely (the
+     * config is simply left undecorated), so it is logged and skipped rather
+     * than crashing host boot. Call from the provider's boot().
      */
     public function bootPackageConfigDecorators(): void
     {
         foreach ($this->configDecorators as $decorator) {
-            FailurePolicy::guard(
+            FailurePolicy::swallow(
                 static fn () => $decorator(new ConfigDecorator),
                 'Config',
                 $this->log(),
