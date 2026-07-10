@@ -5,6 +5,38 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2026-07-10
+
+### Changed (BREAKING)
+
+- **Unified resilience policy — strict in development, lenient in
+  production.** All package-author boot wiring now follows one policy via the
+  new `Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy`: a
+  failure is always logged, then **rethrown** outside production (so authors
+  catch misconfigurations before shipping) and **skipped** in production (so
+  one package can't crash the host app at boot). Governed by
+  `package-tools.resilience.strict` / `PACKAGE_TOOLS_STRICT`
+  (`true`/`false`/`null` = strict-except-prod). Applies to `configDecorator`,
+  runtime tweaks (`useHttps`/`setLocale`), route model closures, closure event
+  subscribers, boot-time seeder discovery, and safe view-composer
+  registration. `scheduling.strict` still overrides for scheduling
+  specifically, otherwise deferring to `resilience.strict`. See
+  [`docs/tools/resilience.md`](docs/tools/resilience.md).
+
+  **Breaking:** sites that previously **always** logged + swallowed (e.g. a
+  throwing `configDecorator`, a malformed seeder file at boot, a failing view
+  composer) now **rethrow in non-production** by default. Set
+  `PACKAGE_TOOLS_STRICT=false` to restore the always-lenient behaviour.
+  Infrastructure that must never throw (logging, the run tracker, doctor
+  checks, the `PackageActions` reporter, CLI commands, per-seeder execution,
+  `safelyRegisterComponent`) is unaffected and stays unconditionally safe.
+
+### Added
+
+- `FailurePolicy::isStrict()` / `FailurePolicy::guard()` — reusable resilience
+  helpers for your own boot wiring.
+- `package-tools.resilience.strict` config key (`PACKAGE_TOOLS_STRICT`).
+
 ## [4.1.1] - 2026-07-10
 
 ### Fixed

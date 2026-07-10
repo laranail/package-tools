@@ -120,18 +120,35 @@ return [
 
     ],
 
+    'resilience' => [
+
+        /*
+        | Package-wide failure policy for package-author BOOT WIRING — config
+        | decorators, runtime tweaks (useHttps/setLocale), route bindings,
+        | closure event subscribers, seeder discovery, and safe component /
+        | view-composer registration. A misconfiguration or a throwing author
+        | closure is always LOGGED; this controls whether it also throws:
+        |
+        |   true  → strict: rethrow (fail loud) so the author fixes it now.
+        |   false → lenient: log + skip (one package can't crash the host app).
+        |   null  → auto: strict everywhere EXCEPT production.
+        |
+        | The default keeps development tight (catch every issue before prod)
+        | while keeping production resilient. Infrastructure that must never
+        | throw (logging, the run tracker, doctor checks, the action reporter,
+        | CLI commands) is unconditionally safe and ignores this setting.
+        */
+        'strict' => env('PACKAGE_TOOLS_STRICT'),
+
+    ],
+
     'scheduling' => [
 
         /*
-        | How a package's schedule-configuration failure (a bad cadence /
-        | unknown scheduler method / throwing schedulesUsing() callback) is
-        | handled when the Schedule resolves. Every failure is logged with
-        | context regardless; this only controls whether it also throws.
-        |
-        |   true  → strict: rethrow so the author sees the typo immediately.
-        |   false → lenient: skip the entry (one package's typo can't break
-        |           the whole scheduler); other tasks still register.
-        |   null  → auto: strict everywhere except production.
+        | Schedule-configuration failures (a bad cadence / unknown scheduler
+        | method / throwing schedulesUsing() callback) follow the resilience
+        | policy above. Set this to a bool to override strictness for
+        | scheduling specifically; leave null to defer to resilience.strict.
         */
         'strict' => env('PACKAGE_TOOLS_SCHEDULING_STRICT'),
 

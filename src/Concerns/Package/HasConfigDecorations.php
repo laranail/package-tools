@@ -8,7 +8,7 @@ use Closure;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigMerger;
 use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
 use Simtabi\Laranail\Package\Tools\Support\ConfigDecorator;
-use Throwable;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
  * Two ways to shape host config from a package:
@@ -89,21 +89,17 @@ trait HasConfigDecorations
     }
 
     /**
-     * Run the boot-time config decorators, failure-safe. Call from the
-     * provider's boot().
+     * Run the boot-time config decorators under the resilience policy
+     * (strict in dev, lenient in prod). Call from the provider's boot().
      */
     public function bootPackageConfigDecorators(): void
     {
         foreach ($this->configDecorators as $decorator) {
-            try {
-                $decorator(new ConfigDecorator);
-            } catch (Throwable $e) {
-                $this->log()->error(
-                    "Config decorator failed: {$e->getMessage()}",
-                    'Config',
-                    ['exception' => $e::class, 'file' => $e->getFile(), 'line' => $e->getLine()],
-                );
-            }
+            FailurePolicy::guard(
+                static fn () => $decorator(new ConfigDecorator),
+                'Config',
+                $this->log(),
+            );
         }
     }
 

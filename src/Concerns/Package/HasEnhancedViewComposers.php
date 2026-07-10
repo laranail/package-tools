@@ -6,7 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
 use Illuminate\Support\Facades\View;
-use Throwable;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
  * Registers view composers and creators with automatic namespace prefixing,
@@ -140,21 +141,23 @@ trait HasEnhancedViewComposers
     {
         foreach ($this->viewComposerRegistry as $viewName => $composers) {
             foreach ($composers as $composer) {
-                try {
-                    View::composer($viewName, is_string($composer) ? $composer : Closure::fromCallable($composer));
-                } catch (Throwable $e) {
-                    report($e);
-                }
+                FailurePolicy::guard(
+                    static fn () => View::composer($viewName, is_string($composer) ? $composer : Closure::fromCallable($composer)),
+                    'Views',
+                    $this instanceof Package ? $this->log() : null,
+                    ['view' => $viewName],
+                );
             }
         }
 
         foreach ($this->viewCreatorRegistry as $viewName => $creators) {
             foreach ($creators as $creator) {
-                try {
-                    View::creator($viewName, is_string($creator) ? $creator : Closure::fromCallable($creator));
-                } catch (Throwable $e) {
-                    report($e);
-                }
+                FailurePolicy::guard(
+                    static fn () => View::creator($viewName, is_string($creator) ? $creator : Closure::fromCallable($creator)),
+                    'Views',
+                    $this instanceof Package ? $this->log() : null,
+                    ['view' => $viewName],
+                );
             }
         }
     }

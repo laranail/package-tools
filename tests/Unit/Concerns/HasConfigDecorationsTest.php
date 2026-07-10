@@ -54,15 +54,32 @@ final class HasConfigDecorationsTest extends TestCase
         $this->assertSame('yes', config('acme.decorated'));
     }
 
-    public function test_a_throwing_decorator_is_logged_and_skipped_not_fatal(): void
+    public function test_a_throwing_decorator_rethrows_under_the_strict_default(): void
     {
+        // Test env is non-production, so the resilience policy is strict:
+        // a throwing boot decorator surfaces the bug loudly.
+        $package = $this->package();
+        $package->configDecorator(static function (): never {
+            throw new RuntimeException('boom');
+        });
+
+        $this->expectException(RuntimeException::class);
+
+        $package->bootPackageConfigDecorators();
+    }
+
+    public function test_a_throwing_decorator_is_logged_and_skipped_when_lenient(): void
+    {
+        // Lenient (as in production): the throw is logged + skipped, and the
+        // next decorator still runs — one package can't crash host boot.
+        config()->set('package-tools.resilience.strict', false);
+
         $package = $this->package();
         $package->configDecorator(static function (): never {
             throw new RuntimeException('boom');
         });
         $package->configDecorator(static fn ($c) => $c->set('acme.after', 'still-ran'));
 
-        // Must not throw; the second decorator still runs.
         $package->bootPackageConfigDecorators();
 
         $this->assertSame('still-ran', config('acme.after'));

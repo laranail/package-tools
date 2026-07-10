@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 use ReflectionNamedType;
+use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Support\Configurators\EventConfigurator;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
  * Registers event listeners and subscribers for a package on a deferred-array
@@ -205,7 +207,7 @@ trait HasEventManagement
     public function bootPackageEventSubscriberCallbacks(Dispatcher $events): void
     {
         foreach ($this->eventSubscriberCallbacks as $callback) {
-            $callback($events);
+            FailurePolicy::guard(static fn () => $callback($events), 'Events', $this instanceof Package ? $this->log() : null);
         }
     }
 
