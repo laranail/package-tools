@@ -27,13 +27,14 @@ $package
     ->mergesConfigDefaults('config/laravel.php')          // file returns [globalKey => defaults]
     ->mergesConfigDefaults('config/extra.php', 'app')     // single file → one global key
     ->mergesConfigDefaultsFrom('config/third-party')      // every *.php → its basename key
-    // boot phase — authoritative sets that may read runtime data (failure-safe)
+    // boot phase — decoration that depends on runtime data (failure-safe)
     ->configDecorator(fn (ConfigDecorator $c) => $c
-        ->set('auth.providers.users.model', \App\Models\User::class)
         ->when(setting('app_name') !== null, fn ($cc) => $cc->set('app.name', setting('app_name'))));
 ```
 
-`configDecorator()` closures run at boot and are **failure-safe** — a throw is logged to the package's own logfile and skipped, so a decorator reading an unmigrated database can never crash boot. `ConfigDecorator` exposes `set` / `get` / `has` (`exists`/`check`) / `forget` (`remove`/`delete`) / `merge` / `when` / `validate`.
+`configDecorator()` closures run at **boot** and are **failure-safe** — a throw is logged to the package's own logfile and skipped, so a decorator reading an unmigrated database can never crash boot. `ConfigDecorator` exposes `set` / `get` / `has` (`exists`/`check`) / `forget` (`remove`/`delete`) / `merge` / `when` / `validate`.
+
+> **Timing caveat.** `configDecorator()` runs at boot, so it is the right home for values that depend on runtime data (settings, the DB). Config that another package reads during **registration** — e.g. `permission.models.*`, or an `auth.providers.users.model` some integration binds at register time — must be set in the register phase instead (a plain `config()->set()` in your `packageRegistered()`, or `mergesConfigDefaults()` for host-wins defaults). A boot-phase decorator would resolve too late.
 
 ## Gates
 
