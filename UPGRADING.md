@@ -1,5 +1,49 @@
 # Upgrading
 
+## 4.x to 5.0
+
+The 5.0 theme: **one resilience policy across the package — strict in
+development, lenient in production.** Package-author boot wiring that
+previously *always* logged-and-swallowed now **rethrows outside production**
+so you catch misconfigurations before they ship.
+
+### What changed
+
+A failure in any of these boot-wiring sites now follows
+`resilience.strict` (default: strict everywhere except production):
+
+- `configDecorator(...)` closures
+- runtime tweaks — `useHttps` / `setLocale` (closure / `*FromConfig` forms)
+- route model closures — `registerRouteModel(fn () => …)`
+- closure event subscribers — `event()->addSubscriber(fn ($events) => …)`
+- boot-time seeder discovery (a malformed seeder file)
+- safe view-composer / view-creator registration
+- schedule configuration (already behaved this way; now unified)
+
+In **development / CI / staging** these now **throw** (they are always logged
+too). In **production** they are logged and skipped, exactly as before.
+
+### What you may need to do
+
+1. **A boot closure that legitimately tolerates missing runtime data** (e.g.
+   a `configDecorator` reading a not-yet-migrated database) must guard its own
+   access — wrap it in `rescue(...)`, check the condition, or otherwise handle
+   the absent state. Previously such a throw was silently swallowed; now it
+   surfaces in dev. This is intentional: it is a bug to catch.
+2. **To restore the old always-lenient behaviour** everywhere, set
+   `PACKAGE_TOOLS_STRICT=false` (or `resilience.strict => false`).
+3. **To fail hard everywhere** (e.g. block CI on any misconfig), set
+   `PACKAGE_TOOLS_STRICT=true`.
+
+### What did NOT change
+
+Infrastructure that must never throw is unaffected and stays unconditionally
+safe: per-package logging, the seeder run tracker, doctor checks, the
+`PackageActions` reporter, the built-in CLI commands, per-seeder **execution**
+failures (`stopOnFailure()` + the action-event system), and
+`safelyRegisterComponent()` (which collects errors into `getComponentErrors()`).
+`scheduling.strict` still overrides strictness for scheduling specifically.
+
 ## 3.x to 4.0
 
 The 4.0 theme: **one reusable action-lifecycle event system, plus fluent

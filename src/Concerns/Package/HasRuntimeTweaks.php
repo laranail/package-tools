@@ -9,7 +9,9 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\URL;
+use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Support\Configurators\PaginatorConfigurator;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
  * Declarative runtime tweaks a provider used to hand-write in its boot:
@@ -101,19 +103,26 @@ trait HasRuntimeTweaks
     }
 
     /**
-     * Apply all runtime tweaks. Call from the provider's boot().
+     * Apply all runtime tweaks under the resilience policy (strict in dev,
+     * lenient in prod). Call from the provider's boot(). The https/locale
+     * resolvers may be author closures, so each is guarded; the pagination
+     * views are plain strings.
      */
     public function bootPackageRuntimeTweaks(): void
     {
-        if ($this->resolveHttps()) {
-            URL::forceScheme('https');
-        }
+        FailurePolicy::guard(function (): void {
+            if ($this->resolveHttps()) {
+                URL::forceScheme('https');
+            }
+        }, 'Runtime', $this instanceof Package ? $this->log() : null);
 
-        $locale = $this->resolveLocale();
-        if ($locale !== null && $locale !== '') {
-            Carbon::setLocale($locale);
-            App::setLocale($locale);
-        }
+        FailurePolicy::guard(function (): void {
+            $locale = $this->resolveLocale();
+            if ($locale !== null && $locale !== '') {
+                Carbon::setLocale($locale);
+                App::setLocale($locale);
+            }
+        }, 'Runtime', $this instanceof Package ? $this->log() : null);
 
         if ($this->paginationDefaultView !== null) {
             Paginator::defaultView($this->paginationDefaultView);

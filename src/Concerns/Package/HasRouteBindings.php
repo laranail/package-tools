@@ -6,6 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
 use Illuminate\Routing\Router;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
  * Declarative route-model bindings and explicit parameter binders, applied
@@ -74,13 +76,18 @@ trait HasRouteBindings
     public function bootPackageRouteBindings(Router $router): void
     {
         foreach ($this->routeModels as $parameter => $model) {
-            $class = $model instanceof Closure ? (string) $model() : $model;
+            // A model may be a closure resolved at boot; guard it under the
+            // resilience policy (strict in dev, lenient in prod).
+            FailurePolicy::guard(function () use ($router, $parameter, $model): void {
+                $class = $model instanceof Closure ? (string) $model() : $model;
 
-            if ($class !== '' && class_exists($class)) {
-                $router->model($parameter, $class);
-            }
+                if ($class !== '' && class_exists($class)) {
+                    $router->model($parameter, $class);
+                }
+            }, 'Routing', $this instanceof Package ? $this->log() : null);
         }
 
+        // Binder closures run at request time, so registration can't throw here.
         foreach ($this->routeBinders as $parameter => $resolver) {
             $router->bind($parameter, $resolver);
         }

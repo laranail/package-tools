@@ -10,7 +10,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
-use Throwable;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
  * Registers factory and seeder paths and boots them with Laravel.
@@ -210,19 +210,16 @@ trait HasFactoriesAndSeeders
                 continue;
             }
 
-            // Registering one bundle must never crash app boot: a malformed
-            // seeder file surfacing from resolveSeeders() (discovery) is a
-            // developer error, logged and skipped — not a fatal that takes
-            // down every request in production.
-            try {
-                $this->registerSeederDefinition($manager, $definition, $defaultDiscoveryPath, $autorunVetoed);
-            } catch (Throwable $e) {
-                $this->log()->error(
-                    "Skipped seeder bundle '{$definition->key()}': {$e->getMessage()}",
-                    'Seeder',
-                    ['exception' => $e::class],
-                );
-            }
+            // A malformed seeder file surfacing from resolveSeeders()
+            // (discovery) is a developer error → the resilience policy catches
+            // it loud in dev, and logs + skips in prod (one bad bundle can't
+            // take down every request).
+            FailurePolicy::guard(
+                fn () => $this->registerSeederDefinition($manager, $definition, $defaultDiscoveryPath, $autorunVetoed),
+                'Seeder',
+                $this->log(),
+                ['bundle' => $definition->key()],
+            );
         }
     }
 

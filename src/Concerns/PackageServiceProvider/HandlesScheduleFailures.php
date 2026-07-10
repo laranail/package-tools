@@ -8,21 +8,18 @@ use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
 use Simtabi\Laranail\Package\Tools\Facades\PackageActions;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
- * Shared policy for how a package's schedule-configuration failure is
- * handled while the `Schedule` resolves. Every failure is logged to the
- * package's own logfile with structured context; then:
+ * How a package's schedule-configuration failure is handled while the
+ * `Schedule` resolves. It follows the package-wide {@see FailurePolicy}
+ * (strict in dev, lenient in prod): every failure is logged to the package's
+ * own logfile; then it is rethrown (strict) so the author sees the typo, or
+ * the entry is skipped (lenient) so one package's typo can't take down the
+ * whole scheduler.
  *
- *  - STRICT (default outside production): the exception is rethrown so the
- *    author sees the misconfiguration immediately — a scheduling typo is a
- *    code bug, not runtime data.
- *  - LENIENT (production, or `package-tools.scheduling.strict => false`):
- *    the entry is skipped so one package's typo can't take down the whole
- *    scheduler (every other package's tasks still register).
- *
- * Override the auto behavior with `package-tools.scheduling.strict`
- * (bool). Left null it is strict everywhere except production.
+ * `package-tools.scheduling.strict` (bool) overrides strictness for
+ * scheduling specifically; left null it defers to `resilience.strict`.
  */
 trait HandlesScheduleFailures
 {
@@ -68,8 +65,7 @@ trait HandlesScheduleFailures
             return $configured;
         }
 
-        // Auto: strict everywhere except production, so authors catch
-        // scheduling typos in local/CI while production stays resilient.
-        return ! function_exists('app') || ! app()->isProduction();
+        // Defer to the package-wide resilience policy (strict except prod).
+        return FailurePolicy::isStrict();
     }
 }
