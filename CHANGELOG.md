@@ -5,6 +5,23 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-07-10
+
+### Added
+
+- **Fluent `RateLimiterDefinition`** — a reusable, extensible builder for the
+  named-rate-limiter boilerplate every throttling package hand-rolls (resolve
+  an attempt count, build a throttle key, return a `Limit`). Windows
+  (`perSecond`/`perMinute`/`perMinutes`/`perHour`/`perDay`/`unlimited`, each
+  taking a fixed `int` or a per-request `Closure`), key shortcuts
+  (`by`/`byIp`/`byField`/`bySessionKey` [session-guarded] /`byUser`), a
+  `response()` callback, multi-window composition, and a `using()` escape
+  hatch. `HasRateLimiters::registerRateLimiter()` now accepts a
+  `RateLimiterDefinition` (registered under its own name) alongside the
+  unchanged raw `(string $name, Closure)` form. See
+  [`docs/tools/rate-limiters.md`](docs/tools/rate-limiters.md). Fully
+  backward compatible — raw closures are stored and wired exactly as before.
+
 ## [4.0.1] - 2026-07-10
 
 ### Fixed

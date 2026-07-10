@@ -46,6 +46,19 @@ $package->registerGates([
 
 Mirrors `registerRateLimiter(s)`; applied via `Gate::define()` at boot.
 
+## Rate limiters
+
+```php
+use Simtabi\Laranail\Package\Tools\Support\Definitions\RateLimiterDefinition;
+
+$package->registerRateLimiter(
+    RateLimiterDefinition::make('login')
+        ->perMinute(fn (): int => max((int) setting('throttle_attempts', 5), 1))
+        ->byField('email'));            // strtolower(email) . '|' . ip
+```
+
+A fluent `RateLimiterDefinition` captures the attempts / key / response pattern (or pass a raw `Closure` for the thin form). See [Rate limiters](rate-limiters.md) for windows, key shortcuts, multi-window composition, and the `using()` escape hatch.
+
 ## Route groups
 
 A route file wrapped in `Route::middleware()->prefix()->group()`, with a route-cache guard the bare group loader otherwise lacks:
