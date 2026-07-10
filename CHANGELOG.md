@@ -5,6 +5,23 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.1] - 2026-07-10
+
+### Fixed
+
+- **`PackageActionReporter` lifecycle reporting now truly never rethrows.**
+  `starting()` / `succeeded()` dispatched their events unguarded, so a
+  throwing host listener on `PackageActionStarted` / `PackageActionSucceeded`
+  could propagate — and because `FailureAwareMigrator` fires `succeeded()`
+  *after* a migration is applied, it could abort an already-successful
+  `migrate` run. Both are now wrapped like `report()`, honoring the class's
+  never-rethrow contract.
+- **`MigrationFailureDetector` no longer swallows a prior failure.** When a
+  migration started but never ended (it failed) and a second migration began
+  in the same process, the in-flight failure was overwritten and lost. The
+  detector now flushes (reports) the prior in-flight migration as failed
+  before tracking the new one.
+
 ## [4.1.0] - 2026-07-10
 
 ### Added

@@ -113,6 +113,24 @@ final class PackageActionReporterTest extends TestCase
         $this->assertInstanceOf(PackageActionFailed::class, $event);
     }
 
+    public function test_lifecycle_reporting_never_rethrows_even_when_a_listener_throws(): void
+    {
+        Event::listen(PackageActionStarted::class, function (): never {
+            throw new RuntimeException('started listener blew up');
+        });
+        Event::listen(PackageActionSucceeded::class, function (): never {
+            throw new RuntimeException('succeeded listener blew up');
+        });
+
+        // A throwing lifecycle listener must not propagate (it would otherwise
+        // abort an already-applied migration whose Started/Succeeded fired).
+        $started = $this->reporter()->started(PackageActionType::Migration, '2024_x_create');
+        $succeeded = $this->reporter()->success(PackageActionType::Migration, '2024_x_create');
+
+        $this->assertInstanceOf(PackageActionStarted::class, $started);
+        $this->assertInstanceOf(PackageActionSucceeded::class, $succeeded);
+    }
+
     public function test_a_failure_carrying_a_bundle_key_updates_the_seeder_tracker(): void
     {
         $tracker = $this->app->make(SeederRunTracker::class);
