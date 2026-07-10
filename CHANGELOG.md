@@ -5,6 +5,50 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-10
+
+### Added
+
+- **`PackageAction{Started,Succeeded,Failed}` lifecycle events** — one
+  reusable, serialization-safe event family for every package action
+  (migrations, seeders, jobs, schedules, installs, custom work), routed
+  through the new **`PackageActions` facade** so a report/observe is reachable
+  anywhere without a provider. `PackageActionType` and `FailureReason`
+  (`Failed` / `Interrupted` / `Cancelled` / `TimedOut` / `Unknown`, with
+  `fromThrowable()`) carry the taxonomy. `HandlesPackageActionFailure` is a
+  per-type listener base; `PackageActions::track()` wraps a callable to emit
+  its start → success|failure lifecycle automatically. See
+  [`docs/tools/action-events.md`](docs/tools/action-events.md).
+- **Full-fidelity migration lifecycle** — Laravel emits no migration-failure
+  event, so the migrator is decorated (`FailureAwareMigrator`, console-only,
+  config-gated) to emit Started/Succeeded/Failed with the real migration name
+  and exception. Composition-safe: when another package has already decorated
+  the migrator, a conflict-free event detector (`MigrationFailureDetector`) is
+  used instead so it never clobbers them.
+- **Fluent provider builders** on `Package` (see
+  [`docs/tools/provider-builders.md`](docs/tools/provider-builders.md)):
+  `useHttps()` / `setLocale()` / `paginator()` (with `*FromConfig` variants);
+  `mergesConfigDefaults()` / `mergesConfigDefaultsFrom()` (register-phase,
+  host-wins) and a failure-safe boot-time `configDecorator()`;
+  `registerGate()` / `registerGates()`; `RouteGroupDefinition` +
+  `registerRouteGroup(s)` (with a route-cache guard); `registerRouteModel()` /
+  `registerRouteBinding()`; and an `event()` sub-builder with pair/map
+  `addListeners()` and class- or closure-based `addSubscriber()`.
+- Two config gates: `events.lifecycle` and `events.failures`
+  (`PACKAGE_TOOLS_LIFECYCLE_EVENTS` / `PACKAGE_TOOLS_FAILURE_EVENTS`), plus
+  `migrations.failure_detection` (`PACKAGE_TOOLS_MIGRATION_FAILURE_DETECTION`).
+
+### Changed
+
+- **Failure logging is now owned by the reporter.** The previously-inline
+  `Log::error` in the seeder executor moved into `PackageActionReporter`
+  (the single choke point). A failure is always logged at error; the log line
+  format changed accordingly (see `UPGRADING.md`). The 8 bespoke seeder events
+  are untouched — the unified family fires alongside them.
+- Seeder failures on the **autorun**, **`db:seed` resolver**, and **queued
+  job** paths — previously swallowed — now report through the reporter (the
+  job also gained a `failed()` hook that classifies queue timeouts).
+
 ## [3.3.0] - 2026-07-09
 
 ### Changed

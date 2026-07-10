@@ -456,6 +456,10 @@ onto the typed `SeederBundle` setters:
 | `parameters` | array | `[]` | `parameters()` |
 | `priority` | int | `0` | `priority()` |
 
+## Failure observability
+
+The 8 bespoke seeder events (`PackageSeeding*`, `Seeder*`, `Seeding*`) are the seeder-specific detail layer and are unchanged. Since 4.0 the cross-type `PackageActionFailed` fires **alongside** them — and, crucially, on the autorun, `db:seed` resolver, and queued-job paths that previously swallowed failures. Subscribe once to `PackageActionFailed` for a cross-type view, or keep listening to `PackageSeedingFailed` for seeder detail. See [Action lifecycle events](tools/action-events.md).
+
 ---
 
 [← Docs index](../README.md#documentation)
