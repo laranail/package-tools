@@ -6,7 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
 use Illuminate\Support\Facades\View;
-use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
@@ -141,22 +141,20 @@ trait HasEnhancedViewComposers
     {
         foreach ($this->viewComposerRegistry as $viewName => $composers) {
             foreach ($composers as $composer) {
-                FailurePolicy::swallow(
+                FailurePolicy::run(
                     static fn () => View::composer($viewName, is_string($composer) ? $composer : Closure::fromCallable($composer)),
-                    'Views',
-                    $this instanceof Package ? $this->log() : null,
-                    ['view' => $viewName],
+                    "view composer [{$viewName}]",
+                    BootCriticality::Critical,
                 );
             }
         }
 
         foreach ($this->viewCreatorRegistry as $viewName => $creators) {
             foreach ($creators as $creator) {
-                FailurePolicy::swallow(
+                FailurePolicy::run(
                     static fn () => View::creator($viewName, is_string($creator) ? $creator : Closure::fromCallable($creator)),
-                    'Views',
-                    $this instanceof Package ? $this->log() : null,
-                    ['view' => $viewName],
+                    "view creator [{$viewName}]",
+                    BootCriticality::Critical,
                 );
             }
         }

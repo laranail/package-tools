@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigMerger;
-use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
 use Simtabi\Laranail\Package\Tools\Support\ConfigDecorator;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
@@ -19,8 +19,10 @@ use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
  *    provider's registerPackageConfigDecorations()).
  *  - `configDecorator()` — a boot-time closure receiving a
  *    {@see ConfigDecorator} for authoritative sets that may depend on runtime
- *    data. Failure-safe: a throw is logged and skipped, never fatal (a
- *    decorator reading the DB must not crash boot on an unmigrated app).
+ *    data. A decoration is a general escape hatch, so it **fails closed**
+ *    (Critical by default): a throw crashes boot unless the author marks it
+ *    `BootCriticality::Degradable` (for a genuinely cosmetic decoration whose
+ *    absence leaves a safe state).
  *
  * The host-wins merge reuses {@see ConfigMerger::deepMerge()} —
  * `deepMerge($packageDefaults, $hostConfig)` (host is the second/winning arg).
@@ -30,7 +32,7 @@ trait HasConfigDecorations
     /** @var array<int, array{path: string, key: ?string, dir: bool}> */
     protected array $configDefaultMerges = [];
 
-    /** @var array<int, Closure> */
+    /** @var array<int, array{fn: Closure, criticality: BootCriticality}> */
     protected array $configDecorators = [];
 
     public function mergesConfigDefaults(string $path, ?string $globalKey = null): static
@@ -47,9 +49,9 @@ trait HasConfigDecorations
         return $this;
     }
 
-    public function configDecorator(Closure $decorator): static
+    public function configDecorator(Closure $decorator, BootCriticality $criticality = BootCriticality::Critical): static
     {
-        $this->configDecorators[] = $decorator;
+        $this->configDecorators[] = ['fn' => $decorator, 'criticality' => $criticality];
 
         return $this;
     }
@@ -89,17 +91,17 @@ trait HasConfigDecorations
     }
 
     /**
-     * Run the boot-time config decorators. A failure degrades safely (the
-     * config is simply left undecorated), so it is logged and skipped rather
-     * than crashing host boot. Call from the provider's boot().
+     * Run the boot-time config decorators under the failure-handling policy,
+     * each with the criticality the author declared (Critical by default).
+     * Call from the provider's boot().
      */
     public function bootPackageConfigDecorators(): void
     {
         foreach ($this->configDecorators as $decorator) {
-            FailurePolicy::swallow(
-                static fn () => $decorator(new ConfigDecorator),
-                'Config',
-                $this->log(),
+            FailurePolicy::run(
+                static fn () => ($decorator['fn'])(new ConfigDecorator),
+                'configDecorator',
+                $decorator['criticality'],
             );
         }
     }
@@ -139,6 +141,4 @@ trait HasConfigDecorations
     }
 
     abstract public function basePath(?string $directory = null): string;
-
-    abstract public function log(): PackageLogger;
 }

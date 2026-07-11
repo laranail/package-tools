@@ -1,57 +1,66 @@
 # Boot-wiring failures
 
-How package-tools handles a failure in a package's own boot wiring, decided by one question: **does swallowing the failure leave a safe, working state?** Wiring that can't degrade safely fails loud (with an error that names the culprit); wiring that degrades safely is logged and skipped.
+How package-tools handles a failure in a package's own boot wiring, decided by **criticality, not environment** (the same behaviour in dev, CI, and prod). This is one application of the [failure-handling standard](../failure-handling.md).
 
-## The split
+## The rule
 
-`Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy` provides the two behaviours.
+Classify each builder by the state left behind if it fails:
 
-### Fail loud — `rethrowing()`
+- **Critical** — continuing is unsafe. Wrap, `report()` through the exception handler, and **rethrow** (fail fast). Same in every environment.
+- **Degradable** — continuing is safe (reduced). Wrap, report, **record the degraded state, and continue.**
 
-For boot wiring that does **not** degrade safely. Swallowing it boots a *silently broken* app, which is worse than a crash:
+Unclassified defaults to Critical (fail closed). There is no strict/lenient-by-environment toggle — masking a real misconfiguration in production is the worst place to hide it.
 
-| Builder | If swallowed |
+## Classification
+
+| Builder | Class |
 |---|---|
-| `useHttps` | serves HTTP when HTTPS was required — a silent security misconfig |
-| `setLocale` | boots in the wrong locale |
-| `registerRouteModel(fn () => …)` | the binding vanishes, surfacing later as a 404 / wrong-record bug |
-| closure `addSubscriber(...)` | events go silently unhandled |
+| `useHttps` | Critical (security) |
+| route-model binding (`registerRouteModel`) | Critical (silent 404s / wrong records) |
+| closure `addSubscriber(...)` | Critical (unhandled events) |
+| `configDecorator(...)` | Critical by default — **author may mark `BootCriticality::Degradable`** |
+| view composer / creator registration | Critical |
+| `setLocale` | Degradable (cosmetic) |
+| boot-time seeder discovery | Degradable |
+| schedule config (bad cadence) | Degradable |
 
-On failure the throwable is wrapped in a `Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException` that names which builder blew up (with the original as `getPrevious()`), then **rethrown** — so boot dies pointing straight at the culprit instead of a bare trace deep in a closure. It behaves the same in every environment: masking a real misconfiguration in production hides it in the worst possible place.
+```php
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 
-### Degrade safe — `swallow()`
+// a cosmetic decoration whose absence is safe → opt into Degradable
+$package->configDecorator(
+    fn (ConfigDecorator $c) => $c->set('app.name', setting('app_name')),
+    BootCriticality::Degradable,
+);
+```
 
-For boot wiring that **does** degrade to a safe, working state:
+## Observable degraded state
 
-| Builder | Degrades to |
-|---|---|
-| `configDecorator(...)` | the undecorated config (still valid) |
-| boot-time seeder discovery | no seed data for that bundle |
-| view composer / creator registration | the composer simply isn't attached |
-| About-section fields | its fallback value (cosmetic) |
+Degradable failures are recorded on the `BootReport` singleton (redacted — builder name / criticality / exception class, never raw messages) and surfaced by the **`boot:health` doctor check** in `laranail::package-tools.doctor`, so a CI gate catches degradation without a dev-only crash.
 
-On failure it is logged (to the package's own logfile when available, else the default channel) and skipped — one package can't crash host boot, and the app keeps behaving correctly.
+```php
+// CI gate
+$this->assertTrue(app(\Simtabi\Laranail\Package\Tools\Services\Boot\BootReport::class)->isHealthy());
+```
 
-## Why not strict/lenient by environment?
+A throwing boot builder is wrapped in a `PackageBootException` that names the builder (`$e->builder`, `$e->criticality`, `$e->context()`), preserving the original cause via `getPrevious()`.
 
-An earlier design toggled strict (rethrow) in dev vs lenient (swallow) in prod for these sites. That is the wrong split: it makes production the one place a real misconfiguration gets masked, and gives you divergent failure modes between environments (a thing that crashes cleanly in dev limps along broken in prod). The safe-degradation split above is environment-independent.
+## Warnings
 
-## Scheduling
+`FailurePolicy::warn(subject, context)` logs a tolerated anomaly at warning level (a fired fallback, a near-miss) without reporting or crashing — e.g. an About-section field that fell back, or the migrator's composition fallback.
 
-Schedule-configuration failures keep their own policy (`scheduling.strict`): a bad cadence / unknown scheduler method is logged, then rethrown outside production (so authors catch the typo) or skipped in production (so one package can't take down the whole scheduler). See [Scheduling](scheduling.md).
+## Consumer operational wiring
+
+See [failure-handling.md](../failure-handling.md) for the `Exceptions::throttle()` snippet (rule 9), the internal `/health/boot` route (rules 7/11), and the CI gate (rule 12).
 
 ## Reusing it
 
-The same helpers are available for your own boot wiring:
-
 ```php
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 
-// wiring that must not fail silently
-FailurePolicy::rethrowing(fn () => $this->wireSomethingCritical(), 'my-critical-step');
-
-// wiring that degrades safely
-FailurePolicy::swallow(fn () => $this->optionalDecoration(), 'MyFeature', $package->log());
+FailurePolicy::run(fn () => $this->wireSomething(), 'my-critical-step', BootCriticality::Critical);
+FailurePolicy::run(fn () => $this->optional(), 'my-optional-step', BootCriticality::Degradable);
 ```
 
 ---

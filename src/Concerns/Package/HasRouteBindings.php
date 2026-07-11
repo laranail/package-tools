@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
 use Illuminate\Routing\Router;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
@@ -75,16 +76,16 @@ trait HasRouteBindings
     public function bootPackageRouteBindings(Router $router): void
     {
         foreach ($this->routeModels as $parameter => $model) {
-            // A model may be a closure resolved at boot. Swallowing a failure
-            // here would drop the binding silently — surfacing later as a 404
-            // or a wrong-record bug far from the cause — so wrap and rethrow.
-            FailurePolicy::rethrowing(function () use ($router, $parameter, $model): void {
+            // Critical: a model may be a closure resolved at boot; a dropped
+            // binding surfaces later as a 404 or a wrong-record bug far from
+            // the cause, so it must fail fast rather than degrade.
+            FailurePolicy::run(function () use ($router, $parameter, $model): void {
                 $class = $model instanceof Closure ? (string) $model() : $model;
 
                 if ($class !== '' && class_exists($class)) {
                     $router->model($parameter, $class);
                 }
-            }, "route model binding [{$parameter}]");
+            }, "route model binding [{$parameter}]", BootCriticality::Critical);
         }
 
         // Binder closures run at request time, so registration can't throw here.

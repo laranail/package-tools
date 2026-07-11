@@ -5,99 +5,108 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Support\Resilience;
 
 use Closure;
-use Illuminate\Support\Facades\Log;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
-use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
+use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
 use Throwable;
 
 /**
- * How a package handles failures in its own boot-time wiring, split by one
- * question: **does swallowing the failure leave a safe, working state?**
+ * The failure-handling runner. One shape for every failure it handles —
+ * classify → report (guarded) → crash-on-critical → record-and-continue-on-
+ * degradable — with **no environment check anywhere** (rule 1). Behaviour is
+ * decided by the failure's {@see BootCriticality}, not by dev/prod.
  *
- *  - {@see self::rethrowing()} — for wiring that does NOT degrade safely
- *    (a `useHttps` / `setLocale` closure, a route-model resolver, an
- *    event-subscriber closure). Swallowing these boots a *silently broken*
- *    app (insecure scheme, wrong locale, phantom 404s), which is worse than
- *    a crash. So the throwable is wrapped in a {@see PackageBootException}
- *    that names the culprit and **rethrown** — fail loud, everywhere, with a
- *    useful message.
+ *  - Critical: continuing is unsafe → wrap, report, and rethrow. Fails fast,
+ *    the same in every environment.
+ *  - Degradable: continuing is safe → wrap, report through the central
+ *    handler, record the degraded state, and continue. Never swallowed to a
+ *    logfile — "loud" means the monitoring pipeline (rule 3).
  *
- *  - {@see self::swallow()} — for wiring that DOES degrade safely (a config
- *    decorator falls back to undecorated config; a malformed seeder file just
- *    means no seed data). The failure is logged and skipped so one package
- *    can't crash host boot, and the app keeps working correctly.
- *
- * There is deliberately no strict/lenient-by-environment mode: masking a real
- * misconfiguration in production is hiding it in the worst possible place.
+ * Unclassified callers default to Critical (rule 4, fail closed). Reporting
+ * is guarded (rule 8): a broken monitoring path falls back to a last-resort
+ * local write and never escalates a degradable failure into a crash.
  */
 final class FailurePolicy
 {
     /**
-     * Run boot wiring that must not fail silently: on throw, wrap it in a
-     * {@see PackageBootException} naming `$subject` and rethrow.
+     * Run boot wiring, handling any failure per its criticality.
      *
      * @template T
      *
      * @param Closure(): T $work
-     * @return T
-     */
-    public static function rethrowing(Closure $work, string $subject): mixed
-    {
-        try {
-            return $work();
-        } catch (Throwable $e) {
-            if ($e instanceof PackageBootException) {
-                throw $e;
-            }
-
-            throw PackageBootException::from($subject, $e);
-        }
-    }
-
-    /**
-     * Run degrade-safe boot wiring: on throw, log and skip (returning
-     * `$default`) so one package can't crash host boot.
-     *
-     * @template T
-     *
-     * @param Closure(): T $work
-     * @param array<string, mixed> $context
-     * @param T|null $default
      * @return T|null
      */
-    public static function swallow(Closure $work, string $label, ?PackageLogger $logger = null, array $context = [], mixed $default = null): mixed
+    public static function run(Closure $work, string $name, BootCriticality $criticality = BootCriticality::Critical): mixed
     {
         try {
             return $work();
         } catch (Throwable $e) {
-            self::log($e, $label, $logger, $context);
+            self::handle($e, $name, $criticality);
 
-            return $default;
+            return null;
         }
     }
 
     /**
+     * Handle an already-caught failure per its criticality (for call sites
+     * that catch their own exception, e.g. schedule resolution).
+     */
+    public static function handle(Throwable $original, string $name, BootCriticality $criticality): void
+    {
+        $wrapped = $original instanceof PackageBootException
+            ? $original
+            : PackageBootException::from($name, $criticality, $original);
+
+        self::report($wrapped);
+
+        if ($criticality === BootCriticality::Critical) {
+            throw $wrapped; // fail fast, everywhere (rule 1)
+        }
+
+        self::bootReport()?->recordDegraded($name, $criticality->name, $original::class);
+    }
+
+    /**
+     * A suspicious-but-non-fatal condition (rule 14): logged at warning level
+     * to the descriptive bar, then tolerated. Not a failure — it does not go
+     * through the runner and does not touch the boot degraded state.
+     *
      * @param array<string, mixed> $context
      */
-    private static function log(Throwable $e, string $label, ?PackageLogger $logger, array $context): void
+    public static function warn(string $subject, array $context = []): void
     {
-        $context = [
-            'exception' => $e::class,
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            ...$context,
-        ];
-
         try {
-            if ($logger instanceof PackageLogger) {
-                $logger->error($e->getMessage(), $label, $context);
-
-                return;
-            }
-
-            Log::error($e->getMessage(), $context);
+            logger()->warning("tolerated anomaly [{$subject}]", ['subject' => $subject, ...$context]);
         } catch (Throwable) {
-            // Logging must never itself throw.
+            // Warning logging must never itself break the caller.
         }
+    }
+
+    /**
+     * Report through the central error handler (rule 3), guarded (rule 8): a
+     * failure in the reporting path falls back to a last-resort local write
+     * and never escalates.
+     */
+    private static function report(PackageBootException $wrapped): void
+    {
+        try {
+            report($wrapped);
+        } catch (Throwable $reportingFailure) {
+            error_log((string) $wrapped);
+            error_log((string) $reportingFailure);
+        }
+    }
+
+    private static function bootReport(): ?BootReport
+    {
+        try {
+            if (function_exists('app') && app()->bound(BootReport::class)) {
+                return app(BootReport::class);
+            }
+        } catch (Throwable) {
+            // best-effort: recording degraded state must never throw
+        }
+
+        return null;
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 use ReflectionNamedType;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Support\Configurators\EventConfigurator;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
@@ -201,14 +202,15 @@ trait HasEventManagement
 
     /**
      * Invoke every closure subscriber with the dispatcher. Call from the
-     * provider's boot(). A subscriber that fails to register leaves events
-     * silently unhandled (broken behaviour, not graceful degradation), so a
-     * failure is wrapped and rethrown loud.
+     * provider's boot(). Critical + per-closure isolation: a subscriber that
+     * fails to register leaves events silently unhandled (broken behaviour,
+     * not graceful degradation), so it fails fast — and each subscriber runs
+     * independently so the failure names the specific one.
      */
     public function bootPackageEventSubscriberCallbacks(Dispatcher $events): void
     {
-        foreach ($this->eventSubscriberCallbacks as $callback) {
-            FailurePolicy::rethrowing(static fn () => $callback($events), 'event subscriber');
+        foreach ($this->eventSubscriberCallbacks as $index => $callback) {
+            FailurePolicy::run(static fn () => $callback($events), "event subscriber #{$index}", BootCriticality::Critical);
         }
     }
 

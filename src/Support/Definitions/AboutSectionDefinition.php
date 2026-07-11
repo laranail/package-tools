@@ -11,6 +11,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 use Stringable;
 use Throwable;
 use UnitEnum;
@@ -140,9 +141,16 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
         foreach ($this->bulkSources as $source) {
             try {
                 $rows = $source();
-            } catch (Throwable) {
+            } catch (Throwable $e) {
                 // a broken whole-array source drops out entirely — its field
                 // names aren't known, so there is nothing to placeholder.
+                FailurePolicy::warn('about section source dropped', [
+                    'section' => $this->label,
+                    'expected' => 'an array of field rows',
+                    'actual' => 'threw ' . $e::class,
+                    'decision' => 'dropped source, tolerated',
+                ]);
+
                 continue;
             }
 
@@ -162,7 +170,14 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
     {
         try {
             return $this->stringify($value instanceof Closure ? $value() : $value);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            FailurePolicy::warn('about field used fallback', [
+                'section' => $this->label,
+                'expected' => 'a resolvable field value',
+                'actual' => 'threw ' . $e::class,
+                'decision' => 'used fallback, tolerated',
+            ]);
+
             return $this->fallback;
         }
     }
@@ -171,7 +186,14 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
     {
         try {
             return $this->stringify($value);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            FailurePolicy::warn('about field used fallback', [
+                'section' => $this->label,
+                'expected' => 'a stringifiable value',
+                'actual' => 'threw ' . $e::class,
+                'decision' => 'used fallback, tolerated',
+            ]);
+
             return $this->fallback;
         }
     }

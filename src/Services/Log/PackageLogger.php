@@ -256,8 +256,11 @@ final class PackageLogger
         } catch (Throwable) {
             try {
                 Log::log($level, (string) $message, $context);
-            } catch (Throwable) {
-                // Logging must never crash the host application.
+            } catch (Throwable $e) {
+                // This is the reporting substrate — it cannot report its own
+                // failure through itself — so it falls back to a last-resort
+                // local write (rule 8) rather than swallowing silently.
+                error_log("[package-tools logger] {$level}: {$message} ({$e->getMessage()})");
             }
         }
     }

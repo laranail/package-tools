@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
@@ -210,14 +211,15 @@ trait HasFactoriesAndSeeders
                 continue;
             }
 
-            // A malformed seeder file surfacing from resolveSeeders()
-            // (discovery) degrades safely — the bundle just doesn't seed — so
-            // it is logged and skipped rather than taking down every request.
-            FailurePolicy::swallow(
+            // Degradable: a malformed seeder file surfacing from
+            // resolveSeeders() (discovery) leaves a safe reduced state — the
+            // app serves, that bundle just doesn't seed. It reports through
+            // the central handler and is recorded degraded (a CI health gate
+            // catches it) rather than taking down every request.
+            FailurePolicy::run(
                 fn () => $this->registerSeederDefinition($manager, $definition, $defaultDiscoveryPath, $autorunVetoed),
-                'Seeder',
-                $this->log(),
-                ['bundle' => $definition->key()],
+                "seeder bundle [{$definition->key()}]",
+                BootCriticality::Degradable,
             );
         }
     }

@@ -1,5 +1,42 @@
 # Upgrading
 
+## 6.0 to 7.0
+
+7.0 adopts the [failure-handling standard](docs/failure-handling.md): boot
+failures are classified by **consequence (Critical vs Degradable)**, never by
+environment, and are reported through the **central exception handler** (→
+your monitoring), not a logfile.
+
+### What changed
+
+- **`FailurePolicy` API:** `rethrowing()` / `swallow()` → `run($work, $name,
+  BootCriticality)` / `handle($e, $name, BootCriticality)` / `warn($subject,
+  $context)`. If you called the old methods, migrate to `run()`/`handle()`.
+- **`configDecorator` fails closed** (Critical by default). A decoration that
+  throws now **crashes boot** unless you mark it Degradable:
+  ```php
+  use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
+  $package->configDecorator(fn ($c) => …, BootCriticality::Degradable);
+  ```
+  Guard any decoration that reads runtime data it can't guarantee (e.g. an
+  unmigrated database) with `rescue(...)`, or mark it Degradable.
+- **Scheduling:** `scheduling.strict` / `PACKAGE_TOOLS_SCHEDULING_STRICT`
+  **removed**. A bad cadence is Degradable everywhere — reported + skipped,
+  other tasks still register. (`resilience.strict` / `PACKAGE_TOOLS_STRICT`
+  was already removed in 6.0.)
+- **Reporting:** boot failures now call `report()` (the exception handler →
+  Sentry/Flare/…), so wire the throttle and — optionally — an internal
+  `/health/boot` route + a CI gate. Snippets in
+  [`docs/failure-handling.md`](docs/failure-handling.md).
+- **`boot:health` doctor check** is always present in
+  `laranail::package-tools.doctor` output.
+
+### What did NOT change
+
+The `PackageAction*` lifecycle events, per-package logging, the run tracker,
+CLI commands, and `safelyRegisterComponent()` are unaffected — see the
+"documented exemptions" in the standard.
+
 ## 5.0 to 6.0
 
 6.0 corrects 5.0's boot-failure model. Instead of strict-in-dev /
