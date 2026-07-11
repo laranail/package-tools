@@ -5,6 +5,18 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.1] - 2026-07-11
+
+### Fixed
+
+- **Rule-14 warning on the module-path fallback.** An adversarial audit of
+  every `catch` site against the failure-handling standard found the codebase
+  fully compliant except one silent fallback: `buildBasePath()` fell back from
+  reflection-based to namespace-based module-root resolution without a warning.
+  It now emits a `FailurePolicy::warn()` (what/expected/actual/decision) so the
+  fired fallback is visible before it becomes a failure. No other silent
+  swallows or log-only-without-report gaps were found.
+
 ## [7.0.0] - 2026-07-10
 
 ### Changed (BREAKING)

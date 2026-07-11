@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 use Illuminate\Support\Facades\File;
 use ReflectionClass;
 use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
  * Path resolution with security validation. Blocks path traversal, absolute
@@ -102,8 +103,15 @@ trait HasAdvancedPaths
         if ($classFile !== false) {
             try {
                 return $this->resolveModulePath($classFile, $basePath);
-            } catch (RuntimeException) {
-                // Fall through to namespace-based approach
+            } catch (RuntimeException $e) {
+                // A fired fallback (rule 14): reflection-based module-root
+                // resolution failed, so we fall back to namespace-based path
+                // derivation — worth a warning before it becomes a failure.
+                FailurePolicy::warn('module path resolution fell back', [
+                    'expected' => 'reflection-based module root from ' . $basePath,
+                    'actual' => 'threw ' . $e::class . ', using namespace-based path',
+                    'decision' => 'tolerated fallback',
+                ]);
             }
         }
 
