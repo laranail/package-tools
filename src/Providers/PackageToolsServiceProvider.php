@@ -18,6 +18,7 @@ use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSeedCommand;
+use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
 use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
 use Simtabi\Laranail\Package\Tools\Services\Database\MigrationFailureDetector;
@@ -29,6 +30,7 @@ use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederResolverHook;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\BootHealthCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
 use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
 use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
@@ -37,6 +39,7 @@ use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterf
 use Simtabi\Laranail\Package\Tools\Services\System\SystemService;
 use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
 use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
  * Auto-registers the four library-level Artisan commands plus the three
@@ -62,6 +65,11 @@ final class PackageToolsServiceProvider extends ServiceProvider
         // choke point for the package-action lifecycle (start/success/fail),
         // reachable anywhere without a provider.
         $this->app->singleton(PackageActionReporter::class);
+
+        // Observable degraded-boot state (rule 7): degradable boot builders
+        // that failed but were continued past. Queryable by the boot doctor
+        // check and a consumer /health/boot route.
+        $this->app->singleton(BootReport::class);
 
         // Conflict-free migration-lifecycle fallback (singleton so its
         // terminating-flush registers once); used only when another package
@@ -130,6 +138,13 @@ final class PackageToolsServiceProvider extends ServiceProvider
         // Root-seeder db:seed trigger — attached once here (not lazily on
         // first autoSeed()) so bundles registered at ANY point are seen.
         $this->app->make(SeederResolverHook::class)->attach();
+
+        // Surface degraded-boot state (rule 7) through the doctor command so a
+        // CI gate over `laranail::package-tools.doctor` catches it.
+        $this->app->make(DoctorService::class)->register(
+            new BootHealthCheck($this->app->make(BootReport::class)),
+            'package-tools',
+        );
     }
 
     /**
@@ -154,7 +169,14 @@ final class PackageToolsServiceProvider extends ServiceProvider
             // A foreign subclass means another package decorated the migrator
             // first; rebuilding from the container would clobber it, so we
             // attach the conflict-free detector and hand theirs back intact.
+            // A tolerated fallback (rule 14) — worth a warning before it ever
+            // becomes a gap in migration-lifecycle fidelity.
             if ($migrator::class !== Migrator::class) {
+                FailurePolicy::warn('migrator already decorated', [
+                    'expected' => Migrator::class,
+                    'actual' => $migrator::class,
+                    'decision' => 'used event-detector fallback',
+                ]);
                 $app->make(MigrationFailureDetector::class)->register($app->make(Dispatcher::class), $app);
 
                 return $migrator;

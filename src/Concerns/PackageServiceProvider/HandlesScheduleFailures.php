@@ -4,48 +4,45 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
+use Illuminate\Support\Facades\Event;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
+use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
 use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
-use Simtabi\Laranail\Package\Tools\Facades\PackageActions;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
- * How a package's schedule-configuration failure is handled while the
- * `Schedule` resolves. Every failure is logged to the package's own logfile
- * with structured context; then:
+ * How a package's schedule-configuration failure (a bad cadence / unknown
+ * scheduler method / throwing schedulesUsing() callback) is handled while the
+ * `Schedule` resolves.
  *
- *  - STRICT (default outside production): the exception is rethrown so the
- *    author sees the misconfiguration immediately — a scheduling typo is a
- *    code bug, not runtime data.
- *  - LENIENT (production, or `package-tools.scheduling.strict => false`):
- *    the entry is skipped so one package's typo can't take down the whole
- *    scheduler (every other package's tasks still register).
- *
- * Override the auto behavior with `package-tools.scheduling.strict`
- * (bool). Left null it is strict everywhere except production.
+ * Classified **Degradable** per the failure-handling standard: skipping the
+ * one bad entry leaves a safe, reduced state (every other task still
+ * registers). It reports through the central handler and is recorded on the
+ * boot degraded surface, then continues — the SAME in every environment (no
+ * `isProduction()` / `scheduling.strict` branch). The caught exception is
+ * per-entry (inside the schedule-registration loops), so continuation
+ * registers the remaining tasks.
  */
 trait HandlesScheduleFailures
 {
     protected function handleScheduleFailure(ScheduleConfigurationException $e): void
     {
-        $strict = $this->schedulingIsStrict();
+        $name = $this->scheduleActionName($e);
 
-        // Route through the reporter (which owns the log line, writing to the
-        // package's own logfile) and dispatch a Schedule/PackageActionFailed:
-        // Failed when strict (about to rethrow), Cancelled when the entry is
-        // skipped.
-        PackageActions::forPackage($this->package->log())->fromThrowable(
+        // Package action-event layer (BC) — dispatch the event directly; the
+        // failure policy owns the report + degraded record (no double log).
+        Event::dispatch(PackageActionFailed::fromThrowable(
             PackageActionType::Schedule,
-            $this->scheduleActionName($e),
+            FailureReason::Failed,
+            $name,
             $this->package->name,
             $e,
-            $strict ? FailureReason::Failed : FailureReason::Cancelled,
             $e->context,
-        );
+        ));
 
-        if ($strict) {
-            throw $e;
-        }
+        FailurePolicy::handle($e, "schedule [{$name}]", BootCriticality::Degradable);
     }
 
     private function scheduleActionName(ScheduleConfigurationException $e): string
@@ -58,18 +55,5 @@ trait HandlesScheduleFailures
         }
 
         return 'schedule';
-    }
-
-    protected function schedulingIsStrict(): bool
-    {
-        $configured = config('package-tools.scheduling.strict');
-
-        if (is_bool($configured)) {
-            return $configured;
-        }
-
-        // Auto: strict everywhere except production, so authors catch
-        // scheduling typos in local/CI while production stays resilient.
-        return ! function_exists('app') || ! app()->isProduction();
     }
 }

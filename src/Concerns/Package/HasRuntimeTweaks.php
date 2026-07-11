@@ -9,6 +9,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\URL;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Support\Configurators\PaginatorConfigurator;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
@@ -102,27 +103,26 @@ trait HasRuntimeTweaks
     }
 
     /**
-     * Apply all runtime tweaks. Call from the provider's boot(). The
-     * https/locale resolvers may be author closures — a failure there would
-     * boot a silently broken app (insecure scheme / wrong locale), so it is
-     * wrapped and rethrown loud rather than swallowed. Pagination views are
-     * plain strings.
+     * Apply all runtime tweaks. Call from the provider's boot(). `useHttps`
+     * is Critical — swallowing it would serve HTTP when HTTPS was required (a
+     * security misconfig); `setLocale` is Degradable — a wrong/default locale
+     * is cosmetic and safe. Pagination views are plain strings.
      */
     public function bootPackageRuntimeTweaks(): void
     {
-        FailurePolicy::rethrowing(function (): void {
+        FailurePolicy::run(function (): void {
             if ($this->resolveHttps()) {
                 URL::forceScheme('https');
             }
-        }, 'useHttps');
+        }, 'useHttps', BootCriticality::Critical);
 
-        FailurePolicy::rethrowing(function (): void {
+        FailurePolicy::run(function (): void {
             $locale = $this->resolveLocale();
             if ($locale !== null && $locale !== '') {
                 Carbon::setLocale($locale);
                 App::setLocale($locale);
             }
-        }, 'setLocale');
+        }, 'setLocale', BootCriticality::Degradable);
 
         if ($this->paginationDefaultView !== null) {
             Paginator::defaultView($this->paginationDefaultView);

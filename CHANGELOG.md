@@ -5,6 +5,45 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-07-10
+
+### Changed (BREAKING)
+
+- **Adopt the failure-handling standard — classify by consequence, not
+  environment.** Boot-wiring failures are now **Critical** (continuing is
+  unsafe → wrap, report, and fail fast) or **Degradable** (continuing is safe
+  → report and continue), the same in every environment. This replaces the
+  6.0 fail-loud/degrade-safe split and removes all remaining environment
+  branching. See [`docs/failure-handling.md`](docs/failure-handling.md) (the
+  normative standard) and [`docs/tools/resilience.md`](docs/tools/resilience.md).
+  - `FailurePolicy` now exposes `run()` / `handle()` / `warn()` (the
+    `rethrowing()`/`swallow()` pair from 6.0 is gone). Every failure is
+    reported through the **central exception handler** (`report()` → logs +
+    monitoring), guarded (a reporting failure falls back to `error_log`, never
+    escalates). Reporting is no longer a bare logfile write.
+  - New `BootCriticality` enum, `PackageBootException` (now carries
+    `builder` + `criticality` + structured, redacted `context()`, cause
+    preserved), and `BootReport` (observable, redacted degraded state).
+  - Classification: `useHttps` / route-model bindings / closure subscribers /
+    view-composer registration = **Critical**; `setLocale` / seeder discovery
+    / schedule config = **Degradable**. `configDecorator` is **Critical by
+    default** and takes an optional `BootCriticality` second argument to opt a
+    cosmetic decoration into `Degradable`.
+  - **Scheduling** no longer branches on `isProduction()`; a bad cadence is
+    Degradable (reported + skipped, other tasks register). The
+    `scheduling.strict` config / `PACKAGE_TOOLS_SCHEDULING_STRICT` env is
+    **removed**.
+
+### Added
+
+- **`boot:health` doctor check** — surfaces degraded boot state through
+  `laranail::package-tools.doctor` so a CI gate catches degradation without a
+  dev-only crash (rules 7/12).
+- `FailurePolicy::warn()` rule-14 warnings on tolerated fallbacks (About-section
+  fields, the migrator composition fallback). `PackageLogger`'s last-resort
+  now writes via `error_log` (rule 8) instead of swallowing silently.
+- `docs/failure-handling.md` — the ecosystem-wide normative standard.
+
 ## [6.0.0] - 2026-07-10
 
 ### Changed (BREAKING)

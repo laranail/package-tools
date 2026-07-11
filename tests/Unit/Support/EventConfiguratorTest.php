@@ -75,7 +75,7 @@ final class EventConfiguratorTest extends TestCase
             $package->bootPackageEventSubscriberCallbacks($this->app->make(Dispatcher::class));
             $this->fail('a throwing subscriber closure must fail loud');
         } catch (PackageBootException $e) {
-            $this->assertStringContainsString('[event subscriber]', $e->getMessage());
+            $this->assertStringContainsString('event subscriber #0', $e->builder);
             $this->assertStringContainsString('subscriber wiring failed', $e->getMessage());
         }
     }

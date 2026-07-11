@@ -18,13 +18,15 @@ final class PackageDoctorCommandTest extends TestCase
         return [PackageToolsServiceProvider::class];
     }
 
-    public function test_doctor_passes_when_no_checks_registered(): void
+    public function test_doctor_passes_with_only_the_builtin_boot_health_check(): void
     {
+        // package-tools always registers its own boot:health check, so a
+        // healthy boot with no consumer checks passes.
         $exit = Artisan::call('laranail::package-tools.doctor');
         $output = Artisan::output();
 
         $this->assertSame(0, $exit);
-        $this->assertStringContainsString('No doctor checks registered', $output);
+        $this->assertStringContainsString('boot:health', $output);
     }
 
     public function test_doctor_passes_when_all_checks_pass(): void
@@ -107,6 +109,7 @@ final class PackageDoctorCommandTest extends TestCase
 
         $decoded = json_decode($output, true);
         $this->assertIsArray($decoded);
-        $this->assertSame(1, $decoded['summary']['pass']);
+        // sample.pass + the always-registered boot:health.
+        $this->assertGreaterThanOrEqual(2, $decoded['summary']['pass']);
     }
 }
