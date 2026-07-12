@@ -1,0 +1,276 @@
+# laranail::package-tools.doctor
+
+Health-check runner. Runs every registered `DoctorCheck` against the
+singleton `Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService`
+and prints a status report. Exits non-zero when any check returned `FAIL`
+(or, with `--strict`, when any returned `WARN`).
+
+```bash
+php artisan laranail::package-tools.doctor [--json] [--strict]
+```
+
+| Flag | Meaning |
+|---|---|
+| `--json` | Emit JSON instead of the coloured TTY view. |
+| `--strict` | Treat `WARN` as failure (exit non-zero). |
+
+When no checks are registered, the TTY view prints a notice and exits
+`SUCCESS`.
+
+## Sample run
+
+```text
+$ php artisan laranail::package-tools.doctor
+
+laranail::package-tools.doctor — running 2 check(s)…
+
+  ✓  config:published — Config published with all required keys
+       path: /app/config/hello.php
+  !  cache:warmed — Route cache is cold
+       hint: php artisan route:cache
+
+  Summary: 1 pass, 1 warn, 0 fail, 0 skip
+```
+
+The exit code is `0` here (a `WARN` is not a failure). Re-run with
+`--strict` to make the `WARN` exit non-zero — useful as a CI gate.
+
+## Registering a check
+
+A `DoctorCheck` is registered against the `DoctorService` singleton.
+From a package's `configurePackage()`, the fluent `DoctorCheckDefinition`
+is the primary form — static factories cover the whole bundled library,
+with chainable name/description overrides and config gating (no positional
+nullable constructor arguments anywhere):
+
+```php
+use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
+
+$package->hasDoctorChecks([
+    DoctorCheckDefinition::phpVersion('8.4.0'),
+    DoctorCheckDefinition::phpExtensions(['pdo', 'mbstring'])
+        ->named('runtime:extensions'),
+    DoctorCheckDefinition::configPresent(['acme.api_key'])
+        ->describe('the api key the sync worker needs'),
+    DoctorCheckDefinition::writablePaths([storage_path('acme')]),
+    DoctorCheckDefinition::reachable('db:ping', fn (): bool => DB::select('select 1') !== []),
+    DoctorCheckDefinition::softDependency(\Livewire\Livewire::class, 'livewire/livewire', required: false),
+    DoctorCheckDefinition::callback('queue:responsive', fn (): DoctorResult => DoctorResult::pass('ok')),
+    // wrap any custom check to gain the fluent surface:
+    DoctorCheckDefinition::wrap(new MigrationsAreFreshCheck())
+        ->whenConfig('acme.doctor.migrations', true),   // gated: never registered when off
+]);
+```
+
+`whenConfig` / `whenConfigNotNull` gates evaluate at boot — a failed gate
+means the check is never registered. Run-time preconditions belong inside
+the check itself via `DoctorResult::skip()`.
+
+The plain forms still work:
+
+```php
+$package->hasDoctorCheck(MigrationsAreFreshCheck::class);
+// or an instance:
+$package->hasDoctorCheck(new MigrationsAreFreshCheck());
+```
+
+Equivalently, resolve the singleton directly:
+
+```php
+$this->app->make(DoctorService::class)->register(new MigrationsAreFreshCheck());
+```
+
+`DoctorService::register(DoctorCheck|class-string<DoctorCheck> $check, ?string $group = null)`
+accepts an instance or an FQCN, plus an optional attribution group. The
+provider's boot step passes the registering package's name
+(`vendor/package`) automatically, so the service's report rows record
+which package owns each check; the `group` surfaces in the
+`DoctorReporter` and `HealthResponder` shapes below. Re-registering the
+same (group, name) pair replaces the earlier entry instead of stacking
+duplicate rows (double boots were silently duplicating checks pre-2.2).
+An FQCN is instantiated with `new` (no constructor arguments); a class
+that does not exist or does not implement `DoctorCheck` throws
+`InvalidArgumentException`.
+
+## The bundled check library
+
+The static factories on `DoctorCheckDefinition` wrap these parameterised
+checks (`Services\Doctor\Checks\`). Each also takes optional `name` /
+`description` constructor overrides; the definition's `named()` /
+`describe()` are the fluent equivalents.
+
+| Check | Default name | Semantics |
+|---|---|---|
+| `PhpVersionCheck(string $minVersion)` | `php:version` | `FAIL` when the runtime PHP is below `$minVersion`. |
+| `PhpExtensionCheck(string\|array $extensions)` | `php:extensions` | `FAIL` listing any extension not loaded. |
+| `ConfigPresentCheck(array $keys, bool $required = true)` | `config:present` | Keys may be a `label => config-key` map or a plain list. A `null`/`''` value is missing: `FAIL` when required, `WARN` otherwise. |
+| `WritablePathCheck(array $paths, ?int $minFreeBytes = null)` | `fs:writable` | Paths may be a `label => path` map or a plain list (paths label themselves); missing directories are created. Not writable is a `FAIL`; free disk below `$minFreeBytes` is a `WARN`. |
+| `ReachabilityCheck(Closure $probe, string $name, ?string $description = null, string $target = 'Target')` | *(required)* | An unreachable result — or a probe that throws — is a `WARN`, never a `FAIL`: connectivity is not a config error. |
+| `SoftDependencyCheck(string $class, string $label, bool $required = true)` | `dependency:{label}` | Class absent: `FAIL` when required, `WARN` otherwise. |
+| `CallbackCheck(string $name, string $description, Closure $run)` | *(required)* | Escape hatch — the closure returns the `DoctorResult`. |
+
+## The `DoctorCheck` contract
+
+`Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck`:
+
+```php
+interface DoctorCheck
+{
+    public function name(): string;          // short label, e.g. "config:published"
+    public function description(): string;   // one-line human description
+    public function run(): DoctorResult;     // never throws
+}
+```
+
+A check should never throw — if `run()` does throw, `DoctorService`
+catches the `Throwable` and synthesises a `FAIL` result whose detail
+carries the `exception` class, `file`, and `line`.
+
+## Result and status model
+
+`Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult` is a
+readonly value object:
+
+```php
+new DoctorResult(DoctorStatus $status, string $message, array $detail = [])
+```
+
+Construct it with the named factories:
+
+| Factory | Status |
+|---|---|
+| `DoctorResult::pass(string $message, array $detail = [])` | `Pass` |
+| `DoctorResult::warn(string $message, array $detail = [])` | `Warn` |
+| `DoctorResult::fail(string $message, array $detail = [])` | `Fail` |
+| `DoctorResult::skip(string $message, array $detail = [])` | `Skip` |
+
+`detail` is an optional `array<string, scalar|array<scalar>>` of
+structured context; the TTY view renders each entry indented under the
+check, the JSON view emits it verbatim.
+
+`Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorStatus` is a
+backed enum:
+
+| Case | Value | Symbol | Colour |
+|---|---|---|---|
+| `Pass` | `pass` | `✓` | green |
+| `Warn` | `warn` | `!` | yellow |
+| `Fail` | `fail` | `✗` | red |
+| `Skip` | `skip` | `·` | grey |
+
+`symbol()` and `ansiColor()` back the TTY rendering.
+
+## Example check
+
+```php
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
+
+final class ConfigPublishedCheck implements DoctorCheck
+{
+    public function name(): string
+    {
+        return 'config:published';
+    }
+
+    public function description(): string
+    {
+        return 'Verifies the package config has been published.';
+    }
+
+    public function run(): DoctorResult
+    {
+        return file_exists(config_path('foo.php'))
+            ? DoctorResult::pass('Config is published.')
+            : DoctorResult::warn('Config not published.', ['hint' => 'php artisan vendor:publish']);
+    }
+}
+```
+
+## JSON output shape
+
+`laranail::package-tools.doctor --json` emits:
+
+```json
+{
+  "summary": { "pass": 1, "warn": 0, "fail": 0, "skip": 0 },
+  "checks": [
+    {
+      "name": "config:published",
+      "description": "Verifies the package config has been published.",
+      "status": "pass",
+      "message": "Config is published.",
+      "detail": {}
+    }
+  ]
+}
+```
+
+## Reusable rendering: `DoctorReporter` and `HealthResponder`
+
+Two static helpers — `Services\Doctor\DoctorReporter` and
+`Services\Doctor\HealthResponder` — collapse a package's own doctor
+command and HTTP health endpoint to one line each. Both build a fresh `DoctorService`
+from the checks you pass, run it, and render the report — group
+attribution appears when the rows carry a group (registered on a shared
+service with `register($check, $group)`); checks passed directly to the
+helpers register ungrouped (`group: null`).
+
+`DoctorReporter::render(Command $cmd, iterable $checks, bool $json = false, bool $strict = false): int`
+renders a table (columns: symbol, `Check`, `Result`, with the check name
+prefixed `[group] ` when a group is set) or, with `$json`, a JSON payload
+with a top-level status:
+
+```json
+{
+  "status": "healthy",
+  "summary": { "pass": 1, "warn": 0, "fail": 0, "skip": 0 },
+  "checks": [
+    { "name": "config:published", "group": null, "status": "pass",
+      "message": "Config is published.", "detail": {} }
+  ]
+}
+```
+
+`status` is `degraded` when any check failed. The return value is the
+conventional exit code: `FAILURE` on any `FAIL` (or any `WARN` with
+`$strict`), else `SUCCESS`.
+
+```php
+public function handle(): int
+{
+    return DoctorReporter::render($this, [new ConfigPublishedCheck], json: $this->option('json'));
+}
+```
+
+`HealthResponder::json(iterable $checks): JsonResponse` returns the same
+`status`/`summary`/`checks` payload (rows carry `name`, `group`,
+`status`, `message` — no `detail`) with HTTP `200` when healthy and
+`503` when any check failed:
+
+```php
+Route::get('/health', fn () => HealthResponder::json([new ConfigPublishedCheck]));
+```
+
+## DoctorService API
+
+| Method | Returns | Purpose |
+|---|---|---|
+| `register(DoctorCheck\|class-string $check, ?string $group = null)` | `self` | Add a check (instance or FQCN), optionally attributed to a group; same (group, name) replaces. |
+| `run()` | `list<array{check, result, group}>` | Run every check in registration order. |
+| `summarise(array $report)` | `array{pass,warn,fail,skip}` | Count results by status. |
+| `getChecks()` | `list<DoctorCheck>` | Registered checks. |
+| `reset()` | `self` | Clear all registered checks. |
+
+## See also
+
+- [configuration.md](../configuration.md) — the `hasDoctorCheck()` fluent
+  step that wires a check from `configurePackage()`.
+- [examples/Doctor/HelloHealthCheck.php](../examples/Doctor/HelloHealthCheck.php)
+  — a complete runnable `DoctorCheck`.
+- [examples/Doctor/StorageWritableCheck.php](../examples/Doctor/StorageWritableCheck.php)
+  — a second check covering the `skip()` / `fail()` / `warn()` outcomes.
+- [runtime-services.md](runtime-services.md) — `SystemService`, handy for
+  building environment-aware checks.
+
+[← Docs index](../../README.md#documentation)
