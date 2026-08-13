@@ -46,4 +46,32 @@ class SeederException extends Exception
 
         return $e;
     }
+
+    /**
+     * Faker is a dev dependency and may legitimately be absent.
+     *
+     * This throws rather than installing it. The code this replaces shelled out
+     * to `composer install` and then called `exit(1)` — from inside a library
+     * method, taking the whole process with it, in whatever context it happened
+     * to be called from.
+     */
+    public static function missingFaker(): self
+    {
+        $e = new self(
+            'fakerphp/faker is not installed, so no generator can be created. '
+            . 'Run `composer require --dev fakerphp/faker`.',
+            4005,
+        );
+        $e->context = ['package' => 'fakerphp/faker'];
+
+        return $e;
+    }
+
+    public static function seedFileMissing(string $path): self
+    {
+        $e = new self("Seed file not found: {$path}", 4006);
+        $e->context = ['path' => $path];
+
+        return $e;
+    }
 }

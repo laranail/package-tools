@@ -157,9 +157,15 @@ final class PublishPathGuardTest extends TestCase
     {
         symlink($this->base . '/precious/keep.txt', $this->vendor . '/linked.txt');
 
-        // Refused, because it resolves outside the root — the link being inside
-        // the root does not put its target inside the root.
-        self::assertFalse($this->guard->isDeletable($this->vendor . '/linked.txt'));
+        // Allowed even though it resolves outside the root, because deleting it
+        // means unlink(), which never touches the target. Refusing would leave a
+        // stray link in a publish root permanently — every route to removing it
+        // goes through this same check.
+        self::assertTrue($this->guard->isDeletable($this->vendor . '/linked.txt'));
+
+        $this->guard->delete($this->vendor . '/linked.txt');
+
+        self::assertFalse(is_link($this->vendor . '/linked.txt'));
         self::assertFileExists($this->base . '/precious/keep.txt');
     }
 
@@ -167,10 +173,14 @@ final class PublishPathGuardTest extends TestCase
     public function deleting_a_symlinked_directory_never_recurses_into_the_target(): void
     {
         // The one that loses data: deleteDirectory() on a link would empty
-        // somewhere the guard never approved.
+        // somewhere the guard never approved. delete() dispatches on is_link()
+        // first, so the link goes and the directory it pointed at does not.
         symlink($this->base . '/precious', $this->vendor . '/linked-dir');
 
-        self::assertFalse($this->guard->isDeletable($this->vendor . '/linked-dir'));
+        $this->guard->delete($this->vendor . '/linked-dir');
+
+        self::assertFalse(is_link($this->vendor . '/linked-dir'));
+        self::assertDirectoryExists($this->base . '/precious');
         self::assertFileExists($this->base . '/precious/keep.txt');
     }
 

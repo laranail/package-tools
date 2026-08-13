@@ -49,11 +49,15 @@
         "pestphp/pest": "^3.0",
         "phpunit/phpunit": "^11.0",
         "spatie/pest-plugin-test-time": "^2.2",
+        "fakerphp/faker": "^1.23",
         "phpstan/phpstan": "^2.0",
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.18",
         "rector/rector": "^2.0",
         "roave/security-advisories": "dev-latest"
+    },
+    "suggest": {
+        "fakerphp/faker": "Required by the InteractsWithSeedFiles trait's fake() generator (^1.23)."
     },
     "autoload": {
         "psr-4": {

@@ -60,6 +60,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ownership or cleaning. Repeat records for one tag merge their paths, and
   `cleanable` is sticky — one call site asking for a clean is enough.
 
+- **`Services\Asset\PublishPathGuard`** (+ `PublishRoot`, `Exceptions\UnsafeAssetPath`)
+  — every destructive asset operation now proves a path may be deleted before
+  deleting it. A publish root must normalise cleanly, resolve inside the project,
+  survive a non-overridable deny-list (the project root, `app`, `bootstrap`,
+  `config`, `database`, `node_modules`, bare `public`, `resources`, `routes`,
+  `src`, `storage`, `tests`, `vendor`), sit at least two levels below the project
+  root, and still land inside its root once symlinks are followed.
+
+  The deny-list is deliberately not configurable: config can narrow the blast
+  radius, never widen it. Containment is strict descendancy with a trailing
+  separator, so a root of `public/vendor` does not capture `public/vendor2`, and
+  the root itself is never deletable — only its contents. An empty root list
+  makes nothing deletable, which fails closed.
+
+- **`laranail::package-tools.publish`** — publish package assets by tag,
+  package, or all at once, with `--list`, `--dry-run` and `--json`.
+
+  **`--force` overwrites and `--clean` deletes; they are separate flags.**
+  Conflating them is how published assets get lost: in the implementation this
+  replaces, `--force` meant "recursively delete every destination, then
+  republish", and it ran for every module in the application. A destination
+  outside every configured prune root is skipped and reported rather than
+  deleted, because packages publish to `config/` and `database/migrations/` too.
+
+- **`laranail::package-tools.assets-prune`** (+ `Services\Asset\OrphanScanner`,
+  `OrphanReport`, `OrphanEntry`) — finds published files that nothing publishes
+  any more. Every other cleanup here is destination-registry driven and so can
+  only remove what something registered in the current process; an uninstalled
+  package registers nothing, and its files stay forever.
+
+  The expected set comes from **every** publish group the application exposes,
+  not just laranail's, or Livewire's and Horizon's asset directories would read
+  as orphans. It reports by default — `--prune` deletes, `--force` skips the
+  confirmation, production refuses without `--force`, and a run exceeding
+  `assets.prune.max_deletions` aborts before deleting anything. Symlinks are
+  recorded as leaves and never descended.
+
+- **`Concerns\Database\InteractsWithSeedFiles`** — a memoized Faker generator
+  plus fixture-file resolution for package seeders. `fake()` **throws**
+  `SeederException::missingFaker()` when `fakerphp/faker` is absent rather than
+  installing it; the code this generalises ran `composer install` from inside the
+  method and then called `exit(1)`, taking the process with it. Memoization is
+  for reproducibility, not speed: `Factory::create()` reseeds the RNG per call.
+
+- **`package-tools.assets.*` and `package-tools.seeders.{files_path,faker_locale}`**
+  config blocks.
+
+### Changed
+
+- **A symlink inside a publish root is now deletable.** `PublishPathGuard`
+  previously refused any path resolving outside its root, which caught symlink
+  leaves too — so a stray link in `public/vendor` could never be removed, since
+  every route to deleting it went through that check. `delete()` dispatches on
+  `is_link()` and unlinks, which never touches the target, so the leaf is now
+  exempt from resolution while its parent is still checked and an intermediate
+  directory swap is still refused.
+
 ## [0.1.0] - 2026-07-11
 
 Initial public release.

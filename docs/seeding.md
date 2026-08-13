@@ -456,6 +456,53 @@ onto the typed `SeederBundle` setters:
 | `parameters` | array | `[]` | `parameters()` |
 | `priority` | int | `0` | `priority()` |
 
+## Seeder file helpers
+
+`Concerns\Database\InteractsWithSeedFiles` covers the two things every package seeder ends up
+rewriting: a Faker generator, and somewhere to keep fixture files.
+
+```php
+use Illuminate\Database\Seeder;
+use Simtabi\Laranail\Package\Tools\Concerns\Database\InteractsWithSeedFiles;
+
+final class CountrySeeder extends Seeder
+{
+    use InteractsWithSeedFiles;
+
+    public function run(): void
+    {
+        foreach ($this->seedFileJson('countries.json') as $row) {
+            Country::create($row + ['tagline' => $this->fake()->sentence()]);
+        }
+    }
+}
+```
+
+| Method | Returns |
+|---|---|
+| `fake(?string $locale = null)` | A memoized `Faker\Generator`. A locale argument yields a one-off and does not replace the default. |
+| `seedFaker(int $seed)` | The memoized generator, reseeded — for a reproducible run. |
+| `seedFileBasePath()` / `setSeedFileBasePath(string)` | The fixture directory. |
+| `seedFilePath(string)` | Resolve a fixture path; absolute paths pass through. |
+| `seedFileExists(string)` | Whether it is there. |
+| `seedFileContents(string)` | Its contents, or `SeederException` (4006). |
+| `seedFileJson(string)` | Decoded JSON, or `SeederException`. |
+| `seedFiles(string $dir = '', ?string $ext = null)` | Every fixture in a subdirectory, sorted, absolute. |
+
+The base path comes from `package-tools.seeders.files_path`, defaulting to
+`database_path('seeders/files')`; `setSeedFileBasePath()` overrides it per instance.
+
+**`fake()` throws when Faker is absent; it does not install anything.** `fakerphp/faker` is a dev
+dependency of this package and only `suggest`-ed to consumers, so a missing generator raises
+`SeederException::missingFaker()` (code 4005) that a caller can catch and report. This is deliberate:
+the implementation this replaces ran `composer install` from inside the method and then called
+`exit(1)` when that did not help — from a library, in whatever context it happened to be called from,
+so a seeder running inside a queue worker or a test suite would simply vanish.
+
+The generator is memoized for reproducibility rather than speed. `Factory::create()` seeds a fresh
+Mersenne Twister on every call, so a seeder building one per record could never be made deterministic
+by seeding once at the start of a run.
+
 ## Failure observability
 
 The 8 bespoke seeder events (`PackageSeeding*`, `Seeder*`, `Seeding*`) are the seeder-specific detail layer and are unchanged. Since 4.0 the cross-type `PackageActionFailed` fires **alongside** them — and, crucially, on the autorun, `db:seed` resolver, and queued-job paths that previously swallowed failures. Subscribe once to `PackageActionFailed` for a cross-type view, or keep listening to `PackageSeedingFailed` for seeder detail. See [Action lifecycle events](tools/action-events.md).

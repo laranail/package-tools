@@ -50,6 +50,15 @@ return [
         */
         'root_seeders' => [],
 
+        /*
+        | Where InteractsWithSeedFiles looks for fixture files, and the locale
+        | its fake() generator uses. A seeder can override the path per
+        | instance with setSeedFileBasePath().
+        */
+        'files_path' => env('PACKAGE_TOOLS_SEED_FILES_PATH'),
+
+        'faker_locale' => env('PACKAGE_TOOLS_FAKER_LOCALE', 'en_US'),
+
         'autorun' => [
             // Global kill-switch for autorun-after-migrations bundles.
             'enabled' => env('PACKAGE_TOOLS_SEEDERS_AUTORUN', true),

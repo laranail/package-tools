@@ -14,6 +14,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Override;
+use Simtabi\Laranail\Package\Tools\Commands\PackageAssetsPruneCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageAuditCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
@@ -137,6 +138,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
                 PackageIdeHelperCommand::class,
                 PackageSeedCommand::class,
                 PackagePublishCommand::class,
+                PackageAssetsPruneCommand::class,
             ]);
         }
     }

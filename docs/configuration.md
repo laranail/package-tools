@@ -728,10 +728,78 @@ $package->onAfterBoot(function (Package $package) {
 
 `getRegisteredHooks()` returns a per-hook count, primarily for tests.
 
+## Asset publishing and pruning
+
+The `assets` block governs the two publishing commands and the guard behind them. See
+[Asset publishing and pruning](tools/publishing.md) for the commands themselves.
+
+```php
+'assets' => [
+
+    'publish' => [
+        // Tags whose destinations `--clean` may delete. Empty means every tag
+        // registered with cleanable: true.
+        'cleanable_tags' => [],
+    ],
+
+    'prune' => [
+        // The only directories anything here will ever delete inside.
+        // Relative to the project root. Anything outside every root is
+        // skipped and reported, never removed.
+        'roots' => ['public/vendor'],
+
+        // Basename patterns (fnmatch) that are never deleted, whatever
+        // registered them.
+        'protected' => ['.gitignore', '.gitkeep', '*.env'],
+
+        // A prune wanting to remove more than this aborts before removing
+        // anything. Set to 0 to disable the ceiling.
+        'max_deletions' => 500,
+    ],
+],
+```
+
+`roots` is the one setting that matters. It can only ever **narrow** what is deletable: the guard's
+deny-list — the project root, `app`, `bootstrap`, `config`, `database`, `node_modules`, bare `public`,
+`resources`, `routes`, `src`, `storage`, `tests`, `vendor` — is not configurable, and a minimum depth
+of 2 applies on top of it. A root that fails validation is refused outright, and an empty `roots` list
+means nothing is deletable at all. Both fail closed, which is the point: a typo turning `public/vendor`
+into `public` must not be one config edit away from deleting the application.
+
+`max_deletions` is checked **before** the first deletion, so an unexpectedly large prune aborts intact
+rather than partway through.
+
+## Seeder file helpers
+
+The `seeders` block also configures
+`Concerns\Database\InteractsWithSeedFiles` — see
+[Seeder file helpers](seeding.md#seeder-file-helpers).
+
+```php
+'seeders' => [
+    // Where seed fixtures live. Null falls back to database_path('seeders/files').
+    'files_path' => env('PACKAGE_TOOLS_SEED_FILES_PATH'),
+
+    // Locale for the trait's memoized fake() generator.
+    'faker_locale' => env('PACKAGE_TOOLS_FAKER_LOCALE', 'en_US'),
+],
+```
+
 ## Runtime environment variables
 
-`package-tools` reads **no** env vars for its own configuration. The
-only env vars it consults are read by
+`config/package-tools.php` reads the env vars below; each has a working default, so none is required.
+
+| Variable | Type | Default | Governs |
+|---|---|---|---|
+| `PACKAGE_TOOLS_SEED_FILES_PATH` | string | `database_path('seeders/files')` | Where `InteractsWithSeedFiles` looks for fixtures |
+| `PACKAGE_TOOLS_FAKER_LOCALE` | string | `en_US` | Locale for that trait's `fake()` generator |
+| `PACKAGE_TOOLS_SEEDERS_AUTORUN` | bool | `true` | Global kill-switch for autorun-after-migrations bundles |
+| `PACKAGE_TOOLS_SEEDERS_AUTORUN_PRODUCTION` | bool | `false` | Whether autorun is allowed in production |
+| `PACKAGE_TOOLS_LIFECYCLE_EVENTS` | bool | `true` | Package action lifecycle events |
+| `PACKAGE_TOOLS_FAILURE_EVENTS` | bool | `true` | `PackageActionFailed` |
+| `PACKAGE_TOOLS_MIGRATION_FAILURE_DETECTION` | bool | `true` | Migration failure detection |
+
+Separately, these are read by
 `Simtabi\Laranail\Package\Tools\Services\Http\HttpConfigurationService`,
 which is an opt-in fluent builder for HTTP-client option arrays. Defaults
 are applied when the variable is unset or empty; every value can also be

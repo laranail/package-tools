@@ -162,12 +162,20 @@ final readonly class PublishPathGuard
      *
      * The parent is checked too: a path may not exist while its directory does,
      * and that directory is what a swap would target.
+     *
+     * The leaf is exempt when it is **itself** a symlink, because `delete()`
+     * unlinks those rather than following them, and unlinking never touches the
+     * target. Resolving it here would refuse the one operation that removes a
+     * stray link from a publish root — and leave it there permanently, since
+     * every other route to deleting it goes through this same check. The parent
+     * is still resolved, so an intermediate swap is still caught.
      */
     private function assertResolvesInsideRoot(string $normalised, PublishRoot $root): void
     {
         $realRoot = $root->realPath();
+        $subjects = is_link($normalised) ? [dirname($normalised)] : [$normalised, dirname($normalised)];
 
-        foreach ([$normalised, dirname($normalised)] as $subject) {
+        foreach ($subjects as $subject) {
             $real = realpath($subject);
 
             if ($real === false) {
