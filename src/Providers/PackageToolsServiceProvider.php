@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Providers;
 
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\ConnectionResolverInterface;
@@ -18,8 +19,10 @@ use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSeedCommand;
+use Simtabi\Laranail\Package\Tools\Contracts\ConfigManagerInterface;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigManager;
 use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
 use Simtabi\Laranail\Package\Tools\Services\Database\MigrationFailureDetector;
@@ -66,6 +69,18 @@ final class PackageToolsServiceProvider extends ServiceProvider
         // first. A singleton because every provider's boot records into the
         // same map, and publishing reads it afterwards.
         $this->app->singleton(PublishTagRegistry::class);
+
+        // Fluent runtime config. bind(), not singleton(): it carries a base
+        // path and an operation log, so two callers configuring two different
+        // module roots must not share one instance.
+        $this->app->bind(
+            ConfigManagerInterface::class,
+            static fn ($app): ConfigManager => new ConfigManager(
+                $app->make(ConfigRepository::class),
+                $app,
+            ),
+        );
+        $this->app->alias(ConfigManagerInterface::class, 'laranail.package-config');
 
         // Central reporter behind the PackageActions facade — the single
         // choke point for the package-action lifecycle (start/success/fail),

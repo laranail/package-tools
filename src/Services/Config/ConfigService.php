@@ -132,6 +132,11 @@ class ConfigService implements ServiceInterface
     /**
      * Forget/remove a configuration value
      *
+     * Re-seeding the surviving keys is not enough on its own: a removed
+     * top-level key is simply absent from the pruned copy, so nothing ever
+     * touches it and `get()` keeps returning the old value. The pruned array has
+     * to replace the repository's store — see {@see ConfigItemStore}.
+     *
      * @param string $key Configuration key to remove
      */
     public function forget(string $key): void
@@ -139,9 +144,7 @@ class ConfigService implements ServiceInterface
         $items = $this->config()->all();
         Arr::forget($items, $key);
 
-        foreach ($items as $itemKey => $itemValue) {
-            $this->config()->set($itemKey, $itemValue);
-        }
+        ConfigItemStore::forget($this->config(), $key, $items);
     }
 
     /**

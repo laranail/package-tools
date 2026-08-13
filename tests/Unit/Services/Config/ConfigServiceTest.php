@@ -120,6 +120,31 @@ final class ConfigServiceTest extends TestCase
         $this->assertFalse($this->service->has('removable.value'));
     }
 
+    public function test_forget_removes_a_top_level_key(): void
+    {
+        // Re-seeding the surviving keys never touched this one, so it used to
+        // survive a forget() entirely.
+        $this->service->set('doomed', ['a' => 1]);
+        $this->assertTrue($this->service->has('doomed'));
+
+        $this->service->forget('doomed');
+
+        $this->assertNull($this->service->get('doomed'));
+        $this->assertFalse($this->service->has('doomed'));
+    }
+
+    public function test_forget_leaves_siblings_alone(): void
+    {
+        $this->service->set('doomed', 'x');
+        $this->service->set('kept', 'y');
+        $this->service->set('nested', ['deep' => ['value' => 1]]);
+
+        $this->service->forget('doomed');
+
+        $this->assertSame('y', $this->service->get('kept'));
+        $this->assertSame(1, $this->service->get('nested.deep.value'));
+    }
+
     public function test_is_ready_and_name(): void
     {
         $this->assertTrue($this->service->isReady());
