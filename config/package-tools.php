@@ -120,4 +120,42 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Asset publishing and pruning
+    |--------------------------------------------------------------------------
+    |
+    | publish.tag_pattern — what counts as a laranail publish tag when --all
+    |                       enumerates them.
+    |
+    | prune.roots         — the ONLY directories anything here will delete from.
+    |                       Read and write scope both. Always inside base_path().
+    |
+    | prune.min_depth     — a floor on how shallow a root may be. "public" is
+    |                       already refused outright by a non-overridable
+    |                       deny-list; this catches the rest.
+    |
+    | prune.max_deletions — abort before deleting anything if a run would remove
+    |                       more than this. A prune that wants to delete 4,000
+    |                       files is a misconfiguration, not a tidy-up.
+    |
+    */
+
+    'assets' => [
+
+        'publish' => [
+            'tag_pattern' => '*::*',
+            'always' => [],
+        ],
+
+        'prune' => [
+            'roots' => ['public/vendor'],
+            'protect' => ['.gitignore', '.gitkeep'],
+            'min_depth' => 2,
+            'max_deletions' => 500,
+            'max_depth' => 12,
+        ],
+
+    ],
+
 ];

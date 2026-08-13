@@ -39,8 +39,6 @@ trait ProcessAssets
 
             $tag = $entry['tag'] ?? "{$this->package->shortName()}-assets";
 
-            $this->recordPublishTag($tag, [$source => $destination], (bool) ($entry['clean'] ?? false));
-
             $this->publishes([$source => $destination], $tag);
         }
     }

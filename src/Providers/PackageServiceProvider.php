@@ -362,6 +362,51 @@ abstract class PackageServiceProvider extends ServiceProvider
     }
 
     /**
+     * Record every publish tag this package registers, then register it.
+     *
+     * One seam rather than ten. `publishes()` is the single method every
+     * `Process*` trait funnels through — configs, views, migrations,
+     * translations, assets, Blade components, Inertia, service providers — so
+     * overriding it here captures all of them, and every future call site, for
+     * free. Recording at each trait instead would have been ten edits and one
+     * forgotten the next time a trait is added.
+     *
+     * @param array<string, string> $paths
+     * @param array<int, string>|string|null $groups
+     */
+    #[Override]
+    protected function publishes(array $paths, $groups = null): void
+    {
+        parent::publishes($paths, $groups);
+
+        if (! isset($this->package)) {
+            return;
+        }
+
+        foreach ((array) ($groups ?? []) as $tag) {
+            if (is_string($tag) && $tag !== '') {
+                $this->recordPublishTag($tag, $paths, $this->tagWantsCleaning($tag));
+            }
+        }
+    }
+
+    /**
+     * Whether the package asked for this tag's destination to be cleaned.
+     *
+     * Two places record that intent — the fluent `publish(..., clean: true)`
+     * and an asset-registry entry's `clean` flag — so both are consulted rather
+     * than whichever one the caller happened to use.
+     */
+    private function tagWantsCleaning(string $tag): bool
+    {
+        if ((bool) ($this->package->getPublishPathsToClean()[$tag] ?? false)) {
+            return true;
+        }
+
+        return array_any($this->package->getAssetRegistry(), fn (array $entry): bool => ($entry['tag'] ?? null) === $tag && ($entry['clean'] ?? false));
+    }
+
+    /**
      * Boot custom publish paths registered via $package->publish().
      *
      * A destination marked `cleanBeforePublish` is recorded, not deleted.
@@ -382,11 +427,7 @@ abstract class PackageServiceProvider extends ServiceProvider
             return $this;
         }
 
-        $pathsToClean = $this->package->getPublishPathsToClean();
-
         foreach ($publishPaths as $tag => $paths) {
-            $this->recordPublishTag($tag, $paths, (bool) ($pathsToClean[$tag] ?? false));
-
             $this->publishes($paths, $tag);
         }
 

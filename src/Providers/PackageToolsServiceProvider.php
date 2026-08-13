@@ -17,6 +17,7 @@ use Override;
 use Simtabi\Laranail\Package\Tools\Commands\PackageAuditCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
+use Simtabi\Laranail\Package\Tools\Commands\PackagePublishCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSeedCommand;
 use Simtabi\Laranail\Package\Tools\Contracts\ConfigManagerInterface;
@@ -135,6 +136,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
                 PackageAuditCommand::class,
                 PackageIdeHelperCommand::class,
                 PackageSeedCommand::class,
+                PackagePublishCommand::class,
             ]);
         }
     }
