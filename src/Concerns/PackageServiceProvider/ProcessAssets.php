@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
 use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 
 trait ProcessAssets
 {
@@ -36,14 +37,32 @@ trait ProcessAssets
             $source = $this->package->basePath('/' . $entry['source']);
             $destination = public_path($entry['destination']);
 
-            if (($entry['clean'] ?? false) && File::isDirectory($destination)) {
-                File::deleteDirectory($destination);
-            }
-
             $tag = $entry['tag'] ?? "{$this->package->shortName()}-assets";
+
+            $this->recordPublishTag($tag, [$source => $destination], (bool) ($entry['clean'] ?? false));
 
             $this->publishes([$source => $destination], $tag);
         }
+    }
+
+    /**
+     * Record a publish tag so a later publish can honour a clean request.
+     *
+     * Boot never deletes. It used to: a `clean: true` entry had its destination
+     * removed here, on every console command, so an unrelated `php artisan
+     * route:list` wiped published assets. The intent is recorded instead and
+     * acted on when publishing actually runs.
+     *
+     * @param array<string, string> $paths source => destination
+     */
+    protected function recordPublishTag(string $tag, array $paths, bool $cleanable): void
+    {
+        if (! $this->app->bound(PublishTagRegistry::class)) {
+            return;
+        }
+
+        $this->app->make(PublishTagRegistry::class)
+            ->record($tag, $this->package->shortName(), $paths, $cleanable);
     }
 
     /**

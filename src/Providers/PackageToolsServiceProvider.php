@@ -18,6 +18,7 @@ use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSeedCommand;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
 use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
@@ -60,6 +61,11 @@ final class PackageToolsServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../../config/package-tools.php', 'package-tools');
 
         $this->app->singleton(DoctorService::class);
+
+        // What every package publishes, and which tags asked to be cleaned
+        // first. A singleton because every provider's boot records into the
+        // same map, and publishing reads it afterwards.
+        $this->app->singleton(PublishTagRegistry::class);
 
         // Central reporter behind the PackageActions facade — the single
         // choke point for the package-action lifecycle (start/success/fail),

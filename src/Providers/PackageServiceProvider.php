@@ -6,7 +6,6 @@ namespace Simtabi\Laranail\Package\Tools\Providers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Override;
@@ -363,8 +362,13 @@ abstract class PackageServiceProvider extends ServiceProvider
     }
 
     /**
-     * Boot custom publish paths registered via $package->publish(),
-     * including cleanup of destinations marked for it.
+     * Boot custom publish paths registered via $package->publish().
+     *
+     * A destination marked `cleanBeforePublish` is recorded, not deleted.
+     * Deleting here ran on every console command — an unrelated
+     * `php artisan route:list` removed the published assets of any package
+     * that had asked for a clean, and they stayed gone until someone
+     * re-published. The clean is honoured when publishing actually happens.
      */
     protected function bootPackageCustomPublishes(): static
     {
@@ -381,15 +385,7 @@ abstract class PackageServiceProvider extends ServiceProvider
         $pathsToClean = $this->package->getPublishPathsToClean();
 
         foreach ($publishPaths as $tag => $paths) {
-            if (isset($pathsToClean[$tag]) && $pathsToClean[$tag]) {
-                foreach ($paths as $destination) {
-                    if (File::isDirectory($destination)) {
-                        File::deleteDirectory($destination);
-                    } elseif (File::exists($destination)) {
-                        File::delete($destination);
-                    }
-                }
-            }
+            $this->recordPublishTag($tag, $paths, (bool) ($pathsToClean[$tag] ?? false));
 
             $this->publishes($paths, $tag);
         }

@@ -1,5 +1,49 @@
 # Upgrading
 
+## Boot no longer deletes published assets
+
+Booting a package used to delete the destination of every publish tag marked
+`cleanBeforePublish`. It was gated only on `runningInConsole()`, and **every**
+console command boots every provider — so `php artisan route:list`, `migrate`,
+`queue:work` or a `tinker` session silently removed the published assets of any
+package that had asked for a clean, and they stayed gone until someone
+re-published.
+
+Boot now records the request instead of acting on it. Nothing is deleted during
+boot, ever.
+
+```diff
+- // PackageServiceProvider::bootPackageCustomPublishes()
+- File::deleteDirectory($destination);   // on every console command
++ $registry->record($tag, $package, $paths, cleanable: true);
+```
+
+### What you need to do
+
+**Nothing, if you never used `cleanBeforePublish` / `clean: true`.**
+
+If you did, be aware that the clean is currently *recorded but not performed* —
+`vendor:publish` has no hook for it. Until `laranail::package-tools.publish`
+lands, republish over a dirty destination as you would with any other Laravel
+package, or clear it yourself:
+
+```php
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
+
+$entry = app(PublishTagRegistry::class)->get('your-tag');
+$entry?->destinations();   // what the package publishes to
+```
+
+That is a deliberate trade: a declaration that no longer takes effect is a far
+smaller problem than one that deletes files during unrelated commands.
+
+### New API
+
+`Services\Asset\PublishTagRegistry` (a singleton) records every publish tag a
+laranail package registers, the package that owns it, and whether it asked for a
+clean — `get()`, `all()`, `tags()`, `forPackage()`, `cleanable()`,
+`isCleanable()`.
+
 ## 6.0 to 7.0
 
 7.0 adopts the [failure-handling standard](docs/failure-handling.md): boot
