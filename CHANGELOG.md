@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Changed — breaking
 
 - **The config key is `laranail.package-tools`,** published to `config/laranail/package-tools.php`;
   `config('package-tools.seeders.autorun.in_tests')` is now
@@ -17,10 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   The deferred-hook **event names** (`package-tools.test.event`) are unchanged; they are a different
   registry and not part of this change.
-
-## [Unreleased]
-
-### Changed — breaking
 
 - **The three defaults that register a package's name into a shared registry are
   now vendor-scoped.** Laravel keeps view namespaces, translation namespaces and
