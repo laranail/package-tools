@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
+use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
 
 /**
  * Tracks published assets and manages cleanup.
@@ -78,24 +79,62 @@ class AssetRegistry implements RegistryInterface
     }
 
     /**
-     * Cleanup published assets for a tag
+     * Delete the registered cleanup targets for a tag.
      *
-     * @param string $tag Publish tag
+     * Routed through {@see PublishPathGuard}, which is the one place in this
+     * package that deletes anything. It used to call `File::deleteDirectory()`
+     * directly with no containment check and no `is_link()` dispatch — the
+     * exact failure the guard's own docblock describes: a registered
+     * destination of `''` resolves to the document root, and one that escapes
+     * with `..` resolves to wherever it points.
+     *
+     * A target outside every configured prune root is **skipped and reported**,
+     * not deleted. Packages publish into `config/` and `database/migrations/`
+     * as well as `public/vendor/`, and silently removing a published config
+     * file is a worse surprise than declining to.
+     *
+     * @return list<string> the targets that were refused, for the caller to report
      */
-    public function cleanup(string $tag): void
+    public function cleanup(string $tag): array
     {
         if (! isset($this->cleanupTargets[$tag])) {
-            return;
+            return [];
         }
 
+        $guard = $this->guard();
+        $refused = [];
+
         foreach ($this->cleanupTargets[$tag] as $target) {
-            if (File::exists($target)) {
-                if (File::isDirectory($target)) {
-                    File::deleteDirectory($target);
-                } else {
-                    File::delete($target);
-                }
+            if (! File::exists($target)) {
+                continue;
             }
+
+            if (! $guard->isDeletable($target)) {
+                $refused[] = $target;
+
+                continue;
+            }
+
+            $guard->delete($target);
+        }
+
+        return $refused;
+    }
+
+    /**
+     * A guard with no usable roots refuses everything, which is the right
+     * outcome for a misconfigured root: cleaning nothing beats cleaning the
+     * wrong thing.
+     */
+    private function guard(): PublishPathGuard
+    {
+        try {
+            return PublishPathGuard::fromConfig(
+                app('config'),
+                app()->basePath(),
+            );
+        } catch (UnsafeAssetPath) {
+            return new PublishPathGuard;
         }
     }
 

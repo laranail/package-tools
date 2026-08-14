@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Two recursive-delete paths were bypassing `PublishPathGuard`.** The guard's
+  docblock has always claimed it is the one place in this package that deletes
+  anything, and that it exists because a registered destination of `''` resolves
+  to the document root. Both claims were false.
+
+  `AssetRegistry::cleanup()` and `HasAssetPublisher::cleanAsset()` called
+  `File::deleteDirectory()` directly — no containment check, no `..` rejection,
+  no minimum depth, and no `is_link()` dispatch, so a symlinked destination was
+  followed and its target emptied. `cleanAsset()` took the registered
+  destination straight into `public_path()`, where `''` is the document root.
+
+  Both now route through the guard. A target outside every configured prune root
+  is **skipped and reported** rather than deleted: packages publish into
+  `config/` and `database/migrations/` as well as `public/vendor/`, and silently
+  removing a published config file is a worse surprise than declining to.
+
+  `AssetRegistry::cleanup()` now returns `list<string>` — the refused targets —
+  instead of `void`. It is not on `RegistryInterface`, and the one caller
+  ignored the return, so nothing breaks.
+
 ### Fixed
 
 - **`Services\Config\ConfigService::forget()` could not remove a top-level

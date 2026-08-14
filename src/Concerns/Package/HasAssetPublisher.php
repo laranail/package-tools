@@ -6,6 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Illuminate\Support\Facades\File;
 use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishPathGuard;
 
 /**
  * Asset publishing with a registry, optional directory cleanup, batch
@@ -382,6 +384,18 @@ trait HasAssetPublisher
      * @param string $source Source path (to lookup destination)
      * @return bool True if cleaned successfully
      */
+    /**
+     * Delete a registered asset destination.
+     *
+     * Routed through {@see PublishPathGuard} rather than calling
+     * `File::deleteDirectory()` directly. The old form took the registered
+     * destination straight into `public_path()` with no `..` rejection, no
+     * symlink check and no minimum depth — so a destination of `''` resolved to
+     * `public_path('')`, the document root, and `'../..'` escaped it entirely.
+     *
+     * Returns false when the guard refuses, which is the same answer the caller
+     * already got for "nothing to clean": in both cases nothing was deleted.
+     */
     public function cleanAsset(string $source): bool
     {
         if (! isset($this->assetRegistry[$source])) {
@@ -390,13 +404,21 @@ trait HasAssetPublisher
 
         $destination = public_path($this->assetRegistry[$source]['destination']);
 
-        if (File::isDirectory($destination)) {
-            File::deleteDirectory($destination);
-
-            return true;
+        if (! File::isDirectory($destination)) {
+            return false;
         }
 
-        return false;
+        try {
+            $guard = PublishPathGuard::fromConfig(app('config'), app()->basePath());
+        } catch (UnsafeAssetPath) {
+            return false;
+        }
+
+        if (! $guard->isDeletable($destination)) {
+            return false;
+        }
+
+        return $guard->delete($destination);
     }
 
     /**
