@@ -616,18 +616,47 @@ ScheduledCommandDefinition::make('hello:fortnightly-report')
 | `Enums\Cadence` | Every standard scheduler frequency (`everySecond` … `yearly`). | String-backed; values are `Event` method names. |
 | `Enums\Weekday` | `Sunday = 0` … `Saturday = 6`. | Int-backed, cron/Laravel numbering — exactly where an enum prevents bugs. Calendar months stay plain ints (1-12 is unambiguous). |
 | `Enums\Environment` | `Production`, `Staging`, `Local`, `Testing`. | Custom environment names remain legal — pass the raw string to `environments()`. |
-| `Enums\Timezone` | Every IANA timezone identifier PHP knows, plus a `toDateTimeZone()` helper. | **Generated — never edit by hand.** |
+| `Enums\Timezone` | Every IANA timezone identifier PHP knows, plus a `toDateTimeZone()` helper. | **Deprecated** — use `laranail/chrono`'s. **Generated — never edit by hand.** |
 
-The `Timezone` enum is deliberately not hand-maintained: it is generated
-from PHP's own `DateTimeZone::listIdentifiers()` by
-`tools/generate-timezone-enum.php`. After a PHP or tzdata upgrade,
-regenerate it —
+##### `Timezone` has moved to `laranail/chrono`
 
-```bash
-php tools/generate-timezone-enum.php
+A timezone enum has nothing to do with building Laravel packages.
+[`laranail/chrono`](https://opensource.simtabi.com/documentation/laranail/chrono/)
+is its home, with **identical case names and identical values**, so migrating
+is a one-line change per file:
+
+```diff
+-use Simtabi\Laranail\Package\Tools\Enums\Timezone;
++use Simtabi\Laranail\Chrono\Core\Enums\Timezone;
 ```
 
-— rather than editing `src/Enums/Timezone.php`.
+You gain `city()`, `kind()`, `canonical()` and `toTimezone()`, plus
+`TimezoneLegacy` (the 179 backward-compatible identifiers) and
+`TimezoneAbbreviation` (144 abbreviations) — and the alias map that can answer
+what `Asia/Calcutta` should become, which this copy never could.
+
+`timezone()` accepts any backed enum, a `DateTimeZone` or a plain string, so
+chrono's enum drops straight in.
+
+This copy is **not** re-exported from chrono: chrono depends on this package,
+so depending back would be a cycle. It stays here, generated, until removed.
+
+##### Regenerating
+
+It is generated from PHP's own `DateTimeZone::listIdentifiers()` by
+`tools/generate-timezone-enum.php`. After a PHP or tzdata upgrade, regenerate
+it rather than editing `src/Enums/Timezone.php`:
+
+```bash
+php tools/generate-timezone-enum.php            # write
+php tools/generate-timezone-enum.php --check    # CI gate: is the file still generated?
+```
+
+Two checks guard it, answering different questions. The parity tests assert the
+enum's *content* still matches tzdata. `--check` — wired into `composer lint`
+and the static-analysis workflow — asserts the file is still what the generator
+produces, which parity cannot see: a hand-added method or a reformat passes
+parity and turns the next regeneration into a diff nobody expected.
 
 `Support\Scheduling\TimeOfDay` is the fluent time value both tiers
 accept: `TimeOfDay::at(17, 30)`, `TimeOfDay::am(9)` / `TimeOfDay::pm(5, 30)`,

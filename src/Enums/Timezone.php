@@ -11,6 +11,19 @@ use DateTimeZone;
  * never edit by hand; regenerate with:
  *
  *   php tools/generate-timezone-enum.php
+ *
+ * @deprecated Use `Simtabi\Laranail\Chrono\Core\Enums\Timezone`, which has identical case
+ *             names and identical values, plus city()/kind()/canonical() and companion enums for
+ *             the legacy identifiers and abbreviations. A timezone enum has nothing to do with
+ *             building Laravel packages; chrono is where it lives beside the alias map and the
+ *             resolver that keep it honest.
+ *
+ *             Migration is a one-line `use` change per file — see chrono's
+ *             docs/recipes/migrate-off-the-package-tools-enum.md.
+ *
+ *             This copy stays generated, and gated by tools/generate-timezone-enum.php --check,
+ *             so it cannot drift from tzdata while it still exists. It is not re-exported from
+ *             chrono: chrono depends on this package, so depending back would be a cycle.
  */
 enum Timezone: string
 {

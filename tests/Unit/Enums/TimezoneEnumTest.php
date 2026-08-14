@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Enums;
 use DateTimeZone;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use ReflectionEnum;
 use Simtabi\Laranail\Package\Tools\Enums\Timezone;
 
 /**
@@ -66,5 +67,35 @@ final class TimezoneEnumTest extends TestCase
         $this->assertSame('UTC', $zone->getName());
 
         $this->assertSame('Africa/Nairobi', Timezone::AfricaNairobi->toDateTimeZone()->getName());
+    }
+
+    #[Test]
+    public function the_file_on_disk_is_still_what_the_generator_produces(): void
+    {
+        // The parity tests above answer whether the enum's *content* matches
+        // tzdata, which is what matters for correctness. They cannot see a hand
+        // edit that leaves the case list alone — an added method, a reformatted
+        // docblock — and that is what turns the next regeneration into a diff
+        // nobody expected and someone reverts by accident.
+        $generator = dirname(__DIR__, 3) . '/tools/generate-timezone-enum.php';
+
+        $output = [];
+        $exitCode = 0;
+        exec(sprintf('%s %s --check 2>&1', escapeshellarg(PHP_BINARY), escapeshellarg($generator)), $output, $exitCode);
+
+        $this->assertSame(0, $exitCode, implode("\n", $output));
+    }
+
+    #[Test]
+    public function it_points_at_chronos_replacement(): void
+    {
+        // chrono ships an UPGRADING entry and a migration recipe for this move;
+        // for a while this copy said nothing, so the only people who learned it
+        // had moved were the ones already reading chrono.
+        $doc = (new ReflectionEnum(Timezone::class))->getDocComment();
+
+        $this->assertIsString($doc);
+        $this->assertStringContainsString('@deprecated', $doc);
+        $this->assertStringContainsString('Chrono\\Core\\Enums\\Timezone', $doc);
     }
 }

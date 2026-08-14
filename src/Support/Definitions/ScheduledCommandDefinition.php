@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
+use BackedEnum;
 use Closure;
 use DateTimeZone;
 use Illuminate\Console\Scheduling\Event;
@@ -13,7 +14,6 @@ use JsonSerializable;
 use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
 use Simtabi\Laranail\Package\Tools\Enums\Environment;
-use Simtabi\Laranail\Package\Tools\Enums\Timezone;
 use Simtabi\Laranail\Package\Tools\Enums\Weekday;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
 use Simtabi\Laranail\Package\Tools\Support\DeferredCallQueue;
@@ -61,7 +61,7 @@ use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
  * @method self withoutOverlapping(int $expiresAt = 1440)
  * @method self onOneServer()
  * @method self runInBackground()
- * @method self timezone(Timezone|DateTimeZone|string $timezone)
+ * @method self timezone(BackedEnum|DateTimeZone|string $timezone)
  * @method self environments(Environment|string ...$environments)
  * @method self name(string $description)
  *

@@ -48,3 +48,10 @@ jobs:
 
       - name: Rector (dry run)
         run: vendor/bin/rector process --dry-run --no-progress-bar
+
+      # The parity test asserts the enum's *content* still matches tzdata. This
+      # asserts the file is still what the generator produces, which parity
+      # cannot see: a hand-added method or a reformat passes parity and turns
+      # the next regeneration into a surprising diff.
+      - name: Timezone enum is still generated
+        run: php tools/generate-timezone-enum.php --check
