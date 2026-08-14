@@ -41,11 +41,15 @@ class HasViewsTest extends TestCase
     }
 
     #[Test]
-    public function it_uses_package_name_as_default_view_namespace(): void
+    public function it_uses_the_vendor_scoped_namespace_by_default(): void
     {
         $this->package->setName('test-vendor/my-package')->hasViews();
 
-        $this->assertSame('my-package', $this->package->viewNamespace);
+        // Left unset so viewNamespace() resolves the vendor-scoped default; a
+        // bare 'my-package' hint would be a collision risk in Laravel's flat
+        // view-hint map.
+        $this->assertNull($this->package->viewNamespace);
+        $this->assertSame('test-vendor-my-package', $this->package->viewNamespace());
     }
 
     #[Test]

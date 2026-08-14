@@ -17,12 +17,16 @@ trait HasTranslations
     public ?string $translationAlias = null;
 
     /**
-     * Register translations, namespaced as vendor/package. Pass an optional
-     * short alias to ALSO register a bare namespace so keys read shorter.
+     * Register translations, namespaced as vendor-package.
+     *
+     * The optional alias registers an ADDITIONAL namespace verbatim. Prefer
+     * leaving it null: a bare alias re-introduces the collision the namespaced
+     * form exists to prevent, because Laravel keeps translation namespaces in a
+     * flat map and the second package to claim a key silently replaces the first.
      *
      * @example
-     * $package->setName('acme/widget')->hasTranslations('widget');
-     * // trans('acme/widget::messages.welcome') AND trans('widget::messages.welcome')
+     * $package->setName('acme/widget')->hasTranslations();
+     * // trans('acme-widget::messages.welcome')
      */
     public function hasTranslations(?string $alias = null): static
     {
@@ -38,7 +42,13 @@ trait HasTranslations
     }
 
     /**
-     * The vendor/package translation namespace. Vendor is required.
+     * The `vendor-package` translation namespace (e.g. `laranail-validation`).
+     * Vendor is required.
+     *
+     * The separator is a hyphen, not a slash: `lang/vendor/{namespace}` is a
+     * single published directory, so a slash would nest the package's files one
+     * level deeper than `vendor:publish` and every consumer's override path
+     * expect.
      *
      * @throws RuntimeException If vendor is not set
      */
@@ -51,6 +61,8 @@ trait HasTranslations
             );
         }
 
-        return $this->configVendor . '/' . $this->name;
+        return $this->getDashedNamespace();
     }
+
+    abstract public function getDashedNamespace(): string;
 }

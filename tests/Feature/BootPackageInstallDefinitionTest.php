@@ -52,7 +52,7 @@ final class BootPackageInstallDefinitionTest extends TestCase
 
     public function test_the_derived_install_command_runs_steps_in_order(): void
     {
-        $this->artisan('install-def:install')
+        $this->artisan('acme::install-def.install')
             ->expectsOutputToContain('install-def has been installed!')
             ->assertSuccessful();
 
@@ -67,8 +67,8 @@ final class BootPackageInstallDefinitionTest extends TestCase
         $this->assertFalse($commands['acme:visible-setup']->isHidden());
 
         // the default-signature command stays hidden
-        $this->assertArrayHasKey('install-def:install', $commands);
-        $this->assertTrue($commands['install-def:install']->isHidden());
+        $this->assertArrayHasKey('acme::install-def.install', $commands);
+        $this->assertTrue($commands['acme::install-def.install']->isHidden());
     }
 
     public function test_legacy_callable_form_still_works(): void

@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — breaking
+
+- **The three defaults that register a package's name into a shared registry are
+  now vendor-scoped.** Laravel keeps view namespaces, translation namespaces and
+  Artisan command names in **flat maps keyed by the name**, so a second package
+  claiming the same key does not collide loudly — it silently replaces the first,
+  and the damage surfaces far away as a missing view, an untranslated string, or
+  a command that runs someone else's code. A bare slug like `icons`, `console` or
+  `auth` is a plausible collision with a sibling package, a third-party one, or
+  the consuming application's own.
+
+  | Call | Was | Is |
+  |---|---|---|
+  | `hasViews()` | `view('widget::…')` | `view('acme-widget::…')` |
+  | `translationNamespace()` | `acme/widget` | `acme-widget` |
+  | `InstallCommand` default signature | `widget:install` | `acme::widget.install` |
+
+  Each separator is forced by the registry that parses it, not chosen for
+  consistency — do not unify them. A command name may use `::` because Symfony
+  resolves an exact name before splitting on `:`. A translation namespace may
+  **not** use a slash: `lang/vendor/{namespace}` is a single published
+  directory, so `acme/widget` nests the published files one level deeper than
+  `vendor:publish` and every consumer's override path expect. That one was a
+  real bug, not only a convention.
+
+  Passing an explicit argument still wins in both cases, so
+  `hasViews('widget')` and `hasTranslations('widget')` restore the old names —
+  but prefer not to, since that re-introduces exactly the collision the default
+  exists to prevent. `InstallCommand`'s `$signature` parameter is unchanged.
+
+  `InstallCommand` now uses `SupportsNamespacedNames`, without which Symfony's
+  `validateName()` rejects the empty segment in `::`.
+
+  **Upgrading:** a package that called `hasViews()` / `hasTranslations()` with no
+  argument and referenced the old names must update its `view()` / `__()` calls
+  and any published paths, or pass the old slug explicitly. Anything documenting
+  `{package}:install` needs the new name.
+
 ### Fixed
 
 - **External publish tags were invisible to the publish command, and `--tag=` rejected them.**

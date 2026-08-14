@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Simtabi\Laranail\Package\Tools\Commands\Concerns\AskToRunMigrations;
 use Simtabi\Laranail\Package\Tools\Commands\Concerns\AskToStarRepoOnGitHub;
 use Simtabi\Laranail\Package\Tools\Commands\Concerns\PublishesResources;
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsNamespacedNames;
 use Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsServiceProviderInApp;
 use Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsStartWithEndWith;
 use Simtabi\Laranail\Package\Tools\Package;
@@ -17,6 +18,10 @@ class InstallCommand extends Command
     use AskToRunMigrations;
     use AskToStarRepoOnGitHub;
     use PublishesResources;
+
+    // Required for the default `{vendor}::{package}.install` name: Symfony's
+    // validateName() rejects the empty segment in `::`.
+    use SupportsNamespacedNames;
     use SupportsServiceProviderInApp;
     use SupportsStartWithEndWith;
 
@@ -24,12 +29,15 @@ class InstallCommand extends Command
 
     /**
      * @param Package $package The package to install
-     * @param string|null $signature Override the default `{short-name}:install`
+     * @param string|null $signature Override the default `{vendor}::{package}.install`
      * @param bool|null $hidden Override the hidden-by-default listing
      */
     public function __construct(Package $package, ?string $signature = null, ?bool $hidden = null)
     {
-        $this->signature = $signature ?? $package->shortName() . ':install';
+        // Vendor-scoped by default. A bare `{package}:install` is a plausible
+        // collision with a sibling package or the consuming app, and Artisan's
+        // command registry is a flat map — the loser is replaced silently.
+        $this->signature = $signature ?? $package->getDoubleColonNamespace() . '.install';
 
         $this->description = 'Install ' . $package->name;
 

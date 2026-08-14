@@ -68,7 +68,7 @@ final class HelloPackageServiceProvider extends PackageServiceProvider
         $package
             ->name('acme/hello')                                      // vendor extracted, short name is "hello"
             ->hasConfigFile()                                         // publishes config/hello.php
-            ->hasViews()                                              // resources/views, namespaced "hello"
+            ->hasViews()                                              // resources/views, namespaced "acme-hello"
             ->hasViewComponents('hello', Button::class)               // <x-hello-...> Blade components by prefix
             ->hasTranslations()                                       // resources/lang
             ->hasAssets()                                             // resources/assets -> public/vendor/hello
@@ -149,7 +149,7 @@ final class HelloPackageServiceProvider extends PackageServiceProvider
                     ->options(['fire_events' => true]), // emits SeedingStarted / SeedingFinished
             )
 
-            // Install command (fluent definition): `php artisan hello:install`,
+            // Install command (fluent definition): `php artisan acme::hello.install`,
             // hidden from `php artisan list` by default. Steps run in
             // declaration order — built-ins and custom step()s interleave
             // freely — and the command is built lazily, console-only.

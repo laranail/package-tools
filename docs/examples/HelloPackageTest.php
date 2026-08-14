@@ -38,8 +38,8 @@ final class HelloPackageTest extends IsolatedTestCase
 
     public function test_install_command_is_registered(): void
     {
-        // The package registers `php artisan hello:install` via hasInstallCommand().
-        $this->assertCommandExists('hello:install');
+        // The package registers `php artisan acme::hello.install` via hasInstallCommand().
+        $this->assertCommandExists('acme::hello.install');
     }
 
     public function test_migration_creates_the_greetings_table(): void

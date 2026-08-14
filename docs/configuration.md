@@ -171,7 +171,7 @@ however late (covers `dont-discover` setups). If Livewire is never bound
 |---|---|
 | `hasRoute(string $routeFileName)` / `hasRoutes(string\|array ...$routeFileNames)` | Register route files. |
 | `hasRoutesWhen(string $configKey, string\|array $routeFileNames, bool $default = false)` | Register route files loaded only when `config($configKey, $default)` is truthy at boot. See [Conditional routes](#conditional-routes). |
-| `hasTranslations()` | Register the package translations directory. |
+| `hasTranslations()` | Register the package translations directory, under the `vendor-package` namespace. |
 | `registerRouteMiddleware(string $name, string $class)` / `registerRouteMiddlewares(array $aliases)` | Register one route-middleware alias, or a `[alias => class]` batch. |
 | `registerGlobalMiddleware(string $class)` | Register a global middleware (pushed onto the HTTP kernel at boot). |
 | `registerMiddlewareAlias(string $alias, string $class)` / `registerMiddlewareAliases(array $aliases)` | Equivalents of `registerRouteMiddleware(s)` — same deferred registry. |
@@ -401,7 +401,7 @@ use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
 
 $package->hasInstallCommand(
-    InstallCommandDefinition::make()               // signature: {short-name}:install
+    InstallCommandDefinition::make()               // signature: {vendor}::{package}.install
         ->publishes('config', 'migrations')        // namespaced + legacy tags both attempted
         ->runsMigrations()                          // or ->asksToRunMigrations()
         ->step('seed defaults', fn (InstallCommand $cmd) => $cmd->call('db:seed'))

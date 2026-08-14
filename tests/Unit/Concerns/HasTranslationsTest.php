@@ -39,4 +39,12 @@ class HasTranslationsTest extends TestCase
         $this->assertTrue($this->package->hasTranslations);
         $this->assertSame('resources/lang', Package::LANG_DIR);
     }
+
+    #[Test]
+    public function the_translation_namespace_is_vendor_scoped_with_a_hyphen(): void
+    {
+        // A slash would nest the published files under lang/vendor/{vendor}/{package},
+        // one level deeper than vendor:publish and consumer overrides expect.
+        $this->assertSame('test-vendor-test-package', $this->package->translationNamespace());
+    }
 }
