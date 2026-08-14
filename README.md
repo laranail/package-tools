@@ -15,7 +15,7 @@ Requires PHP `^8.4.1 || ^8.5` on Laravel `^13`.
 composer require laranail/package-tools
 ```
 
-## Documentation
+## <a name="documentation"></a>Documentation
 
 Full documentation is at **[opensource.simtabi.com/documentation/laranail/package-tools](https://opensource.simtabi.com/documentation/laranail/package-tools/)** — getting started, the fluent builder, declarative registration & batch helpers (scheduled commands, policies, morph maps, about sections, doctor checks, install commands), the fluent provider builders (force HTTPS, locale, pagination, config decoration, gates, route groups & bindings, events), the `PackageAction{Started,Succeeded,Failed}` lifecycle events with the `PackageActions` facade, the failure-handling standard (classify by consequence — Critical fails fast, Degradable reports & continues — with a `boot:health` doctor gate), fluent rate limiters, the seeding subsystem (`db:seed`-time bundles, opt-in autorun after migrations, background/scheduled execution with completion events), per-package logging via `$package->log()`, the fluent runtime config manager, attribute discovery, the Artisan commands, HTTP controllers, provenance/SBOM, asset publishing & orphan pruning (a `--force` that overwrites, a `--clean` that deletes, and a guard that refuses a publish root of `public`), seeder file helpers, the testing harness, configuration, and the release process.
 
