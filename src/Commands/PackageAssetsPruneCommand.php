@@ -180,7 +180,7 @@ final class PackageAssetsPruneCommand extends Command
 
     private function maxDeletions(): int
     {
-        $value = $this->laravel->make('config')->get('package-tools.assets.prune.max_deletions', 500);
+        $value = $this->laravel->make('config')->get('laranail.package-tools.assets.prune.max_deletions', 500);
 
         return is_numeric($value) ? (int) $value : 500;
     }

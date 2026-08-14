@@ -49,7 +49,7 @@ final class BootPackageAutoSeedersTest extends TestCase
     {
         // The default root (Database\Seeders\DatabaseSeeder) doesn't exist
         // in the Testbench skeleton; register a fixture root instead.
-        $app['config']->set('package-tools.seeders.root_seeders', [TestRootSeeder::class]);
+        $app['config']->set('laranail.package-tools.seeders.root_seeders', [TestRootSeeder::class]);
     }
 
     protected function disableSeedGate(Application $app): void

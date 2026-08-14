@@ -38,7 +38,7 @@ final class GuardedDeletionTest extends TestCase
         File::put($this->sandbox . '/config/blog.php', '<?php return [];');
 
         $this->app->setBasePath($this->sandbox);
-        config()->set('package-tools.assets.prune.roots', ['public/vendor']);
+        config()->set('laranail.package-tools.assets.prune.roots', ['public/vendor']);
     }
 
     protected function tearDown(): void
@@ -131,7 +131,7 @@ final class GuardedDeletionTest extends TestCase
     {
         // A guard with no usable roots refuses everything. Cleaning nothing
         // beats cleaning the wrong thing.
-        config()->set('package-tools.assets.prune.roots', ['public']);
+        config()->set('laranail.package-tools.assets.prune.roots', ['public']);
 
         $registry = new AssetRegistry;
         $registry->register('blog', $this->sandbox . '/public/vendor/blog', shouldCleanup: true);

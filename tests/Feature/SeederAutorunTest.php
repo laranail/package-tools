@@ -42,7 +42,7 @@ final class SeederAutorunTest extends TestCase
     {
         // Tests run under runningUnitTests(); autorun is gated off there by
         // default — opt in so the feature is exercisable at all.
-        $app['config']->set('package-tools.seeders.autorun.in_tests', true);
+        $app['config']->set('laranail.package-tools.seeders.autorun.in_tests', true);
     }
 
     private function fireMigrationsEnded(string $method = 'up', array $options = []): void
@@ -83,7 +83,7 @@ final class SeederAutorunTest extends TestCase
 
     public function test_global_kill_switch_disables_autorun(): void
     {
-        config()->set('package-tools.seeders.autorun.enabled', false);
+        config()->set('laranail.package-tools.seeders.autorun.enabled', false);
 
         $this->fireMigrationsEnded();
 
@@ -92,7 +92,7 @@ final class SeederAutorunTest extends TestCase
 
     public function test_tests_gate_blocks_autorun_by_default(): void
     {
-        config()->set('package-tools.seeders.autorun.in_tests', false);
+        config()->set('laranail.package-tools.seeders.autorun.in_tests', false);
 
         $this->fireMigrationsEnded();
 

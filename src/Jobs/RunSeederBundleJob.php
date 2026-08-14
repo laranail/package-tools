@@ -39,15 +39,15 @@ final class RunSeederBundleJob implements ShouldQueue
         public readonly string $bundleKey,
         public readonly SeederExecutionMode $mode = SeederExecutionMode::Queued,
     ) {
-        $this->tries = (int) config('package-tools.seeders.queue.tries', 1);
-        $this->timeout = (int) config('package-tools.seeders.queue.timeout', 300);
+        $this->tries = (int) config('laranail.package-tools.seeders.queue.tries', 1);
+        $this->timeout = (int) config('laranail.package-tools.seeders.queue.timeout', 300);
 
-        $queue = config('package-tools.seeders.queue.name');
+        $queue = config('laranail.package-tools.seeders.queue.name');
         if (is_string($queue) && $queue !== '') {
             $this->onQueue($queue);
         }
 
-        $connection = config('package-tools.seeders.queue.connection');
+        $connection = config('laranail.package-tools.seeders.queue.connection');
         if (is_string($connection) && $connection !== '') {
             $this->onConnection($connection);
         }

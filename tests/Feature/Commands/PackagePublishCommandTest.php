@@ -39,7 +39,7 @@ final class PackagePublishCommandTest extends TestCase
         File::put($this->sandbox . '/config/blog.php', '<?php return [];');
 
         $this->app->setBasePath($this->sandbox);
-        config()->set('package-tools.assets.prune.roots', ['public/vendor']);
+        config()->set('laranail.package-tools.assets.prune.roots', ['public/vendor']);
     }
 
     protected function tearDown(): void
@@ -246,7 +246,7 @@ final class PackagePublishCommandTest extends TestCase
         // the right outcome: a clean that deletes nothing beats one that
         // deletes the document root.
         $this->register();
-        config()->set('package-tools.assets.prune.roots', ['public']);
+        config()->set('laranail.package-tools.assets.prune.roots', ['public']);
 
         $this->artisan('laranail::package-tools.publish', [
             '--tag' => ['blog-assets'],

@@ -81,10 +81,10 @@ final class RunSeederBundleJobTest extends TestCase
 
     public function test_queue_settings_come_from_config(): void
     {
-        config()->set('package-tools.seeders.queue.name', 'seeding');
-        config()->set('package-tools.seeders.queue.connection', 'redis');
-        config()->set('package-tools.seeders.queue.tries', 3);
-        config()->set('package-tools.seeders.queue.timeout', 120);
+        config()->set('laranail.package-tools.seeders.queue.name', 'seeding');
+        config()->set('laranail.package-tools.seeders.queue.connection', 'redis');
+        config()->set('laranail.package-tools.seeders.queue.tries', 3);
+        config()->set('laranail.package-tools.seeders.queue.timeout', 120);
 
         $job = new RunSeederBundleJob('t/job');
 

@@ -54,7 +54,7 @@ final class SeederResolverHook
         $this->attached = true;
 
         if ($rootSeeders === []) {
-            $configured = config('package-tools.seeders.root_seeders', []);
+            $configured = config('laranail.package-tools.seeders.root_seeders', []);
             $rootSeeders = [self::DEFAULT_ROOT_SEEDER, ...(is_array($configured) ? $configured : [])];
         }
 

@@ -370,7 +370,7 @@ final class PackageLogger
             }
         }
 
-        $global = config("package-tools.logging.{$key}");
+        $global = config("laranail.package-tools.logging.{$key}");
         if ($global !== null) {
             return $global;
         }

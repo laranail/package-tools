@@ -321,7 +321,7 @@ final readonly class SeederExecutor
     private function shouldNotify(SeederBundle $bundle): bool
     {
         return $bundle->shouldNotify()
-            && (bool) config('package-tools.seeders.events.enabled', true);
+            && (bool) config('laranail.package-tools.seeders.events.enabled', true);
     }
 
     private function tracker(): ?SeederRunTracker

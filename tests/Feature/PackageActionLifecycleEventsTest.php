@@ -101,7 +101,7 @@ final class PackageActionLifecycleEventsTest extends TestCase
 
     public function test_the_lifecycle_gate_silences_the_unified_layer(): void
     {
-        config()->set('package-tools.events.lifecycle.enabled', false);
+        config()->set('laranail.package-tools.events.lifecycle.enabled', false);
         Event::fake([PackageActionStarted::class, PackageActionSucceeded::class]);
 
         $registry = (new SeederRegistry)->register('acme/blog', [LifecycleOkSeeder::class]);

@@ -22,7 +22,7 @@ final class MigrationLifecycleGateTest extends TestCase
 
     protected function defineEnvironment($app): void
     {
-        $app['config']->set('package-tools.migrations.failure_detection.enabled', false);
+        $app['config']->set('laranail.package-tools.migrations.failure_detection.enabled', false);
     }
 
     public function test_the_gate_off_leaves_the_migrator_undecorated(): void

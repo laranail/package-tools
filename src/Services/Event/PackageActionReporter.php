@@ -305,12 +305,12 @@ final class PackageActionReporter
 
     private function lifecycleDispatchEnabled(): bool
     {
-        return (bool) config('package-tools.events.lifecycle.enabled', true);
+        return (bool) config('laranail.package-tools.events.lifecycle.enabled', true);
     }
 
     private function failureDispatchEnabled(): bool
     {
-        return (bool) config('package-tools.events.failures.enabled', true);
+        return (bool) config('laranail.package-tools.events.failures.enabled', true);
     }
 
     /**

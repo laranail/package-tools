@@ -186,7 +186,7 @@ final class PackageLoggerTest extends TestCase
     #[Test]
     public function global_config_overrides_the_definition(): void
     {
-        config()->set('package-tools.logging.level', 'critical');
+        config()->set('laranail.package-tools.logging.level', 'critical');
 
         $package = $this->makePackage(LogDefinition::make()->single()->directory($this->sandbox)->level('debug'));
         $package->log()->error('filtered by global');

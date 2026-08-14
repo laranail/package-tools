@@ -40,7 +40,7 @@ final class PackageAssetsPruneCommandTest extends TestCase
         File::put($this->sandbox . '/public/index.php', '<?php // the document root');
 
         $this->app->setBasePath($this->sandbox);
-        config()->set('package-tools.assets.prune.roots', ['public/vendor']);
+        config()->set('laranail.package-tools.assets.prune.roots', ['public/vendor']);
 
         ServiceProvider::$publishGroups['blog-assets'] = [
             $this->sandbox . '/source/blog' => $this->sandbox . '/public/vendor/blog',
@@ -176,7 +176,7 @@ final class PackageAssetsPruneCommandTest extends TestCase
         // halfway through is finding it out too late.
         File::ensureDirectoryExists($this->sandbox . '/public/vendor/other');
         File::put($this->sandbox . '/public/vendor/other/x.css', 'x');
-        config()->set('package-tools.assets.prune.max_deletions', 1);
+        config()->set('laranail.package-tools.assets.prune.max_deletions', 1);
 
         $this->artisan('laranail::package-tools.assets-prune', [
             '--prune' => true,
@@ -196,7 +196,7 @@ final class PackageAssetsPruneCommandTest extends TestCase
     {
         // The live bug this suite exists for: one module with empty source and
         // target config made `public_path()` itself a recursive-delete target.
-        config()->set('package-tools.assets.prune.roots', ['public']);
+        config()->set('laranail.package-tools.assets.prune.roots', ['public']);
 
         // It fails rather than degrading to an empty scan: the operator asked
         // to prune and got nothing, and needs to be told why.
@@ -214,7 +214,7 @@ final class PackageAssetsPruneCommandTest extends TestCase
     #[Test]
     public function a_root_of_the_project_itself_is_refused(): void
     {
-        config()->set('package-tools.assets.prune.roots', ['.']);
+        config()->set('laranail.package-tools.assets.prune.roots', ['.']);
 
         $this->artisan('laranail::package-tools.assets-prune', [
             '--prune' => true,
@@ -227,7 +227,7 @@ final class PackageAssetsPruneCommandTest extends TestCase
     #[Test]
     public function no_configured_roots_means_nothing_is_scanned(): void
     {
-        config()->set('package-tools.assets.prune.roots', []);
+        config()->set('laranail.package-tools.assets.prune.roots', []);
 
         $this->artisan('laranail::package-tools.assets-prune', [
             '--prune' => true,

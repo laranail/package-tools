@@ -173,7 +173,7 @@ final class SeederAutorun
 
     private function passesGlobalGates(): bool
     {
-        if (! config('package-tools.seeders.autorun.enabled', true)) {
+        if (! config('laranail.package-tools.seeders.autorun.enabled', true)) {
             return false;
         }
 
@@ -184,7 +184,7 @@ final class SeederAutorun
             return true;
         }
 
-        return (bool) config('package-tools.seeders.autorun.in_tests', false);
+        return (bool) config('laranail.package-tools.seeders.autorun.in_tests', false);
     }
 
     /**
@@ -199,7 +199,7 @@ final class SeederAutorun
             return $this->app->environment($environments);
         }
 
-        if ($this->app->environment('production') && ! config('package-tools.seeders.autorun.in_production', false)) {
+        if ($this->app->environment('production') && ! config('laranail.package-tools.seeders.autorun.in_production', false)) {
             $this->consoleFormatter(null)?->writeWarning(sprintf(
                 "Skipping autorun seeders for '%s' in production (enable via package-tools.seeders.autorun.in_production).",
                 $bundle->key(),

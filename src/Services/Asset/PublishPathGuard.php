@@ -40,7 +40,7 @@ final readonly class PublishPathGuard
      */
     public static function fromConfig(Repository $config, string $basePath): self
     {
-        $prune = $config->get('package-tools.assets.prune', []);
+        $prune = $config->get('laranail.package-tools.assets.prune', []);
         $prune = is_array($prune) ? $prune : [];
 
         $configured = is_array($prune['roots'] ?? null) ? $prune['roots'] : ['public/vendor'];

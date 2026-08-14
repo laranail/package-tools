@@ -63,7 +63,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../../config/package-tools.php', 'package-tools');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/package-tools.php', 'laranail.package-tools');
 
         $this->app->singleton(DoctorService::class);
 
@@ -147,7 +147,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../../config/package-tools.php' => config_path('package-tools.php'),
+                __DIR__ . '/../../config/package-tools.php' => config_path('laranail/package-tools.php'),
             ], 'package-tools-config');
 
             // Opt-in post-migration autorun: fires once per Migrator batch,
@@ -181,7 +181,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
      */
     private function wireMigrationFailureReporting(): void
     {
-        if (! (bool) config('package-tools.migrations.failure_detection.enabled', true)) {
+        if (! (bool) config('laranail.package-tools.migrations.failure_detection.enabled', true)) {
             return;
         }
 

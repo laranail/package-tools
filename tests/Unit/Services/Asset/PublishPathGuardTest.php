@@ -225,7 +225,7 @@ final class PublishPathGuardTest extends TestCase
     public function it_builds_from_config(): void
     {
         $guard = PublishPathGuard::fromConfig(new Repository([
-            'package-tools' => ['assets' => ['prune' => ['roots' => ['public/vendor']]]],
+            'laranail' => ['package-tools' => ['assets' => ['prune' => ['roots' => ['public/vendor']]]]],
         ]), $this->base);
 
         self::assertCount(1, $guard->roots());
@@ -239,7 +239,7 @@ final class PublishPathGuardTest extends TestCase
         $this->expectException(UnsafeAssetPath::class);
 
         PublishPathGuard::fromConfig(new Repository([
-            'package-tools' => ['assets' => ['prune' => ['roots' => ['public']]]],
+            'laranail' => ['package-tools' => ['assets' => ['prune' => ['roots' => ['public']]]]],
         ]), $this->base);
     }
 

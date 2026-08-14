@@ -79,7 +79,7 @@ final class SeederEventsTest extends TestCase
 
     public function test_the_global_kill_switch_suppresses_the_events(): void
     {
-        config()->set('package-tools.seeders.events.enabled', false);
+        config()->set('laranail.package-tools.seeders.events.enabled', false);
         Event::fake([PackageSeedingStarted::class, PackageSeedingCompleted::class]);
 
         $registry = (new SeederRegistry)

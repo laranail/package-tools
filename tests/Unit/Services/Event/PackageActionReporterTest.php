@@ -76,7 +76,7 @@ final class PackageActionReporterTest extends TestCase
 
     public function test_the_lifecycle_gate_suppresses_dispatch_only(): void
     {
-        config()->set('package-tools.events.lifecycle.enabled', false);
+        config()->set('laranail.package-tools.events.lifecycle.enabled', false);
         Event::fake([PackageActionStarted::class, PackageActionSucceeded::class]);
         Log::spy();
 
@@ -91,7 +91,7 @@ final class PackageActionReporterTest extends TestCase
 
     public function test_the_failures_gate_suppresses_dispatch_but_never_the_log(): void
     {
-        config()->set('package-tools.events.failures.enabled', false);
+        config()->set('laranail.package-tools.events.failures.enabled', false);
         Event::fake([PackageActionFailed::class]);
         Log::spy();
 
