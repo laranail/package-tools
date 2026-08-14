@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **External publish tags were invisible to the publish command, and `--tag=` rejected them.**
+  `ServiceProvider::publishableGroups()` already returns the tag *names*; both call sites wrapped it
+  in `array_keys()`, which yields `0, 1, 2 …` — and every one of those failed the `is_string()`
+  guard that followed. So `--list` never printed the `(external)` rows its own comment describes,
+  and `knownTags()` was always empty of them, meaning `--tag=livewire:assets` was refused as unknown
+  even though the application published it.
+
+### Added
+
+- **`--external`** on `laranail::package-tools.publish` — publish every tag this package did not
+  register. Replaces the pattern of hardcoding provider class names
+  (`Livewire\LivewireServiceProvider`, `Laravel\Horizon\HorizonServiceProvider`), which published
+  exactly the packages someone thought of and guarded each with `class_exists` so a missing one
+  failed silently. Combines with `--all` to publish both sets.
+
+- **`Services\Doctor\Checks\UnregisteredPublishableCheck`** — reports package directories that
+  registered no publish tag. The failure is silent by construction: a module whose provider forgot
+  `setPublishTagId()` works fine and simply never publishes, so the symptom arrives later as a
+  missing asset. Warns rather than fails, because a module with nothing to publish is ordinary, and
+  **never publishes or deletes anything** — the command this idea comes from answered the same
+  question by publishing each directory under a guessed tag name.
+
 ### Security
 
 - **Two recursive-delete paths were bypassing `PublishPathGuard`.** The guard's

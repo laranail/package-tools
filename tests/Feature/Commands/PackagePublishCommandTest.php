@@ -257,4 +257,94 @@ final class PackagePublishCommandTest extends TestCase
         self::assertFileExists($this->sandbox . '/public/vendor/blog/stale.css');
         self::assertDirectoryExists($this->sandbox . '/public');
     }
+
+    // -----------------------------------------------------------------
+    // --external
+    // -----------------------------------------------------------------
+
+    /**
+     * A tag registered by something that is not a laranail package —
+     * Livewire, Horizon, anything else the application publishes.
+     *
+     * Every *other* group is dropped first, and that is not tidiness. A real
+     * application's external groups include the framework's own config
+     * publishing, so `--external --force` under Testbench writes config files
+     * into the skeleton — where they persist across runs and break unrelated
+     * tests that assert a key is absent. It did exactly that before this
+     * isolation was added.
+     */
+    private function registerExternal(string $tag): void
+    {
+        File::ensureDirectoryExists($this->sandbox . '/external-src');
+        File::put($this->sandbox . '/external-src/vendor.js', 'console.log(1)');
+
+        ServiceProvider::$publishGroups = array_intersect_key(
+            ServiceProvider::$publishGroups,
+            ['blog-assets' => true, 'blog-config' => true],
+        );
+
+        ServiceProvider::$publishGroups[$tag] = [
+            $this->sandbox . '/external-src' => $this->sandbox . '/public/vendor/' . $tag,
+        ];
+    }
+
+    #[Test]
+    public function external_publishes_tags_this_package_did_not_register(): void
+    {
+        // The command this generalises hardcoded Livewire's and Horizon's
+        // provider FQCNs, so it published exactly the two packages someone
+        // thought of. publishableGroups() is what vendor:publish itself reads.
+        $this->register();
+        $this->registerExternal('livewire:assets');
+
+        $this->artisan('laranail::package-tools.publish', ['--external' => true, '--force' => true])
+            ->assertExitCode(0);
+
+        self::assertFileExists($this->sandbox . '/public/vendor/livewire:assets/vendor.js');
+    }
+
+    #[Test]
+    public function external_leaves_laranail_tags_alone(): void
+    {
+        $this->register();
+        $this->registerExternal('horizon-assets');
+
+        $this->artisan('laranail::package-tools.publish', ['--external' => true, '--force' => true, '--dry-run' => true])
+            ->doesntExpectOutputToContain('blog-assets')
+            ->assertExitCode(0);
+    }
+
+    #[Test]
+    public function external_with_all_publishes_both(): void
+    {
+        $this->register();
+        $this->registerExternal('horizon-assets');
+
+        $this->artisan('laranail::package-tools.publish', ['--all' => true, '--external' => true, '--dry-run' => true])
+            ->expectsOutputToContain('blog-assets')
+            ->expectsOutputToContain('horizon-assets')
+            ->assertExitCode(0);
+    }
+
+    #[Test]
+    public function external_says_so_when_there_is_nothing_external(): void
+    {
+        // A distinct message from the generic "nothing to publish": the caller
+        // asked a specific question and the answer is "none", not "you gave me
+        // no arguments".
+        //
+        // $publishGroups is cleared first because a real application always has
+        // external tags — Laravel's own providers register several, which is
+        // what made an earlier version of this test fail. That failure was the
+        // code being right.
+        $this->register();
+        ServiceProvider::$publishGroups = array_intersect_key(
+            ServiceProvider::$publishGroups,
+            ['blog-assets' => true, 'blog-config' => true],
+        );
+
+        $this->artisan('laranail::package-tools.publish', ['--external' => true])
+            ->expectsOutputToContain('No external publish tags')
+            ->assertExitCode(1);
+    }
 }

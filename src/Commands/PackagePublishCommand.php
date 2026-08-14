@@ -36,6 +36,7 @@ final class PackagePublishCommand extends Command
         {--tag=*    : Publish only these tags (repeatable)}
         {--package= : Publish every tag belonging to this package}
         {--all      : Publish every known laranail publish tag}
+        {--external : Publish every tag this package did not register (Livewire, Horizon, …)}
         {--list     : List the publish tags this application exposes, then exit}
         {--clean    : Delete each tag\'s destinations first (guarded, confirmed)}
         {--force    : Overwrite existing files; with --clean, skip the confirmation}
@@ -54,7 +55,11 @@ final class PackagePublishCommand extends Command
         $tags = $this->resolveTags($registry);
 
         if ($tags === []) {
-            $this->error('Nothing to publish. Pass --tag=, --package=, or --all; --list shows what is available.');
+            $this->error(
+                $this->option('external')
+                    ? 'No external publish tags found: every registered tag belongs to a laranail package.'
+                    : 'Nothing to publish. Pass --tag=, --package=, --external or --all; --list shows what is available.',
+            );
 
             return self::FAILURE;
         }
@@ -225,7 +230,12 @@ final class PackagePublishCommand extends Command
         // Tags this package did not register — Livewire, Horizon, anything else
         // the application publishes. Listed so `--list` answers "what is
         // publishable" rather than "what did laranail register".
-        foreach (array_keys(ServiceProvider::publishableGroups()) as $tag) {
+        //
+        // publishableGroups() already returns the tag NAMES. Wrapping it in
+        // array_keys() yielded 0, 1, 2 …, every one of which failed the
+        // is_string() guard — so this block rendered nothing and --list had
+        // never actually shown an external tag.
+        foreach (ServiceProvider::publishableGroups() as $tag) {
             if (is_string($tag) && ! isset($known[$tag])) {
                 $rows[] = [$tag, '(external)', '—', '—', '—'];
             }
@@ -267,7 +277,13 @@ final class PackagePublishCommand extends Command
     private function resolveTags(PublishTagRegistry $registry): array
     {
         if ($this->option('all')) {
-            return $registry->tags();
+            return $this->option('external')
+                ? [...$registry->tags(), ...$this->externalTags($registry)]
+                : $registry->tags();
+        }
+
+        if ($this->option('external')) {
+            return $this->externalTags($registry);
         }
 
         $package = $this->option('package');
@@ -282,13 +298,47 @@ final class PackagePublishCommand extends Command
     }
 
     /**
+     * Every publish tag some other package registered.
+     *
+     * Read from Laravel's own registry rather than from a list of provider
+     * class names. The command this generalises hardcoded
+     * `Livewire\LivewireServiceProvider` and `Laravel\Horizon\HorizonServiceProvider`,
+     * which meant it published exactly the two packages someone thought of, in
+     * an application that had grown others — and `class_exists` guards around
+     * each so a missing one failed silently rather than being reported.
+     *
+     * `publishableGroups()` is what `vendor:publish --tag` itself reads, so
+     * this publishes what the application actually exposes.
+     *
+     * @return list<string>
+     */
+    private function externalTags(PublishTagRegistry $registry): array
+    {
+        $known = $registry->all();
+        $external = [];
+
+        foreach (ServiceProvider::publishableGroups() as $tag) {
+            if (is_string($tag) && ! isset($known[$tag])) {
+                $external[] = $tag;
+            }
+        }
+
+        sort($external);
+
+        return $external;
+    }
+
+    /**
      * @return list<string>
      */
     private function knownTags(PublishTagRegistry $registry): array
     {
+        // Same array_keys() mistake as listTags() had, and worse here: the
+        // filtered list was always empty, so `--tag=livewire:assets` was
+        // rejected as an unknown tag even though the application published it.
         return [
             ...$registry->tags(),
-            ...array_values(array_filter(array_keys(ServiceProvider::publishableGroups()), is_string(...))),
+            ...array_values(array_filter(ServiceProvider::publishableGroups(), is_string(...))),
         ];
     }
 
