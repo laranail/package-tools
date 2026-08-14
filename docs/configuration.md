@@ -798,21 +798,11 @@ into `public` must not be one config edit away from deleting the application.
 `max_deletions` is checked **before** the first deletion, so an unexpectedly large prune aborts intact
 rather than partway through.
 
-## Seeder file helpers
+## Seeder file helpers moved
 
-The `seeders` block also configures
-`Concerns\Database\InteractsWithSeedFiles` — see
-[Seeder file helpers](seeding.md#seeder-file-helpers).
-
-```php
-'seeders' => [
-    // Where seed fixtures live. Null falls back to database_path('seeders/files').
-    'files_path' => env('PACKAGE_TOOLS_SEED_FILES_PATH'),
-
-    // Locale for the trait's memoized fake() generator.
-    'faker_locale' => env('PACKAGE_TOOLS_FAKER_LOCALE', 'en_US'),
-],
-```
+`InteractsWithSeedFiles` and its `files_path` / `faker_locale` settings are now in
+`laranail/db-tools` under `laranail.db-tools.seeding.*`. See
+[Seeder file helpers](seeding.md#seeder-file-helpers-moved-to-laranaildb-tools).
 
 ## Runtime environment variables
 
@@ -820,8 +810,6 @@ The `seeders` block also configures
 
 | Variable | Type | Default | Governs |
 |---|---|---|---|
-| `PACKAGE_TOOLS_SEED_FILES_PATH` | string | `database_path('seeders/files')` | Where `InteractsWithSeedFiles` looks for fixtures |
-| `PACKAGE_TOOLS_FAKER_LOCALE` | string | `en_US` | Locale for that trait's `fake()` generator |
 | `PACKAGE_TOOLS_SEEDERS_AUTORUN` | bool | `true` | Global kill-switch for autorun-after-migrations bundles |
 | `PACKAGE_TOOLS_SEEDERS_AUTORUN_PRODUCTION` | bool | `false` | Whether autorun is allowed in production |
 | `PACKAGE_TOOLS_LIFECYCLE_EVENTS` | bool | `true` | Package action lifecycle events |

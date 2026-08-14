@@ -456,52 +456,23 @@ onto the typed `SeederBundle` setters:
 | `parameters` | array | `[]` | `parameters()` |
 | `priority` | int | `0` | `priority()` |
 
-## Seeder file helpers
+## Seeder file helpers moved to `laranail/db-tools`
 
-`Concerns\Database\InteractsWithSeedFiles` covers the two things every package seeder ends up
-rewriting: a Faker generator, and somewhere to keep fixture files.
+`InteractsWithSeedFiles` used to live here, beside `SeederManager`, and it did not belong with it.
+`SeederManager` registers and runs **package** seeders keyed by package name — package-authoring
+machinery. Fixture files and a Faker generator are what an **application's** own seeders need, which
+is `laranail/db-tools`' concern.
 
-```php
-use Illuminate\Database\Seeder;
-use Simtabi\Laranail\Package\Tools\Concerns\Database\InteractsWithSeedFiles;
-
-final class CountrySeeder extends Seeder
-{
-    use InteractsWithSeedFiles;
-
-    public function run(): void
-    {
-        foreach ($this->seedFileJson('countries.json') as $row) {
-            Country::create($row + ['tagline' => $this->fake()->sentence()]);
-        }
-    }
-}
+```diff
+-use Simtabi\Laranail\Package\Tools\Concerns\Database\InteractsWithSeedFiles;
++use Simtabi\Laranail\DbTools\Seeding\Concerns\InteractsWithSeedFiles;
 ```
 
-| Method | Returns |
-|---|---|
-| `fake(?string $locale = null)` | A memoized `Faker\Generator`. A locale argument yields a one-off and does not replace the default. |
-| `seedFaker(int $seed)` | The memoized generator, reseeded — for a reproducible run. |
-| `seedFileBasePath()` / `setSeedFileBasePath(string)` | The fixture directory. |
-| `seedFilePath(string)` | Resolve a fixture path; absolute paths pass through. |
-| `seedFileExists(string)` | Whether it is there. |
-| `seedFileContents(string)` | Its contents, or `SeederException` (4006). |
-| `seedFileJson(string)` | Decoded JSON, or `SeederException`. |
-| `seedFiles(string $dir = '', ?string $ext = null)` | Every fixture in a subdirectory, sorted, absolute. |
+Its config moved with it, from `package-tools.seeders.{files_path,faker_locale}` to
+`laranail.db-tools.seeding.{files_path,faker_locale}`, and `SeederException::missingFaker()` /
+`seedFileMissing()` became `DbTools\Exceptions\SeedFileException`.
 
-The base path comes from `package-tools.seeders.files_path`, defaulting to
-`database_path('seeders/files')`; `setSeedFileBasePath()` overrides it per instance.
-
-**`fake()` throws when Faker is absent; it does not install anything.** `fakerphp/faker` is a dev
-dependency of this package and only `suggest`-ed to consumers, so a missing generator raises
-`SeederException::missingFaker()` (code 4005) that a caller can catch and report. This is deliberate:
-the implementation this replaces ran `composer install` from inside the method and then called
-`exit(1)` when that did not help — from a library, in whatever context it happened to be called from,
-so a seeder running inside a queue worker or a test suite would simply vanish.
-
-The generator is memoized for reproducibility rather than speed. `Factory::create()` seeds a fresh
-Mersenne Twister on every call, so a seeder building one per record could never be made deterministic
-by seeding once at the start of a run.
+See [db-tools' seeding documentation](https://opensource.simtabi.com/documentation/laranail/db-tools/).
 
 ## Failure observability
 

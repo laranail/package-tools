@@ -22,9 +22,6 @@ parameters:
         # so PHPStan (which scans only src/) always reports them as unused.
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Commands\\HasProgressBar is used zero times#'
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\ManagesComposer is used zero times#'
-        # InteractsWithSeedFiles is the same shape: it exists to be `use`-d by a
-        # consumer's seeder classes, which live outside src/.
-        - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Database\\InteractsWithSeedFiles is used zero times#'
         # Generic array value types in docblocks are not enforced.
         -
             identifier: missingType.iterableValue
