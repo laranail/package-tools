@@ -146,9 +146,12 @@ final class PackageToolsServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
+            // Namespaced like every tag this package mints for others —
+            // the registry is a flat map, and a bare `package-tools-config`
+            // is a collision waiting for a sibling.
             $this->publishes([
                 __DIR__ . '/../../config/package-tools.php' => config_path('laranail/package-tools.php'),
-            ], 'package-tools-config');
+            ], 'laranail::package-tools-config');
 
             // Opt-in post-migration autorun: fires once per Migrator batch,
             // including nested `$command->call('migrate')` (install commands).
