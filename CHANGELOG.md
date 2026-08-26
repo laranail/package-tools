@@ -26,8 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Nothing changes for anyone already depending on `laranail/console` directly.
 
-### Changed
-
 - **Breaking.** The default view and translation namespaces are now the composer package name,
   `vendor/package`, rather than `vendor-package`, so a key names the package that ships it:
   `view('laranail/atlas::page')`, `__('laranail/atlas::messages.saved')`. Published files follow the

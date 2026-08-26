@@ -106,8 +106,10 @@ final class PackageToolsServiceProvider extends ServiceProvider
         // Standalone seeding API (shared registry so autoSeed() and the
         // resolver hook see the same configurations).
         $this->app->singleton(SeederRegistry::class);
-        // Formatter stays opt-in: pass a SeederConsoleFormatter explicitly
-        // (with an OutputStyle) when you want tree-structured output.
+        // Output stays opt-in: resolve SeederConsoleFormatterInterface and hand it an OutputStyle
+        // when a run should print. Which implementation answers is decided below -- naming the
+        // concrete SeederConsoleFormatter here would be wrong twice over, since the container binds
+        // the interface and that class is not even loadable without laranail/console installed.
         $this->app->singleton(SeederExecutor::class, static fn ($app): SeederExecutor => new SeederExecutor($app));
         $this->app->singleton(SeederAutorun::class);
         $this->app->singleton(SeederPathDiscoverer::class);
