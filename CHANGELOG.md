@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking.** The default view and translation namespaces are now the composer package name,
+  `vendor/package`, rather than `vendor-package`, so a key names the package that ships it:
+  `view('laranail/atlas::page')`, `__('laranail/atlas::messages.saved')`. Published files follow the
+  namespace into `resources/views/vendor/laranail/atlas` and `lang/vendor/laranail/atlas`, which is
+  where Laravel then reads them from -- `FileLoader::loadNamespaceOverrides()` interpolates the
+  namespace into `{$path}/vendor/{$namespace}/{$locale}/{$group}.php`, and `loadViewsFrom()` does the
+  same for views -- so the nesting groups a vendor's packages under one directory instead of
+  scattering them across the `lang/vendor` root. A package passing an explicit namespace to
+  `hasViews()` is unaffected.
+
+### Added
+
+- `Package::componentPrefix()`, the hyphen form of the view namespace. Blade component tags are the
+  one registry that cannot take a slash: `ComponentTagCompiler` captures the name with
+  `[\w\-\:\.]`, so `<x-laranail/atlas::card />` truncates at the slash and is emitted as literal
+  text rather than compiled. `bootPackageViews()` registers the prefix as an alias over the paths
+  `loadViewsFrom()` just resolved -- the published override directory included -- so both spellings
+  find the same file and an override still wins for component tags. A custom view namespace is
+  mirrored rather than ignored, so a package that opts out of the default still gets a tag-safe
+  prefix.
+- `tests/Feature/NamespaceSeparatorTest.php`, pinning the split against Blade's own name pattern
+  rather than against a comment, so an upstream change to that pattern fails a test here.
+
+### Changed
+
 - **Breaking.** The package's OWN config publish tag is now
   `laranail::package-tools-config` (was the bare `package-tools-config`) — the same
   namespacing this package mints for everyone else's tags, enforced by a live-registry test.
