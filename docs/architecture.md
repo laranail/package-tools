@@ -194,6 +194,35 @@ elsewhere: it lets the code use readonly classes, typed constants, and
 current attribute/reflection APIs without back-compat shims, and keeps
 the dependency surface to current `illuminate/*` contracts.
 
+## Where providers live
+
+**Every service provider sits in a `Providers/` directory**, and its namespace ends in `\Providers`.
+For a single-provider package that is `src/Providers/AtlasServiceProvider.php`; for a package with
+per-module providers it is one `Providers/` directory per module —
+`src/Modules/GraphQL/Providers/GraphQLServiceProvider.php` — not a single directory at the root
+collecting them all. Laravel's own skeleton does the same thing with `app/Providers`, and every
+generator in this family already emits into that shape.
+
+`getPackageBaseDir()` resolves the package root by reflecting on the provider class and walking up
+from its file, and it steps out of a `Providers/` directory before stepping out of `src/`. So
+`$package->basePath()`, and everything built on it, is unaffected by where the provider sits.
+
+Hand-written paths are not. Moving a provider one level deeper breaks four things, and **all four
+fail at runtime rather than at parse time**, which is what makes the move worth doing once and
+documenting rather than repeating:
+
+| What breaks | Why |
+|---|---|
+| `__DIR__ . '/../config/…'` | one level short of the package root now |
+| `dirname(__DIR__)` | same, in the other spelling |
+| A sibling class used unqualified | it is no longer in the provider's namespace |
+| A relative sub-namespace, `Support\Foo` | resolves under `…\Providers\Support`, which does not exist |
+
+The last two are the quiet ones. PHP resolves an unqualified class name against the current
+namespace at call time, so the file parses, the package installs, and the failure surfaces only when
+that particular line runs. Import them explicitly — a namespace itself can be imported
+(`use Acme\Widget\Support;`), which restores the old resolution without touching any call site.
+
 ## Cross-platform support
 
 ### Path resolution
