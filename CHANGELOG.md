@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- **`php artisan laranail::package-tools.packages`** and the `PackageRegistry` behind it: every
+  package built on `PackageServiceProvider`, what each one claimed, and whether any two claimed the
+  same name.
+
+  Laravel keeps view namespaces, translation namespaces, config keys and publish tags in flat global
+  maps, so a second package claiming a key does not collide loudly — it silently replaces the first,
+  and the failure surfaces far away as a missing view or the wrong file published. Nothing in the
+  framework can answer that afterwards. `--collisions` exits non-zero, so it works as a CI gate.
+
+  See [Package registry](docs/tools/package-registry.md).
+
 ### Changed
 
 - **`laranail/console` is a suggestion, not a requirement.** It was reached by exactly one class out
