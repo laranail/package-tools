@@ -61,6 +61,30 @@ The root check compares the base directory's **depth** rather than inspecting th
 `dirname()` saturates at `/` instead of failing — and `/` is also a legitimate result of a correct
 climb from a shallow directory, so the return value cannot distinguish the two.
 
+## Inside a service provider, use `packagePath()`
+
+A package extending `PackageServiceProvider` does not need `PathResolver` at all:
+
+```php
+$this->mergeConfigFrom($this->packagePath('config/db-tools.php'), 'laranail.db-tools');
+$this->loadViewsFrom($this->packagePath('resources/views'), $namespace);
+```
+
+`getPackageBaseDir()` reflects on the provider class and already walks out of `Providers/` and
+`src/`, so this is exact rather than inferred — no backtrace, and correct wherever the provider sits.
+It works from `register()` onward and does not need `$this->package` to have been built.
+
+Two things it cannot do, both of which bite quietly:
+
+- **A `static` closure has no `$this`.** `__DIR__` worked there because it is a compile-time constant;
+  a method call is not. Resolve the path into a variable above the closure — an arrow function
+  captures by value, so the closure stays `static`.
+- **Do not concatenate onto a trailing separator.** `packagePath('routes/') . $file` loses the
+  separator, because joining drops empty segments — `routes/` + `api.php` becomes `routesapi.php`.
+  Put the whole relative path inside the call: `packagePath('routes/' . $file)`.
+
+Outside a provider — a command, a value object, a plain `ServiceProvider` — use `packageRoot()`.
+
 ## Prefer `packageRoot()` where it applies
 
 The level count is itself the fragile part. A marker removes it:
