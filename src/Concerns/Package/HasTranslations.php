@@ -42,13 +42,20 @@ trait HasTranslations
     }
 
     /**
-     * The `vendor-package` translation namespace (e.g. `laranail-validation`).
-     * Vendor is required.
+     * The `vendor/package` translation namespace (e.g. `laranail/validation`),
+     * so `__('laranail/validation::messages.x')` names the composer package that
+     * ships the string. Vendor is required.
      *
-     * The separator is a hyphen, not a slash: `lang/vendor/{namespace}` is a
-     * single published directory, so a slash would nest the package's files one
-     * level deeper than `vendor:publish` and every consumer's override path
-     * expect.
+     * The slash is safe here, and the nesting it causes is the point rather than
+     * a hazard: Laravel interpolates the namespace into the override path itself
+     * (`FileLoader::loadNamespaceOverrides()` reads
+     * `{$path}/vendor/{$namespace}/{$locale}/{$group}.php`), so the published
+     * files land in `lang/vendor/laranail/validation` and are read from exactly
+     * there. Publishing groups a vendor's packages under one directory instead of
+     * scattering them across the `lang/vendor` root.
+     *
+     * Blade component tags are the one registry that cannot take this form -- see
+     * Package::componentPrefix().
      *
      * @throws RuntimeException If vendor is not set
      */
@@ -61,8 +68,8 @@ trait HasTranslations
             );
         }
 
-        return $this->getDashedNamespace();
+        return $this->getSlashNamespace();
     }
 
-    abstract public function getDashedNamespace(): string;
+    abstract public function getSlashNamespace(): string;
 }

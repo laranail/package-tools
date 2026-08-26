@@ -49,7 +49,10 @@ class HasViewsTest extends TestCase
         // bare 'my-package' hint would be a collision risk in Laravel's flat
         // view-hint map.
         $this->assertNull($this->package->viewNamespace);
-        $this->assertSame('test-vendor-my-package', $this->package->viewNamespace());
+        $this->assertSame('test-vendor/my-package', $this->package->viewNamespace());
+
+        // Blade component tags cannot spell that namespace, so they get the hyphen alias.
+        $this->assertSame('test-vendor-my-package', $this->package->componentPrefix());
     }
 
     #[Test]

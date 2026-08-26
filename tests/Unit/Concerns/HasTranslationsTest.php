@@ -41,10 +41,12 @@ class HasTranslationsTest extends TestCase
     }
 
     #[Test]
-    public function the_translation_namespace_is_vendor_scoped_with_a_hyphen(): void
+    public function the_translation_namespace_is_the_composer_package_name(): void
     {
-        // A slash would nest the published files under lang/vendor/{vendor}/{package},
-        // one level deeper than vendor:publish and consumer overrides expect.
-        $this->assertSame('test-vendor-test-package', $this->package->translationNamespace());
+        // Laravel interpolates the namespace into the override path itself, so the slash simply
+        // nests the published files at lang/vendor/{vendor}/{package} -- which is where
+        // FileLoader::loadNamespaceOverrides() then reads them from. Grouping a vendor's packages
+        // under one directory is the point rather than a hazard.
+        $this->assertSame('test-vendor/test-package', $this->package->translationNamespace());
     }
 }

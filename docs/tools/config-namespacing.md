@@ -152,3 +152,9 @@ paths, drive letters, null bytes and URL schemes are rejected before a path is
 built.
 
 [← Docs index](../../README.md#documentation)
+
+Config keys are one of seven registries a package writes into. For the other six — and for why views take a slash while Blade component tags cannot — see [Public names](public-names.md).
+
+---
+
+[← Docs index](../../README.md#documentation)
