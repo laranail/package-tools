@@ -14,6 +14,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Override;
+use Simtabi\Laranail\Console\Tools\Formatting\ConsoleUIFormatter;
 use Simtabi\Laranail\Package\Tools\Commands\PackageAssetsPruneCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageAuditCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
@@ -28,6 +29,7 @@ use Simtabi\Laranail\Package\Tools\Services\Config\ConfigManager;
 use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
 use Simtabi\Laranail\Package\Tools\Services\Database\MigrationFailureDetector;
+use Simtabi\Laranail\Package\Tools\Services\Database\PlainSeederConsoleFormatter;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederBuilder;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
@@ -111,7 +113,16 @@ final class PackageToolsServiceProvider extends ServiceProvider
         $this->app->singleton(SeederPathDiscoverer::class);
         $this->app->singleton(SeederManager::class);
         $this->app->bind(SeederBuilder::class, static fn ($app): SeederBuilder => $app->make(SeederManager::class)->seeders());
-        $this->app->singleton(SeederConsoleFormatterInterface::class, static fn (): SeederConsoleFormatter => new SeederConsoleFormatter);
+        // laranail/console is a suggestion, not a requirement: it is reached by exactly one class in
+        // this package, and requiring it would put a console library into every application that
+        // installs anything built on PackageServiceProvider. Styled output where it is present, the
+        // same contract in plain text where it is not.
+        $this->app->singleton(
+            SeederConsoleFormatterInterface::class,
+            static fn (): SeederConsoleFormatterInterface => class_exists(ConsoleUIFormatter::class)
+                ? new SeederConsoleFormatter
+                : new PlainSeederConsoleFormatter,
+        );
         $this->app->singleton(SeederResolverHook::class);
 
         // SystemService is request-scoped; its output depends on $_SERVER.
