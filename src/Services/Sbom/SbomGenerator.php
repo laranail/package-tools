@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 
 /**
  * Pure-PHP CycloneDX 1.5 JSON SBOM generator.
@@ -83,14 +84,14 @@ final readonly class SbomGenerator
      */
     private function resolveOutputPath(string $outputPath): string
     {
-        $candidate = Str::startsWith($outputPath, '/')
+        $candidate = $this->isAbsolute($outputPath)
             ? $outputPath
-            : $this->projectRoot . '/' . $outputPath;
+            : Path::join($this->projectRoot, $outputPath);
 
         $normalised = $this->lexicalNormalise($candidate);
         $rootNormalised = $this->lexicalNormalise($this->projectRoot);
 
-        if ($normalised !== $rootNormalised && ! Str::startsWith($normalised, $rootNormalised . '/')) {
+        if (! Path::isWithin($rootNormalised, $normalised)) {
             throw new RuntimeException(
                 "SBOM output path is outside project root: {$outputPath}"
             );
@@ -104,9 +105,12 @@ final readonly class SbomGenerator
      */
     private function lexicalNormalise(string $path): string
     {
-        $absolute = Str::startsWith($path, '/');
+        $absolute = $this->isAbsolute($path);
         $segments = [];
-        foreach (explode('/', $path) as $segment) {
+
+        // Split on either separator. Splitting on '/' alone left a Windows path as a single segment,
+        // so '..' was never seen and the containment check below compared two unsplit strings.
+        foreach (Path::segments($path) as $segment) {
             if ($segment === '') {
                 continue;
             }
@@ -121,7 +125,19 @@ final readonly class SbomGenerator
             $segments[] = $segment;
         }
 
-        return ($absolute ? '/' : '') . implode('/', $segments);
+        return ($absolute ? Path::SEPARATOR : '') . implode(Path::SEPARATOR, $segments);
+    }
+
+    /**
+     * A leading separator, or a Windows drive letter. Str::startsWith($path, '/') recognises neither
+     * a backslash root nor 'C:\', so it read an absolute Windows path as relative and joined it onto
+     * the project root.
+     */
+    private function isAbsolute(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\')
+            || preg_match('#^[a-z]:#i', $path) === 1;
     }
 
     /**
