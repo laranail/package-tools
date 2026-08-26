@@ -40,7 +40,12 @@ One directory per vendor beats a flat `lang/vendor` root holding thirty sibling 
 **Blade component tags cannot.** `ComponentTagCompiler` captures the component name with
 `[\w\-\:\.]`, which admits no forward slash, so `<x-laranail/atlas::card />` truncates at
 `laranail` and is emitted as literal text rather than compiled — no error, just a tag that renders
-as itself. `componentPrefix()` returns the hyphen form for this registry alone.
+as itself. `componentPrefix()` returns the hyphen form for this registry alone, giving tags the
+shape `<x-laranail-atlas::card />`.
+
+The **dot is admitted**, so sub-components nest normally:
+`<x-laranail-atlas::forms.input />` resolves to `resources/views/components/forms/input.blade.php`.
+It is only the slash that fails.
 
 **Middleware aliases cannot take `::`.** Laravel does `explode(':', $name, 2)` to take middleware
 parameters, the way `throttle:60,1` works, so `laranail::atlas` resolves as the middleware

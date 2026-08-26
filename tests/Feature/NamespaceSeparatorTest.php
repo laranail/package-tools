@@ -32,6 +32,16 @@ it('mirrors a custom view namespace into the component prefix', function (): voi
         ->and($package->componentPrefix())->toBe('acme-legacy');
 });
 
+it('admits dotted sub-components under the hyphen prefix', function (): void {
+    // <x-laranail-atlas::forms.input /> resolves to components/forms/input.blade.php. The dot is in
+    // Blade's name class, so nesting works -- it is only the slash that does not.
+    $pattern = '/<\s*x[-\:]([\w\-\:\.]*)/x';
+
+    preg_match($pattern, '<x-laranail-atlas::forms.input />', $m);
+
+    expect($m[1])->toBe('laranail-atlas::forms.input');
+});
+
 it("proves the slash is impossible in a component tag, using Blade's own pattern", function (): void {
     // Illuminate\View\Compilers\ComponentTagCompiler: the name is captured by [\w\-\:\.], which has
     // no forward slash. If this ever changes upstream, this test is the thing that notices.
