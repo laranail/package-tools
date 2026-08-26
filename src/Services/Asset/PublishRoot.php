@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
 use Illuminate\Support\Str;
 use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
+use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 use Stringable;
 
 /**
@@ -142,9 +143,9 @@ final readonly class PublishRoot implements Stringable
 
     public function depth(): int
     {
-        $relative = ltrim(Str::after($this->path, $this->basePath), '/');
+        $relative = Str::after($this->path, $this->basePath);
 
-        return $relative === '' ? 0 : count(explode('/', $relative));
+        return count(Path::segments($relative));
     }
 
     public function __toString(): string
@@ -161,11 +162,13 @@ final readonly class PublishRoot implements Stringable
      */
     public static function normalise(string $path): string
     {
-        $path = str_replace('\\', '/', $path);
-        $absolute = str_starts_with($path, '/');
+        // Split the root prefix off first. It is not a segment: "\\\\server\\share" is a UNC root, and
+        // treating its host and share as ordinary segments collapsed it to "/server/share" -- a local
+        // absolute path -- so every containment check below then ran against the wrong path.
+        [$prefix, $rest] = Path::split($path);
         $segments = [];
 
-        foreach (explode('/', $path) as $segment) {
+        foreach (Path::segments($rest) as $segment) {
             if ($segment === '') {
                 continue;
             }
@@ -181,14 +184,12 @@ final readonly class PublishRoot implements Stringable
             $segments[] = $segment;
         }
 
-        return ($absolute ? '/' : '') . implode('/', $segments);
+        return $prefix . implode(Path::SEPARATOR, $segments);
     }
 
     private static function isAbsolute(string $path): bool
     {
-        return str_starts_with($path, '/')
-            || str_starts_with($path, '\\')
-            || preg_match('/^[A-Za-z]:/', $path) === 1;
+        return Path::isAbsolute($path);
     }
 
     /** Self-or-descendant. */
@@ -197,9 +198,9 @@ final readonly class PublishRoot implements Stringable
         return $candidate === $root || self::isUnder($root, $candidate);
     }
 
-    /** Strict descendant. */
+    /** Strict descendant. Separator-, root- and case-handling all live in Path::isWithin(). */
     private static function isUnder(string $root, string $candidate): bool
     {
-        return str_starts_with($candidate, rtrim($root, '/') . '/');
+        return $candidate !== $root && Path::isWithin($root, $candidate);
     }
 }

@@ -160,6 +160,9 @@ $registry->get('blog-assets')->destinations();
 See [Asset publishing and pruning](../configuration.md#asset-publishing-and-pruning) for the
 `assets.publish` and `assets.prune` blocks.
 
+
+Path handling — separators, root prefixes (Unix, Windows drive, UNC) and the containment checks that keep a publish root inside the project — is centralised in [Path resolver](path-resolver.md).
+
 ---
 
 [← Docs index](../../README.md#documentation)

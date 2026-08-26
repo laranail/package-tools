@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishRoot;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 
 it('joins with the platform separator whichever separator it is given', function (): void {
@@ -103,4 +104,12 @@ it('reports what is absolute', function (): void {
         ->and(Path::isAbsolute('C:\a'))->toBeTrue()
         ->and(Path::isAbsolute('\\\\srv\share'))->toBeTrue()
         ->and(Path::isAbsolute('a/b'))->toBeFalse();
+});
+
+it('keeps a UNC publish root from collapsing into a local path', function (): void {
+    // PublishRoot::normalise() went through explode('/') on a backslash-replaced string, so a UNC
+    // root became "/server/share" -- and every containment check then ran against a local path that
+    // has nothing to do with the share.
+    expect(PublishRoot::normalise('\\\\server\share\assets'))
+        ->toBe(str_repeat(Path::SEPARATOR, 2) . implode(Path::SEPARATOR, ['server', 'share', 'assets']));
 });
