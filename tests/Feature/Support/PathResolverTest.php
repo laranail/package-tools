@@ -41,28 +41,28 @@ it('descends through real directory entries', function (): void {
 /* ------------------------------------------------------------- arguments */
 
 it('rejects a level count below one', function (): void {
-    (void) PathResolver::resolve(levels: 0, direction: PathDirection::Outer);
+    expect(PathResolver::resolve(levels: 0, direction: PathDirection::Outer))->toBeString();
 })->throws(InvalidArgumentException::class, 'at least 1');
 
 it('requires a path when descending', function (): void {
-    (void) PathResolver::resolve(levels: 2, direction: PathDirection::Inner);
+    expect(PathResolver::resolve(levels: 2, direction: PathDirection::Inner))->toBeString();
 })->throws(InvalidArgumentException::class, 'needs a path to descend into');
 
 it('requires the descent depth to match the path it is given', function (): void {
-    (void) PathResolver::resolve(levels: 3, direction: PathDirection::Inner, path: 'a/b');
+    expect(PathResolver::resolve(levels: 3, direction: PathDirection::Inner, path: 'a/b'))->toBeString();
 })->throws(InvalidArgumentException::class, 'exactly 3 segment(s)');
 
 it('refuses to climb past the filesystem root', function (): void {
     // dirname() saturates at "/" instead of failing, so without the depth check a too-large count
     // returns a plausible absolute path built on the root.
-    (void) PathResolver::resolve(levels: 99, direction: PathDirection::Outer);
+    expect(PathResolver::resolve(levels: 99, direction: PathDirection::Outer))->toBeString();
 })->throws(RuntimeException::class, 'past the filesystem root');
 
 /* -------------------------------------------------------------- security */
 
 it('rejects a stream wrapper', function (string $path): void {
     // A phar:// path reaching a later require is remote code execution, not a wrong directory.
-    (void) PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: $path);
+    expect(PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: $path))->toBeString();
 })->with([
     'phar://evil.phar/config.php',
     'file:///etc/passwd',
@@ -74,23 +74,23 @@ it('rejects a stream wrapper', function (string $path): void {
 it('rejects a null byte', function (): void {
     // PHP's path functions are C strings underneath and truncate at the byte, so "x.php\0.txt"
     // passes an extension check and then opens x.php.
-    (void) PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: "config.php\0.txt");
+    expect(PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: "config.php\0.txt"))->toBeString();
 })->throws(InvalidArgumentException::class, 'null byte');
 
 it('rejects an absolute path', function (string $path): void {
-    (void) PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: $path);
+    expect(PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: $path))->toBeString();
 })->with(['/etc/passwd', '\\windows\\system32'])->throws(InvalidArgumentException::class);
 
 it('rejects a UNC network path', function (): void {
-    (void) PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: '\\\\attacker\\share\\x.php');
+    expect(PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: '\\\\attacker\\share\\x.php'))->toBeString();
 })->throws(InvalidArgumentException::class, 'UNC');
 
 it('rejects a Windows drive letter', function (): void {
-    (void) PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: 'C:\\windows\\system32');
+    expect(PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: 'C:\\windows\\system32'))->toBeString();
 })->throws(InvalidArgumentException::class, 'drive letter');
 
 it('rejects a traversal segment', function (): void {
-    (void) PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: 'config/../../../etc/passwd');
+    expect(PathResolver::resolve(levels: 1, direction: PathDirection::Outer, path: 'config/../../../etc/passwd'))->toBeString();
 })->throws(InvalidArgumentException::class, '".." segment');
 
 it('allows a filename that merely contains dots', function (): void {
@@ -117,7 +117,7 @@ it('refuses a descent that leaves the tree through a symlink', function (): void
     }
 
     try {
-        expect(fn () => PathResolverCallerFixture::descendInto($root, 'escape'))
+        expect(fn (): string => PathResolverCallerFixture::descendInto($root, 'escape'))
             ->toThrow(RuntimeException::class, 'escapes');
     } finally {
         @unlink($link);
@@ -128,6 +128,24 @@ it('refuses a descent that leaves the tree through a symlink', function (): void
 it('reports a segment that does not exist rather than returning the path', function (): void {
     $root = Path::join(dirname(__DIR__, 2), 'fixtures/pathresolver');
 
-    expect(fn () => PathResolverCallerFixture::descendInto($root, 'nope'))
+    expect(fn (): string => PathResolverCallerFixture::descendInto($root, 'nope'))
         ->toThrow(RuntimeException::class, 'has no entry named "nope"');
+});
+
+/* ------------------------------------------------------------- constants */
+
+it('exposes the directions as constants on the resolver', function (): void {
+    // The call-site spelling: PathResolver::OUTER, with no second import. These are the enum cases
+    // themselves rather than copies, so the argument stays type-checked.
+    expect(PathResolver::OUTER)->toBe(PathDirection::Outer)
+        ->and(PathResolver::INNER)->toBe(PathDirection::Inner);
+});
+
+it('defaults the direction to OUTER', function (): void {
+    expect(PathResolver::resolve(levels: 1))->toBe(dirname(__DIR__));
+});
+
+it('accepts the constant in place of the enum case', function (): void {
+    expect(PathResolver::resolve(levels: 1, direction: PathResolver::OUTER, path: 'x.php'))
+        ->toBe(Path::join(dirname(__DIR__), 'x.php'));
 });

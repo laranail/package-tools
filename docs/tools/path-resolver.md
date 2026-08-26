@@ -10,16 +10,22 @@ providers one directory deeper across this family broke exactly this, in two spe
 (`__DIR__ . '/../…'` and `dirname(__DIR__)`), and every failure surfaced at runtime.
 
 ```php
-use Simtabi\Laranail\Package\Tools\Support\Path\PathDirection;
 use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
 
 // From src/Providers/DbToolsServiceProvider.php, the package root is two levels up.
 $config = PathResolver::resolve(
     levels: 2,
-    direction: PathDirection::Outer,
+    direction: PathResolver::OUTER,
     path: 'config/db-tools.php',
 );
+
+// OUTER is the default, so a package reaching for its own root can say only what varies:
+$root = PathResolver::resolve(levels: 2);
 ```
+
+`PathResolver::OUTER` and `PathResolver::INNER` are the `PathDirection` cases themselves, held in
+typed class constants rather than copied — so the argument stays type-checked, a `match` over
+`PathDirection` remains exhaustive, and a call site needs one import instead of two.
 
 ## It resolves from the caller
 
@@ -31,12 +37,16 @@ same answer no matter where it sits, and the level count means nothing to the co
 The calling *file* rather than the calling class is deliberate: a trait's method, a closure, and an
 inherited method all report a class whose file is somewhere other than the code doing the counting.
 
-## Both arguments are required
+## `levels` is required; `direction` defaults to OUTER
 
-There is no default for `levels` or `direction`. A caller that omits the direction is asking for a
-path without saying which way to walk, and a helper that guesses is back to the failure this one
-exists to remove. Every check runs before the filesystem is touched, so a malformed call throws at
-the call site instead of returning a wrong-but-usable string.
+`levels` has no default. It is the value that differs at every call site, and guessing it is the
+failure this class exists to remove — so omitting it is a `TypeError` at the call, not a silent 1.
+
+`direction` defaults to `OUTER`, which is what a package reaching for its own root wants and what
+almost every replaced `__DIR__ . '/../..'` meant. `INNER` is the deliberate case and is written out.
+
+Every check runs before the filesystem is touched, so a malformed call throws at the call site rather
+than returning a wrong-but-usable string.
 
 | Condition | Result |
 |---|---|

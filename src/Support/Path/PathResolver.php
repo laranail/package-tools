@@ -9,6 +9,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
+use NoDiscard;
 use RuntimeException;
 use SplFileInfo;
 
@@ -37,6 +38,16 @@ final class PathResolver
      * be registered at runtime by any extension or by the application itself, so a list of the
      * dangerous ones is a list of the ones known to be dangerous today.
      */
+    /**
+     * Direction aliases, so a call site reads PathResolver::OUTER without a second import.
+     *
+     * These are the enum cases, not copies of them: a typed class constant holds the case itself, so
+     * the argument stays type-checked and a match() over PathDirection remains exhaustive.
+     */
+    public const PathDirection OUTER = PathDirection::Outer;
+
+    public const PathDirection INNER = PathDirection::Inner;
+
     private const string SCHEME_PATTERN = '#^[a-z][a-z0-9+.\-]+:#i';
 
     /**
@@ -47,8 +58,8 @@ final class PathResolver
      * @throws InvalidArgumentException When the arguments are malformed or the path is unsafe.
      * @throws RuntimeException When resolution escapes its boundary or the caller is unknown.
      */
-    #[\NoDiscard('The resolved path is the entire result; discarding it performs no work.')]
-    public static function resolve(int $levels, PathDirection $direction, string $path = ''): string
+    #[NoDiscard('The resolved path is the entire result; discarding it performs no work.')]
+    public static function resolve(int $levels, PathDirection $direction = self::OUTER, string $path = ''): string
     {
         // Argument validation runs before any filesystem access, so a malformed call cannot be used
         // to probe for the existence of paths it was never entitled to name.
