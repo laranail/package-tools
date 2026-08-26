@@ -83,6 +83,56 @@ final class PathResolver
     }
 
     /**
+     * Walk up from the calling file until a directory containing `$marker` is found.
+     *
+     * This is the better answer wherever it applies, because it removes the level count altogether:
+     * a file that moves deeper keeps resolving to the same root, which is exactly the failure the
+     * level-counted form is only *guarding* against. Prefer it over
+     * `resolve(levels: n, path: 'config/x.php')` unless the target genuinely is "n directories up"
+     * rather than "the package root".
+     *
+     *     $config = PathResolver::packageRoot() . '/config/db-tools.php';
+     *     $config = Path::join(PathResolver::packageRoot(), 'config/db-tools.php');
+     *
+     * @param string $marker File or directory that identifies the root. Must be a single segment --
+     *                       a path here would be searched for at every level, which is a different
+     *                       and much slower question than the one this answers.
+     *
+     * @throws InvalidArgumentException When the marker is not a single path segment.
+     * @throws RuntimeException When no ancestor contains the marker.
+     */
+    #[NoDiscard('The resolved root is the entire result; discarding it performs no work.')]
+    public static function packageRoot(string $marker = 'composer.json'): string
+    {
+        self::guardPath($marker);
+
+        if (count(Path::segments($marker)) !== 1) {
+            throw new InvalidArgumentException(sprintf(
+                'The marker "%s" must be a single path segment; searching for a nested path at every level is a different question.',
+                $marker,
+            ));
+        }
+
+        $files = self::filesystem();
+        $directory = self::callerDirectory();
+
+        // Bounded by depth rather than by a fixed count, so it stops at the root prefix -- the drive
+        // or UNC share -- instead of spinning at "/" where dirname() saturates.
+        for ($remaining = Path::depth($directory); $remaining >= 0; $remaining--) {
+            if ($files->exists(Path::join($directory, $marker))) {
+                return $directory;
+            }
+
+            $directory = dirname($directory);
+        }
+
+        throw new RuntimeException(sprintf(
+            'No ancestor of the calling file contains "%s". PathResolver::packageRoot() identifies a root by marker, so the package needs one.',
+            $marker,
+        ));
+    }
+
+    /**
      * Reject every path shape that resolves somewhere other than where it appears to.
      */
     private static function guardPath(string $path): void
@@ -138,7 +188,9 @@ final class PathResolver
      */
     private static function callerDirectory(): string
     {
-        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4) as $frame) {
+        // No frame limit: a helper that wraps resolve() pushes the first foreign file past any
+        // small bound, and truncating the trace would report the wrapper as the caller.
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS) as $frame) {
             $file = $frame['file'] ?? null;
 
             if (is_string($file) && $file !== '' && dirname($file) !== __DIR__) {
@@ -172,9 +224,10 @@ final class PathResolver
 
         if ($levels >= $depth) {
             throw new RuntimeException(sprintf(
-                'Climbing %d level(s) from "%s" runs past the filesystem root; it is only %d level(s) deep.',
+                'Climbing %d level(s) from "%s" runs past its root (%s); it is only %d level(s) below it.',
                 $levels,
                 $base,
+                Path::split($base)[0] === '' ? 'the working directory' : Path::split($base)[0],
                 $depth,
             ));
         }

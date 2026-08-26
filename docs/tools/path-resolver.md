@@ -61,6 +61,38 @@ The root check compares the base directory's **depth** rather than inspecting th
 `dirname()` saturates at `/` instead of failing — and `/` is also a legitimate result of a correct
 climb from a shallow directory, so the return value cannot distinguish the two.
 
+## Prefer `packageRoot()` where it applies
+
+The level count is itself the fragile part. A marker removes it:
+
+```php
+$config = Path::join(PathResolver::packageRoot(), 'config/db-tools.php');
+```
+
+`packageRoot()` walks up from the calling file until it finds a directory containing `composer.json`
+(or whatever marker you pass), so a file that later moves deeper keeps resolving to the same root —
+which is precisely the failure the counted form only *guards* against. Reach for `resolve()` when the
+target genuinely is "n directories up" rather than "the package root".
+
+The walk is bounded by the path's depth below its root prefix, so it stops at the drive or UNC share
+instead of spinning at `/`, where `dirname()` saturates rather than failing.
+
+## Network paths
+
+Two different questions, with different answers.
+
+**As the base** — a package installed on a network share — is supported. A path is a root prefix plus
+segments, and `\\server\share` is a prefix, not two segments. Getting that wrong silently rewrote a
+network path into a local absolute one (`\\server\share\pkg` → `/server/share/pkg`) and let a climb
+walk above the share. `Path::split()` recognises UNC, Windows drive (`C:\` and the drive-*relative*
+`C:foo`), Unix root and relative; `Path::depth()` counts below the prefix, so the share is the floor.
+
+**As the `$path` argument** it is rejected, and stays rejected. That argument frequently originates in
+package configuration, which an application can override, and a UNC path there reads from a host the
+caller names — on Windows that also hands an NTLM handshake to whoever owns it.
+
+`Path::isNetworkPath()` is available where a caller needs to make that distinction itself.
+
 ## Everything a caller passes is untrusted
 
 The `$path` argument frequently originates in package configuration, which a consuming application
@@ -105,8 +137,11 @@ a comparison written against a hardcoded `/` fails on Windows — and in a conta
 by declaring a path outside a boundary it is inside, which is a security decision made on a string
 mismatch.
 
-`Path::isWithin()` is separator-aware for a second reason too: a plain `str_starts_with` places
-`/a/bc` inside `/a/b`.
+`Path::isWithin()` is separator-aware for two more reasons. A plain `str_starts_with` places `/a/bc`
+inside `/a/b`. And on Windows it compares case-insensitively, because the filesystem does — rejecting
+`C:\Project\src` as outside `C:\project` would be a security decision made on letter case. Elsewhere
+the comparison is exact: Linux is case-sensitive and macOS *can* be, so assuming otherwise is the
+unsafe direction.
 
 > Mukora CMS's `DS` constant is the reference for this. Its `switch (PHP_OS)` assigns
 > `DIRECTORY_SEPARATOR` in each named branch and `/` in the default, so every branch already agreed —

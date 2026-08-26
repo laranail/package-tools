@@ -52,11 +52,11 @@ it('requires the descent depth to match the path it is given', function (): void
     expect(PathResolver::resolve(levels: 3, direction: PathDirection::Inner, path: 'a/b'))->toBeString();
 })->throws(InvalidArgumentException::class, 'exactly 3 segment(s)');
 
-it('refuses to climb past the filesystem root', function (): void {
+it('refuses to climb past its root', function (): void {
     // dirname() saturates at "/" instead of failing, so without the depth check a too-large count
     // returns a plausible absolute path built on the root.
     expect(PathResolver::resolve(levels: 99, direction: PathDirection::Outer))->toBeString();
-})->throws(RuntimeException::class, 'past the filesystem root');
+})->throws(RuntimeException::class, 'runs past its root');
 
 /* -------------------------------------------------------------- security */
 
@@ -149,3 +149,28 @@ it('accepts the constant in place of the enum case', function (): void {
     expect(PathResolver::resolve(levels: 1, direction: PathResolver::OUTER, path: 'x.php'))
         ->toBe(Path::join(dirname(__DIR__), 'x.php'));
 });
+
+/* ----------------------------------------------------------- packageRoot */
+
+it('finds the package root by marker rather than by counting', function (): void {
+    // The level count is itself the fragile part -- a marker survives the file moving deeper, which
+    // is the failure the counted form only guards against.
+    expect(PathResolver::packageRoot())->toBe(dirname(__DIR__, 3));
+});
+
+it('finds the same root from a file at a different depth', function (): void {
+    // Same answer from three directories further down, with no argument changed.
+    expect(PathResolverCallerFixture::packageRoot())->toBe(dirname(__DIR__, 3));
+});
+
+it('rejects a marker that is not a single segment', function (): void {
+    expect(PathResolver::packageRoot('config/app.php'))->toBeString();
+})->throws(InvalidArgumentException::class, 'single path segment');
+
+it('rejects an unsafe marker', function (): void {
+    expect(PathResolver::packageRoot('phar://x'))->toBeString();
+})->throws(InvalidArgumentException::class, 'stream wrapper');
+
+it('reports when no ancestor carries the marker', function (): void {
+    expect(PathResolver::packageRoot('this-marker-does-not-exist'))->toBeString();
+})->throws(RuntimeException::class, 'No ancestor of the calling file');

@@ -22,6 +22,12 @@ final class PathResolverCallerFixture
         return PathResolver::resolve(levels: 2, direction: PathDirection::Outer, path: $path);
     }
 
+    /** Three directories deeper than the test file, and must still find the same package root. */
+    public static function packageRoot(): string
+    {
+        return PathResolver::packageRoot();
+    }
+
     public static function ownDirectory(): string
     {
         return __DIR__;
