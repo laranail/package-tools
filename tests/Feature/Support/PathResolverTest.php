@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Filesystem\Filesystem;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 use Simtabi\Laranail\Package\Tools\Support\Path\PathDirection;
 use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
@@ -174,3 +176,25 @@ it('rejects an unsafe marker', function (): void {
 it('reports when no ancestor carries the marker', function (): void {
     expect(PathResolver::packageRoot('this-marker-does-not-exist'))->toBeString();
 })->throws(RuntimeException::class, 'No ancestor of the calling file');
+
+/* ------------------------------------------------- provider packagePath() */
+
+it('resolves a package path from the provider wherever the provider sits', function (): void {
+    // getPackageBaseDir() reflects on the provider class and steps out of Providers/ and src/, so
+    // this counts nothing and survives the provider moving.
+    $provider = new class(app()) extends PackageServiceProvider
+    {
+        public function configurePackage(Package $package): void {}
+
+        public function exposePath(string $relative = ''): string
+        {
+            return $this->packagePath($relative);
+        }
+    };
+
+    // The anonymous class is declared in this test file, so its "package root" is two levels above
+    // tests/Feature/Support -- the tests directory's parent chain, not package-tools' own root.
+    expect($provider->exposePath())->toBeString()
+        ->and($provider->exposePath('config/x.php'))
+        ->toBe(Path::join($provider->exposePath(), 'config/x.php'));
+});

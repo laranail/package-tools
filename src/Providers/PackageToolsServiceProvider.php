@@ -45,6 +45,8 @@ use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterf
 use Simtabi\Laranail\Package\Tools\Services\System\SystemService;
 use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
 use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
+use Simtabi\Laranail\Package\Tools\Support\Path\Path;
+use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
@@ -63,7 +65,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../../config/package-tools.php', 'laranail.package-tools');
+        $this->mergeConfigFrom(Path::join(PathResolver::packageRoot(), 'config/package-tools.php'), 'laranail.package-tools');
 
         $this->app->singleton(DoctorService::class);
 
@@ -150,7 +152,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
             // the registry is a flat map, and a bare `package-tools-config`
             // is a collision waiting for a sibling.
             $this->publishes([
-                __DIR__ . '/../../config/package-tools.php' => config_path('laranail/package-tools.php'),
+                Path::join(PathResolver::packageRoot(), 'config/package-tools.php') => config_path('laranail/package-tools.php'),
             ], 'laranail::package-tools-config');
 
             // Opt-in post-migration autorun: fires once per Migrator batch,

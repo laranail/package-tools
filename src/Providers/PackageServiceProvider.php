@@ -37,6 +37,7 @@ use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
+use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 
 /**
  * Base service provider for Laravel packages. Manages the package
@@ -324,6 +325,27 @@ abstract class PackageServiceProvider extends ServiceProvider
     public function packageBooted(): void
     {
         // Override in child class to add custom post-boot logic.
+    }
+
+    /**
+     * A path inside the package, resolved from the provider's own location.
+     *
+     * Replaces `__DIR__ . '/../../config/db-tools.php'`, whose dot-dot count is correct only for the
+     * provider's current depth and is checked by nothing -- moving the provider into `Providers/`
+     * left a string that still parsed, still looked plausible, and pointed at a file that was not
+     * there. This counts nothing: `getPackageBaseDir()` reflects on the provider class and walks up
+     * out of `Providers/` and `src/`, so the answer is the same wherever the provider sits.
+     *
+     *     $this->mergeConfigFrom($this->packagePath('config/db-tools.php'), 'laranail.db-tools');
+     *
+     * Available from `register()` onward -- it does not need `$this->package` to have been built.
+     * Outside a provider, use `PathResolver::packageRoot()`, which finds the root by marker instead.
+     */
+    protected function packagePath(string $relative = ''): string
+    {
+        return $relative === ''
+            ? $this->getPackageBaseDir()
+            : Path::join($this->getPackageBaseDir(), $relative);
     }
 
     protected function getPackageBaseDir(): string
