@@ -508,9 +508,7 @@ final class RuntimeConfigurator
 
     private function applyIniSetting(string $key, mixed $value): void
     {
-        if (! isset($this->originalValues[$key])) {
-            $this->originalValues[$key] = ini_get($key);
-        }
+        $this->originalValues[$key] ??= ini_get($key);
 
         if ($key === 'max_execution_time' && function_exists('set_time_limit')) {
             @set_time_limit((int) $value);

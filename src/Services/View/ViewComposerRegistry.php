@@ -35,9 +35,7 @@ class ViewComposerRegistry implements RegistryInterface
         View::composer($views, is_string($composer) ? $composer : Closure::fromCallable($composer));
 
         foreach ($views as $view) {
-            if (! isset($this->composers[$view])) {
-                $this->composers[$view] = [];
-            }
+            $this->composers[$view] ??= [];
             $this->composers[$view][] = $composer;
         }
     }

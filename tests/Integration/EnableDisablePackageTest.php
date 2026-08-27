@@ -213,9 +213,7 @@ class EnableDisablePackageTest extends TestCase
     {
         $composer = json_decode(File::get($this->testComposerPath), true);
 
-        if (! isset($composer['require'])) {
-            $composer['require'] = [];
-        }
+        $composer['require'] ??= [];
 
         $composer['require']["{$vendor}/{$package}"] = $version;
 

@@ -60,6 +60,9 @@
         "fakerphp/faker": "Required by the InteractsWithSeedFiles trait's fake() generator (^1.23).",
         "laranail/console": "Styled, capability-aware seeder output. Without it the same output is written in plain text."
     },
+    "bin": [
+        "bin/laranail-dist-integrity"
+    ],
     "autoload": {
         "psr-4": {
             "Simtabi\\Laranail\\Package\\Tools\\": "src/"

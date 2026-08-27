@@ -1,0 +1,101 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Simtabi\Laranail\Package\Tools\Support\Dist\CouldNotReadRevision;
+use Simtabi\Laranail\Package\Tools\Support\Dist\DistIntegrityAuditor;
+use Simtabi\Laranail\Package\Tools\Support\Dist\GitRevisionReader;
+use Simtabi\Laranail\Package\Tools\Support\Dist\ReferenceStatus;
+
+/**
+ * Verify that every path composer.json references survives `git archive`.
+ *
+ * Usage:
+ *   vendor/bin/laranail-dist-integrity [revision]      # default HEAD
+ */
+
+// Works both when package-tools is the root package and when it sits in a
+// consumer's vendor/ -- the second is the normal case.
+$autoloaders = [
+    __DIR__ . '/../vendor/autoload.php',   // root package
+    __DIR__ . '/../../../autoload.php',    // vendor/laranail/package-tools/bin
+];
+
+$loaded = false;
+
+foreach ($autoloaders as $autoloader) {
+    if (is_file($autoloader)) {
+        require $autoloader;
+        $loaded = true;
+
+        break;
+    }
+}
+
+// No vendor/ at all. This check must stay runnable on a bare checkout: it
+// guards what a *dist* install receives, so making it depend on a full
+// dependency install would let an unrelated resolution failure mask it.
+if (! $loaded) {
+    foreach ([
+        'ReferenceStatus',
+        'PathReference',
+        'RevisionReader',
+        'CouldNotReadRevision',
+        'GitRevisionReader',
+        'DistIntegrityReport',
+        'DistIntegrityAuditor',
+    ] as $class) {
+        require __DIR__ . '/../src/Support/Dist/' . $class . '.php';
+    }
+}
+
+$revision = $argv[1] ?? 'HEAD';
+
+// The repository being audited is the working directory, not this file's
+// package -- when run from vendor/, those are different.
+$root = getcwd() ?: __DIR__;
+
+try {
+    $report = (new DistIntegrityAuditor(new GitRevisionReader($root)))->audit($revision);
+} catch (CouldNotReadRevision|JsonException $e) {
+    fwrite(STDERR, $e->getMessage() . "\n");
+
+    exit(1);
+}
+
+printf("  Dist integrity for %s at %s\n\n", $report->packageName, $report->revision);
+
+foreach ($report->references as $reference) {
+    [$mark, $note] = match ($reference->status) {
+        ReferenceStatus::Shipped => ["\033[32mok\033[0m", 'in the archive'],
+        ReferenceStatus::NotCommitted => ["\033[33m?\033[0m ", 'declared but not committed'],
+        ReferenceStatus::Stripped => ["\033[31mx\033[0m ", 'STRIPPED from the archive'],
+    };
+
+    printf("  %s %-24s %-30s %s\n", $mark, $reference->key, $reference->path, $note);
+}
+
+if ($report->passed()) {
+    printf("\n\033[32m  ok Every referenced path survives the archive.\033[0m\n");
+
+    exit(0);
+}
+
+echo "\n";
+
+foreach ($report->failures() as $failure) {
+    printf(
+        "\033[31m  x %s references %s, which .gitattributes strips from the dist archive. "
+        . "Consumers installing from dist will not have it.\033[0m\n",
+        $failure->key,
+        $failure->path,
+    );
+}
+
+printf(
+    "\n  Fix by removing the export-ignore rule, not by dropping the reference -- the\n"
+    . "  file is referenced because a consumer needs it.\n",
+);
+
+exit(1);
