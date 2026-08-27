@@ -137,7 +137,7 @@ class DistIntegrityAuditorTest extends TestCase
      */
     private function audit(array $manifest, array $tracked, array $archived): DistIntegrityReport
     {
-        $reader = new class($manifest, $tracked, $archived) implements RevisionReader
+        $reader = new readonly class($manifest, $tracked, $archived) implements RevisionReader
         {
             /**
              * @param array<string, mixed> $manifest

@@ -28,9 +28,7 @@ class EventRegistry implements RegistryInterface
     {
         Event::listen($event, $listener);
 
-        if (! isset($this->listeners[$event])) {
-            $this->listeners[$event] = [];
-        }
+        $this->listeners[$event] ??= [];
 
         $this->listeners[$event][] = $listener;
     }

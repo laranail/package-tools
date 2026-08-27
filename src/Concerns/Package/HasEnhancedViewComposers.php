@@ -49,9 +49,7 @@ trait HasEnhancedViewComposers
                 ? $this->prefixViewName($view)
                 : $view;
 
-            if (! isset($this->viewComposerRegistry[$viewName])) {
-                $this->viewComposerRegistry[$viewName] = [];
-            }
+            $this->viewComposerRegistry[$viewName] ??= [];
 
             $this->viewComposerRegistry[$viewName][] = $composer;
         }
@@ -103,9 +101,7 @@ trait HasEnhancedViewComposers
                 ? $this->prefixViewName($view)
                 : $view;
 
-            if (! isset($this->viewCreatorRegistry[$viewName])) {
-                $this->viewCreatorRegistry[$viewName] = [];
-            }
+            $this->viewCreatorRegistry[$viewName] ??= [];
 
             $this->viewCreatorRegistry[$viewName][] = $creator;
         }

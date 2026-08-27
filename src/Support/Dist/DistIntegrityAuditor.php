@@ -50,8 +50,8 @@ final readonly class DistIntegrityAuditor
 
         foreach (self::referencedPaths($composer) as [$key, $path]) {
             $references[] = new PathReference($key, $path, match (true) {
-                ! self::contains($tracked, $path) => ReferenceStatus::NotCommitted,
-                self::contains($archived, $path) => ReferenceStatus::Shipped,
+                ! $this->contains($tracked, $path) => ReferenceStatus::NotCommitted,
+                $this->contains($archived, $path) => ReferenceStatus::Shipped,
                 default => ReferenceStatus::Stripped,
             });
         }
@@ -103,7 +103,7 @@ final readonly class DistIntegrityAuditor
     /**
      * @param list<string> $haystack
      */
-    private static function contains(array $haystack, string $path): bool
+    private function contains(array $haystack, string $path): bool
     {
         foreach ($haystack as $candidate) {
             if ($candidate === $path || str_starts_with($candidate, $path . '/')) {

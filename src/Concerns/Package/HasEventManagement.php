@@ -37,9 +37,7 @@ trait HasEventManagement
      */
     public function registerEventListener(string $event, string $listener): static
     {
-        if (! isset($this->eventListeners[$event])) {
-            $this->eventListeners[$event] = [];
-        }
+        $this->eventListeners[$event] ??= [];
 
         $this->eventListeners[$event][] = $listener;
 

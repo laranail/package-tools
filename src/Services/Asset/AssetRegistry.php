@@ -24,9 +24,7 @@ class AssetRegistry implements RegistryInterface
      */
     public function register(string $key, mixed $value, bool $shouldCleanup = false): void
     {
-        if (! isset($this->registered[$key])) {
-            $this->registered[$key] = [];
-        }
+        $this->registered[$key] ??= [];
 
         $this->registered[$key][] = $value;
 
