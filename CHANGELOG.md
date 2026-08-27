@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`vendor/bin/laranail-dist-integrity`** — verifies that every path `composer.json` references
+  survives `git archive`, so a package cannot ship a manifest pointing at a file a dist install
+  strips. Checks `extra.phpstan.includes`, `bin`, `autoload.psr-4`/`psr-0` and `autoload.files`.
+
+  This existed as `scripts/verify-dist-integrity.php`, pasted into 15 packages. Every copy was
+  byte-identical once whitespace was stripped — what differed was formatting, because each package's
+  own `pint.json` reformatted it differently. One variant tripped `no_blank_lines_after_phpdoc` and
+  took seven repositories red at once, with no shared place to fix it. A file copied into fifteen
+  repositories cannot satisfy fifteen formatters.
+
+  The logic now lives in `DistIntegrityAuditor` behind a `RevisionReader` seam, so it is unit-testable
+  without a git checkout. The binary deliberately runs **without `vendor/`** — a check that guards
+  what a dist install receives must not be blocked by a dependency resolution failure.
+
 - **`php artisan laranail::package-tools.packages`** and the `PackageRegistry` behind it: every
   package built on `PackageServiceProvider`, what each one claimed, and whether any two claimed the
   same name.
