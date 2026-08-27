@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishRoot;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 it('joins with the platform separator whichever separator it is given', function (): void {
     expect(Path::join('a', 'b/c', 'd\\e'))
@@ -112,4 +113,17 @@ it('keeps a UNC publish root from collapsing into a local path', function (): vo
     // has nothing to do with the share.
     expect(PublishRoot::normalise('\\\\server\share\assets'))
         ->toBe(str_repeat(Path::SEPARATOR, 2) . implode(Path::SEPARATOR, ['server', 'share', 'assets']));
+});
+
+it('agrees with the older PathResolver on root prefixes', function (): void {
+    // Two classes named PathResolver live in this package, answering different questions, and both
+    // handle paths. They disagreed on UNC: Support\PathResolver collapsed \\server\share into
+    // /server/share -- a network path rewritten as a local one. Both defer to Path now, and this is
+    // what keeps them from drifting apart again.
+    $unc = '\\\\server\share\pkg';
+
+    expect(PathResolver::normalizePath($unc))
+        ->toBe(Path::normalise($unc))
+        ->and(PathResolver::joinPaths($unc, 'a'))
+        ->toBe(Path::join($unc, 'a'));
 });
