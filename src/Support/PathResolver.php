@@ -7,12 +7,23 @@ namespace Simtabi\Laranail\Package\Tools\Support;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
+use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 
 /**
  * Cross-platform path resolution for package root detection. Reflects on
  * a service provider's file location, normalizes separators, and walks up
  * the directory tree by a given number of levels. Handles Windows, WSL,
  * Linux, and macOS path conventions.
+ *
+ * Not to be confused with {@see \Simtabi\Laranail\Package\Tools\Support\Path\PathResolver},
+ * which answers a different question: that one resolves a path relative to whichever FILE calls it,
+ * from an explicit level count and direction, and is the replacement for hand-counted
+ * `__DIR__ . '/../..'` strings. This one resolves a package root from a provider CLASS and offers
+ * the path primitives the package's own services are built on.
+ *
+ * Both defer to {@see Path} for separator and root-prefix handling, so there is one implementation
+ * of "what is a root prefix" rather than two that can disagree. They disagreed until 2026-08-26:
+ * this class collapsed a UNC root to a local absolute path.
  */
 class PathResolver
 {
@@ -28,9 +39,15 @@ class PathResolver
             return '';
         }
 
-        $normalized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+        // Split the root prefix off before collapsing anything. A UNC root is two leading
+        // separators, and collapsing duplicates without separating it first turned
+        // \\\\server\\share\\pkg into /server/share/pkg -- a network path silently rewritten
+        // into a local absolute one, which every containment check downstream then ran against.
+        [$prefix, $remainder] = Path::split($path);
 
-        // Collapse duplicate separators (e.g. C:\\path\\\\to\\file).
+        $normalized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $remainder);
+
+        // Collapse duplicate separators (e.g. path\\\\to\\file).
         $separator = preg_quote(DIRECTORY_SEPARATOR, '/');
         $normalized = preg_replace('/' . $separator . '+/', DIRECTORY_SEPARATOR, $normalized);
 
@@ -77,6 +94,10 @@ class PathResolver
         // Re-add trailing separator for root paths on Windows (C:) and Unix (/)
         if (self::isRoot($normalized)) {
             $normalized .= DIRECTORY_SEPARATOR;
+        }
+
+        if ($prefix !== '') {
+            return $prefix . ltrim($normalized, DIRECTORY_SEPARATOR);
         }
 
         return $normalized;
