@@ -21,6 +21,7 @@ use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackagePublishCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
+use Simtabi\Laranail\Package\Tools\Commands\PackagesCommand;
 use Simtabi\Laranail\Package\Tools\Commands\PackageSeedCommand;
 use Simtabi\Laranail\Package\Tools\Contracts\ConfigManagerInterface;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
@@ -49,6 +50,7 @@ use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageSe
 use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
+use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
@@ -67,6 +69,12 @@ final class PackageToolsServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
+        // singletonIf, NOT singleton. Consuming packages' providers may register before this one and
+        // will already have recorded into the binding they created; an unconditional singleton()
+        // rebinds it and throws those away, so the report comes back empty with nothing to explain
+        // it. Which is the same silent-overwrite failure this registry exists to detect.
+        $this->app->singletonIf(PackageRegistry::class);
+
         $this->mergeConfigFrom(Path::join(PathResolver::packageRoot(), 'config/package-tools.php'), 'laranail.package-tools');
 
         $this->app->singleton(DoctorService::class);
@@ -147,6 +155,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([
+                PackagesCommand::class,
                 PackageDoctorCommand::class,
                 PackageSbomCommand::class,
                 PackageAuditCommand::class,

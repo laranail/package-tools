@@ -9,12 +9,32 @@ use Error;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use Mockery;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+
+/**
+ * An Application mock that can hand back the PackageRegistry.
+ *
+ * registerPackage() records what each package claimed, so a mock that refuses make() is no longer
+ * describing the real contract -- it just fails on the first thing the provider legitimately does.
+ */
+function mockApplicationForProvider(): MockInterface
+{
+    $app = Mockery::mock(Application::class);
+    $app->shouldReceive('singletonIf')->byDefault();
+    $app->shouldReceive('make')
+        ->with(PackageRegistry::class)
+        ->andReturn(new PackageRegistry)
+        ->byDefault();
+
+    return $app;
+}
 
 /**
  * PackageServiceProvider tests
@@ -43,7 +63,7 @@ class PackageServiceProviderTest extends TestCase
         $this->expectException(Error::class);
 
         // Cannot instantiate abstract class
-        new PackageServiceProvider(Mockery::mock(Application::class));
+        new PackageServiceProvider(mockApplicationForProvider());
     }
 
     #[Test]
@@ -120,7 +140,7 @@ class PackageServiceProviderTest extends TestCase
         $customPackage = new Package;
         $customPackage->setName('test-vendor/custom-package');
 
-        $provider = new class(Mockery::mock(Application::class)) extends PackageServiceProvider
+        $provider = new class(mockApplicationForProvider()) extends PackageServiceProvider
         {
             public $customPackage;
 
@@ -177,7 +197,7 @@ class PackageServiceProviderTest extends TestCase
         $this->expectExceptionMessage('cannot be empty');
 
         // This will throw during configurePackage when setPathFromBase('') is called
-        $provider = new class(Mockery::mock(Application::class)) extends PackageServiceProvider
+        $provider = new class(mockApplicationForProvider()) extends PackageServiceProvider
         {
             public function configurePackage(Package $package): void
             {
@@ -224,7 +244,7 @@ class PackageServiceProviderTest extends TestCase
         ?Closure $registeringCallback = null,
         ?Closure $registeredCallback = null
     ): PackageServiceProvider {
-        $app = Mockery::mock(Application::class);
+        $app = mockApplicationForProvider();
         $app->shouldReceive('runningInConsole')->andReturn(false);
 
         return new class($app, $configureCallback, $registeringCallback, $registeredCallback) extends PackageServiceProvider

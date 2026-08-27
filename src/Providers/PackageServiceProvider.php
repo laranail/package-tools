@@ -38,6 +38,7 @@ use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
+use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
 
 /**
  * Base service provider for Laravel packages. Manages the package
@@ -127,6 +128,17 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->package->bufferEarlyLogs();
 
         $this->configurePackage($this->package);
+
+        // Record what this package claimed, so the whole set can be listed and checked for two
+        // packages claiming one name. Laravel's registries are flat maps that overwrite silently;
+        // nothing else in the framework can answer that question afterwards.
+        //
+        // singletonIf here rather than relying on package-tools' own provider having registered the
+        // binding: a consumer's package boots through THIS class, and whether the toolkit's provider
+        // has loaded yet is an ordering detail. Without it every make() returns a fresh registry and
+        // the report is silently empty -- the exact failure mode this feature exists to end.
+        $this->app->singletonIf(PackageRegistry::class);
+        $this->app->make(PackageRegistry::class)->register($this->package, static::class);
 
         if ($this->package->name === '' || $this->package->name === '0') {
             throw InvalidPackage::nameIsRequired();
