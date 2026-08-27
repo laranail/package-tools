@@ -18,26 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the failure surfaces far away as a missing view or the wrong file published. Nothing in the
   framework can answer that afterwards. `--collisions` exits non-zero, so it works as a CI gate.
 
+  The report reads description, authors, licence, keywords and docs from each package's own
+  `composer.json` rather than asking for them again — that file is the copy composer already forces
+  an author to keep correct. `describedAs()`, `maintainedBy()`, `documentedAt()` and
+  `withStability()` override it where a package wants to say something different at runtime.
+
   See [Package registry](docs/tools/package-registry.md).
-
-### Changed
-
-- **`laranail/console` is a suggestion, not a requirement.** It was reached by exactly one class out
-  of roughly 270 -- `SeederConsoleFormatter`, which renders styled seeder output -- and this package
-  is the base class for the whole family, so that one file put a console library into every
-  application that installed anything built on `PackageServiceProvider`, whether or not it ever
-  seeded anything.
-
-  `PlainSeederConsoleFormatter` implements the same contract with no dependency, and the container
-  binds whichever is available. Styled output where laranail/console is installed, plain lines where
-  it is not. Verified against a real `--no-dev` install, not just a `class_exists` branch.
-
-  **The `require` block now contains no `laranail/*` entry at all**, and a test asserts that, because
-  the cost of one is paid at install time by consumers who never boot the class responsible. In a
-  Laravel application every remaining requirement is already present: `laravel/framework` provides
-  every `illuminate/*` and `symfony/process`.
-
-  Nothing changes for anyone already depending on `laranail/console` directly.
 
 ### Changed
 

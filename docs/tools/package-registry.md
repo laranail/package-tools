@@ -4,10 +4,49 @@ Every package built on `PackageServiceProvider`, what each one claimed, and whet
 the same name.
 
 ```bash
-php artisan laranail::package-tools.packages
-php artisan laranail::package-tools.packages --collisions   # only the clashes; exits non-zero if any
+php artisan laranail::package-tools.packages                  # summary table
+php artisan laranail::package-tools.packages laranail/captcha # one package, in full
+php artisan laranail::package-tools.packages --detail         # every package, in full
+php artisan laranail::package-tools.packages --collisions     # only the clashes; exits non-zero if any
 php artisan laranail::package-tools.packages --json
 ```
+
+```
+ laranail/captcha  v0.1.0
+ One captcha contract for Laravel across Turnstile, hCaptcha, every reCAPTCHA version, …
+
+ Authors:        Simtabi LLC, Imani Manyara, Rahul Dey
+ License:        MIT
+ Docs:           https://opensource.simtabi.com/documentation/laranail/captcha/
+ Config key:     laranail.captcha
+ Views:          laranail-captcha
+ Translations:   laranail/captcha
+ Publish tags:   laranail::captcha-config, laranail::captcha-migrations, …
+ Commands:       laranail::captcha.cache-clear, laranail::captcha.doctor, …
+```
+
+## Where the description and authors come from
+
+**The package's own `composer.json`** — description, authors, homepage, licence, keywords and
+`support.docs`. A package author has to keep that file correct in order to publish at all, so asking
+for the same facts through the fluent builder would be a second copy, free to drift from the one
+composer enforces.
+
+The builder speaks only where a manifest cannot:
+
+```php
+$package->describedAs('Vendor-scoped Artisan commands and publish tags.')  // overrides the manifest
+    ->maintainedBy('A Person')                                            // overrides authors
+    ->documentedAt('https://docs.example.test')                           // when it is not support.docs
+    ->withStability('experimental');                                      // rendered beside the version
+```
+
+`withStability()` takes a free string rather than an enum: it is reported, never branched on, and an
+enum would make a package's own vocabulary this package's business.
+
+The **Commands** row shows the names a command answers to, not its class — resolved from the console
+kernel, so a command whose name is set at construction (which is how the family's
+`vendor::slug.command` shape gets past Symfony's validator) reports what you would actually type.
 
 ```
 +-------------------------+---------+-------------------------+------------------+------------------+----------+

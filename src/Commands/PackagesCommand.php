@@ -18,7 +18,9 @@ use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
 final class PackagesCommand extends Command
 {
     protected $signature = 'laranail::package-tools.packages
+        {package? : Show everything known about one package, by composer name}
         {--json : Emit JSON instead of TTY output}
+        {--detail : Show every package in full rather than as a summary table}
         {--collisions : Report only the clashes, and exit non-zero if there are any}';
 
     protected $description = 'List packages built on laranail/package-tools and detect name clashes.';
@@ -39,8 +41,27 @@ final class PackagesCommand extends Command
             return $collisions === [] ? self::SUCCESS : self::FAILURE;
         }
 
+        $wanted = $this->argument('package');
+
+        if (is_string($wanted) && $wanted !== '') {
+            $match = array_values(array_filter($described, static fn (array $p): bool => $p['name'] === $wanted));
+
+            if ($match === []) {
+                $this->error(sprintf('No registered package named "%s".', $wanted));
+                $this->line('  Run without an argument to list what is registered.');
+
+                return self::FAILURE;
+            }
+
+            $this->renderDetail($match[0]);
+
+            return self::SUCCESS;
+        }
+
         if (! $this->option('collisions')) {
-            $this->renderPackages($described);
+            $this->option('detail')
+                ? array_walk($described, fn (array $p): null => $this->renderDetail($p))
+                : $this->renderPackages($described);
         }
 
         $this->renderCollisions($collisions);
@@ -62,18 +83,84 @@ final class PackagesCommand extends Command
         }
 
         $this->table(
-            ['Package', 'Version', 'Config', 'Views', 'Translations', 'Commands'],
-            array_map(static fn (array $p): array => [
+            ['Package', 'Version', 'What it does', 'Cmds', 'Config'],
+            array_map(fn (array $p): array => [
                 $p['name'],
-                $p['version'],
-                $p['config'] ?? '—',
-                $p['views'] ?? '—',
-                $p['translations'] ?? '—',
+                $this->versionLabel($p),
+                // Truncated, not wrapped: a summary table stops being scannable the moment one row
+                // is four lines tall. `--detail` and the single-package view show it whole.
+                $this->truncate($p['description'] ?? '—', 52),
                 (string) count($p['commands']),
+                $p['config'] ?? '—',
             ], $described),
         );
 
-        $this->line(sprintf('  %d package(s).', count($described)));
+        $this->line(sprintf(
+            '  %d package(s). Add a name for one in full, or --detail for all.',
+            count($described),
+        ));
+    }
+
+    /**
+     * Everything known about one package.
+     *
+     * Aligned label/value lines rather than a table: these values are prose, URLs and lists of wildly
+     * different lengths, and a bordered table sized to the longest of them spends most of the
+     * terminal on whitespace.
+     *
+     * @param array<string, mixed> $package
+     */
+    private function renderDetail(array $package): void
+    {
+        $this->newLine();
+        $this->line(sprintf('  <options=bold>%s</>  <fg=gray>%s</>', $package['name'], $this->versionLabel($package)));
+
+        if (is_string($package['description']) && $package['description'] !== '') {
+            $this->line(sprintf('  %s', $package['description']));
+        }
+
+        $this->newLine();
+
+        $rows = [
+            'Authors' => implode(', ', $package['authors']),
+            'License' => $package['license'],
+            'Docs' => $package['docs'],
+            'Keywords' => implode(', ', $package['keywords']),
+            'Provider' => $package['provider'],
+            'Path' => $package['path'],
+            'Config key' => $package['config'],
+            'Views' => $package['views'],
+            'Translations' => $package['translations'],
+            'Components' => $package['components'],
+            'Publish tags' => implode(', ', $package['publishTags']),
+            'Commands' => implode(', ', $package['commands']),
+        ];
+
+        foreach ($rows as $label => $value) {
+            if (! is_string($value) || $value === '') {
+                continue;
+            }
+
+            $this->line(sprintf('  <fg=gray>%s</>  %s', str_pad($label . ':', 15), $value));
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $package
+     */
+    private function versionLabel(array $package): string
+    {
+        $version = is_string($package['version']) ? $package['version'] : 'unknown';
+
+        return is_string($package['stability']) && $package['stability'] !== ''
+            ? sprintf('%s (%s)', $version, $package['stability'])
+            : $version;
+    }
+
+    /** Truncated, not wrapped: a summary table stops being scannable once a row is four lines tall. */
+    private function truncate(string $value, int $width): string
+    {
+        return mb_strlen($value) <= $width ? $value : mb_substr($value, 0, $width - 1) . '…';
     }
 
     /**

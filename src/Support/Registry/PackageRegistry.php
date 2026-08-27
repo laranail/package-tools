@@ -52,11 +52,20 @@ final class PackageRegistry
     /**
      * What one package claimed, flattened for display.
      *
-     * @return array{name: mixed, provider: string, version: string, config: mixed, views: mixed, translations: mixed, components: mixed, publishTags: list<string>, commands: list<string>, path: string}
+     * @return array{name: mixed, provider: string, version: string, config: mixed, views: mixed, translations: mixed, components: mixed, publishTags: list<string>, commands: list<string>, path: string, description: ?string, authors: list<string>, homepage: ?string, license: ?string, keywords: list<string>, docs: ?string, stability: ?string}
      */
     public function describe(string $provider): array
     {
         $package = $this->entries[$provider]['package'];
+        $name = self::quietly($package->getSlashNamespace(...), $package->name);
+
+        // Manifest first, fluent overrides on top: composer.json is the copy a package author has to
+        // keep correct in order to publish, so it is the default, and the builder only speaks where a
+        // package wants to say something different at runtime.
+        $manifest = is_string($name) ? PackageMetadata::for($name) : [
+            'description' => null, 'authors' => [], 'homepage' => null,
+            'license' => null, 'keywords' => [], 'docs' => null,
+        ];
 
         return [
             // getSlashNamespace(), not ->name: the property holds the SHORT name ('atlas'), and a
@@ -64,7 +73,10 @@ final class PackageRegistry
             // precisely the confusion this class exists to remove.
             'name' => $this->quietly($package->getSlashNamespace(...), $package->name),
             'provider' => $provider,
-            'version' => $this->versionOf($package->name),
+            // $name, not $package->name: the property holds the SHORT name ('captcha'), which
+            // composer has never heard of, so every version resolved as 'unknown'. The same slip
+            // was already fixed once for the 'name' field above and survived here.
+            'version' => is_string($name) ? $this->versionOf($name) : 'unknown',
             'config' => $this->quietly(fn (): string => $package->getDottedNamespace()),
             'views' => $package->hasViews ? $this->quietly($package->viewNamespace(...)) : null,
             'translations' => $package->hasTranslations ? $this->quietly($package->translationNamespace(...)) : null,
@@ -73,8 +85,19 @@ final class PackageRegistry
             // framework ended up holding is the only thing that matters for a flat global map, and
             // it is also the only way a tag registered by a direct publishes() call shows up here.
             'publishTags' => $this->publishTagsFor($package),
-            'commands' => array_values($package->commands),
+            // The registered NAMES, not the class names: a reader wants the thing they would type.
+            // Resolved from the console kernel, so a command whose name is set at construction --
+            // which is how the family's `vendor::slug.command` shape gets past Symfony's validator --
+            // reports the name it actually answers to.
+            'commands' => $this->commandNames($package->commands),
             'path' => $package->basePath(),
+            'description' => $package->summary ?? $manifest['description'],
+            'authors' => $package->maintainers !== [] ? $package->maintainers : $manifest['authors'],
+            'homepage' => $manifest['homepage'],
+            'license' => $manifest['license'],
+            'keywords' => $manifest['keywords'],
+            'docs' => $package->documentationUrl ?? $manifest['docs'] ?? $manifest['homepage'],
+            'stability' => $package->stability,
         ];
     }
 
@@ -144,6 +167,28 @@ final class PackageRegistry
      * The installed version, from composer's own runtime data rather than a hardcoded constant that
      * would drift. "unknown" when the package is a path repository or not installed by composer.
      */
+    /**
+     * @param list<string> $classes Command class names. Not narrowed to class-string: the property
+     *                              they come from is a plain list, and asserting a narrower type
+     *                              here would be this class vouching for a value it does not own.
+     * @return list<string>
+     */
+    private function commandNames(array $classes): array
+    {
+        $names = [];
+
+        foreach ($classes as $class) {
+            $names[] = $this->quietly(
+                static fn (): string => (string) app($class)->getName(),
+                $class,
+            );
+        }
+
+        sort($names);
+
+        return array_values(array_filter($names, static fn (mixed $n): bool => is_string($n) && $n !== ''));
+    }
+
     private function versionOf(string $name): string
     {
         if (! class_exists(InstalledVersions::class) || ! InstalledVersions::isInstalled($name)) {
