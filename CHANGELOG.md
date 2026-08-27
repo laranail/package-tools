@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the failure surfaces far away as a missing view or the wrong file published. Nothing in the
   framework can answer that afterwards. `--collisions` exits non-zero, so it works as a CI gate.
 
+  The report reads description, authors, licence, keywords and docs from each package's own
+  `composer.json` rather than asking for them again — that file is the copy composer already forces
+  an author to keep correct. `describedAs()`, `maintainedBy()`, `documentedAt()` and
+  `withStability()` override it where a package wants to say something different at runtime.
+
   See [Package registry](docs/tools/package-registry.md).
 
 ### Changed

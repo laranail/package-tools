@@ -14,6 +14,7 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 trait ConfiguresLifecycle
 {
     use DiscoversWithAttributes;
+    use HasAbout;
     use HasAboutSections;
     use HasBatchResourceLoading;
     use HasDoctorChecks;

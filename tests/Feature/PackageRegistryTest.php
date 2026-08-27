@@ -176,3 +176,65 @@ it('survives package-tools own provider registering after a consumer', function 
 
     expect(app(PackageRegistry::class)->count())->toBe(1, 'the toolkit provider discarded what was already recorded');
 });
+
+it('reads description, authors and licence from the package manifest', function (): void {
+    // Not asked for again through the builder: composer.json is the copy a package author must keep
+    // correct in order to publish, so a second one here would drift from the one composer enforces.
+    (new class(app()) extends PackageServiceProvider
+    {
+        public function configurePackage(Package $package): void
+        {
+            $package->name('laranail/package-tools');
+        }
+    })->register();
+
+    $registry = app(PackageRegistry::class);
+    $described = collect(array_map($registry->describe(...), array_keys($registry->all())))
+        ->firstWhere('name', 'laranail/package-tools');
+
+    expect($described['description'])->toBeString()->not->toBeEmpty()
+        ->and($described['authors'])->not->toBeEmpty()
+        ->and($described['license'])->toBe('MIT')
+        ->and($described['version'])->not->toBe('unknown');
+});
+
+it('lets the builder override what the manifest says', function (): void {
+    (new class(app()) extends PackageServiceProvider
+    {
+        public function configurePackage(Package $package): void
+        {
+            $package->name('laranail/package-tools')
+                ->describedAs('A runtime-facing summary')
+                ->maintainedBy('Someone Else')
+                ->withStability('experimental')
+                ->documentedAt('https://docs.test');
+        }
+    })->register();
+
+    $registry = app(PackageRegistry::class);
+    $described = collect(array_map($registry->describe(...), array_keys($registry->all())))
+        ->firstWhere('name', 'laranail/package-tools');
+
+    expect($described['description'])->toBe('A runtime-facing summary')
+        ->and($described['authors'])->toBe(['Someone Else'])
+        ->and($described['stability'])->toBe('experimental')
+        ->and($described['docs'])->toBe('https://docs.test');
+});
+
+it('resolves a version rather than reporting unknown for an installed package', function (): void {
+    // It reported 'unknown' for everything: versionOf() was passed $package->name, the SHORT name,
+    // which composer has never heard of.
+    (new class(app()) extends PackageServiceProvider
+    {
+        public function configurePackage(Package $package): void
+        {
+            $package->name('laranail/package-tools');
+        }
+    })->register();
+
+    $registry = app(PackageRegistry::class);
+    $described = collect(array_map($registry->describe(...), array_keys($registry->all())))
+        ->firstWhere('name', 'laranail/package-tools');
+
+    expect($described['version'])->not->toBe('unknown');
+});
