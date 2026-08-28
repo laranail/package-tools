@@ -46,7 +46,21 @@ PIN = re.compile(
     r"uses:\s*([\w.-]+)/([\w.-]+)((?:/[\w.-]+)*)@([0-9a-f]{40})\s*#\s*(\S+)"
 )
 
-WORKFLOWS = Path(__file__).resolve().parent.parent / ".github" / "workflows"
+def workflows_dir(argv: list[str]) -> Path:
+    """Which `.github/workflows` to check.
+
+    Defaults to the repository this script lives in, which is what a package
+    running its own copy wants. An explicit path argument is what makes the
+    script shareable: the reusable hygiene workflow checks this repository out
+    beside the caller's and points the script at the caller's workflows.
+
+    Deriving the path from `__file__` alone silently scanned the wrong
+    repository the moment the script stopped being a local copy.
+    """
+    if len(argv) > 1:
+        return Path(argv[1]).resolve() / ".github" / "workflows"
+
+    return Path(__file__).resolve().parent.parent / ".github" / "workflows"
 
 # How long a newer release may sit untaken before this fails. Dependabot runs
 # weekly, so this is several missed chances rather than one.
@@ -141,8 +155,13 @@ def main() -> int:
         print("  gh is not installed; cannot verify action pins.")
         return 1
 
+    workflows = workflows_dir(sys.argv)
+    if not workflows.is_dir():
+        print(f"  No workflows directory at {workflows}.")
+        return 1
+
     pins: dict[tuple[str, str, str, str, str], set[str]] = {}
-    for workflow in sorted(WORKFLOWS.glob("*.yml")):
+    for workflow in sorted(workflows.glob("*.yml")):
         for owner, repo, sub, sha, tag in PIN.findall(workflow.read_text()):
             pins.setdefault((owner, repo, sub, sha, tag), set()).add(workflow.name)
 
