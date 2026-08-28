@@ -78,7 +78,7 @@
     },
     "scripts": {
         "setup": "bash .scripts/init.sh",
-        "test": "vendor/bin/pest --colors=always",
+        "test": "vendor/bin/pest --parallel --colors=always",
         "test-coverage": "@test --coverage",
         "test-dirty": "@test --dirty --compact",
         "lint": [
@@ -89,14 +89,16 @@
         ],
         "sync-check": "@php tools/generate-timezone-enum.php --check",
         "pint": "vendor/bin/pint --test",
-        "pint-fix": "vendor/bin/pint",
+        "pint-fix": "vendor/bin/pint --parallel",
         "phpstan": "vendor/bin/phpstan analyse --no-progress",
         "rector": "vendor/bin/rector process --dry-run",
         "rector-fix": "vendor/bin/rector process",
         "audit": [
             "@composer-audit"
         ],
-        "composer-audit": "@composer audit"
+        "composer-audit": "@composer audit",
+        "format": "@pint-fix",
+        "analyse": "@phpstan"
     },
     "extra": {
         "branch-alias": {
