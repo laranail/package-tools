@@ -1,0 +1,37 @@
+# The PHPStan settings every laranail package shares.
+#
+# `phpstan.neon` had 30 distinct variants across 30 packages -- one per package,
+# no shared baseline whatsoever, so the analysis level a package ran at was
+# effectively private to it.
+#
+# Include this first, then add what is genuinely per-package: `paths`,
+# `excludePaths`, the package's own `ignoreErrors`, and its baseline.
+#
+#     includes:
+#         - vendor/larastan/larastan/extension.neon
+#         - vendor/laranail/package-tools/presets/phpstan.neon
+#         - phpstan-baseline.neon
+#
+#     parameters:
+#         paths:
+#             - src
+#
+# A package that genuinely needs a different level sets it after the include;
+# later values win, so the override is one line and visible in review rather
+# than hidden in a fork of the whole file.
+
+parameters:
+    level: 8
+
+    # Docblock types are hints, not proofs. Treating them as certain makes
+    # PHPStan trust an `@return static` that the code contradicts, which turns a
+    # wrong annotation into a silently-accepted bug rather than a reported one.
+    treatPhpDocTypesAsCertain: false
+
+    ignoreErrors:
+        # Generic value types inside iterables are not enforced family-wide.
+        # Requiring `array<string, Foo>` everywhere produces a large volume of
+        # annotation churn for very little caught, and the packages that do want
+        # it can drop this in their own config.
+        -
+            identifier: missingType.iterableValue

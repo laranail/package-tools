@@ -1,9 +1,9 @@
 includes:
     - vendor/larastan/larastan/extension.neon
+    - presets/phpstan.neon
     - phpstan-baseline.neon
 
 parameters:
-    level: 8
     paths:
         - src
     excludePaths:
@@ -22,7 +22,3 @@ parameters:
         # so PHPStan (which scans only src/) always reports them as unused.
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Commands\\HasProgressBar is used zero times#'
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\ManagesComposer is used zero times#'
-        # Generic array value types in docblocks are not enforced.
-        -
-            identifier: missingType.iterableValue
-    treatPhpDocTypesAsCertain: false
