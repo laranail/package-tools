@@ -84,10 +84,8 @@
         "lint": [
             "@pint",
             "@phpstan",
-            "@rector",
-            "@sync-check"
+            "@rector"
         ],
-        "sync-check": "@php tools/generate-timezone-enum.php --check",
         "pint": "vendor/bin/pint --test",
         "pint-fix": "vendor/bin/pint --parallel",
         "phpstan": "vendor/bin/phpstan analyse --no-progress",

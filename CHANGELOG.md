@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Removed
+
+- **`Enums\Timezone`** (419 cases, 454 lines) and its generator. It was already
+  `@deprecated` in favour of `laranail/chrono`'s, which has identical case names and
+  values plus `city()`, `kind()`, `canonical()` and the alias map. Nothing in this
+  package used it, and nothing anywhere in the org did -- verified before removal.
+  A timezone enum has no business in a package-authoring toolkit that 51 packages
+  install. Migration is a one-line `use` change; `timezone()` also takes a plain
+  string. The `sync-check` script and its static-analysis step go with it.
+
+### Added
+
+- **`Validation\Predicates\Pattern`** -- canonical patterns and one total matcher, so
+  `console` and `validation` can share them without either depending on the other.
+
+- **A shared `pint.json`**, no longer `export-ignore`d, consumed org-wide via
+  `--config vendor/laranail/package-tools/pint.json`. See `docs/tools/pint.md`.
+
+
 ### Added
 
 - **`vendor/bin/laranail-dist-integrity`** — verifies that every path `composer.json` references

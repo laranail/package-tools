@@ -52,5 +52,3 @@ jobs:
       # asserts the file is still what the generator produces, which parity
       # cannot see: a hand-added method or a reformat passes parity and turns
       # the next regeneration into a surprising diff.
-      - name: Timezone enum is still generated
-        run: php tools/generate-timezone-enum.php --check

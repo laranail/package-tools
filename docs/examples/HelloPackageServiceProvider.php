@@ -49,7 +49,6 @@ use Simtabi\Laranail\Package\Tools\Package;
 use Acme\Hello\Database\Seeders\GreetingSeeder;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
 use Simtabi\Laranail\Package\Tools\Enums\Weekday;
-use Simtabi\Laranail\Package\Tools\Enums\Timezone;
 use Acme\Hello\Database\Seeders\LegacyGreetingSeeder;
 use Simtabi\Laranail\Package\Tools\Enums\Environment;
 use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
@@ -120,7 +119,7 @@ final class HelloPackageServiceProvider extends PackageServiceProvider
                 ScheduledCommandDefinition::make('hello:digest')
                     ->weekly(Weekday::Monday)
                     ->at(TimeOfDay::pm(5, 30))
-                    ->timezone(Timezone::AfricaNairobi)
+                    ->timezone('Africa/Nairobi')
                     ->environments(Environment::Production, Environment::Staging)
                     ->withoutOverlapping()
                     ->onOneServer()
