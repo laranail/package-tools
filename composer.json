@@ -61,7 +61,8 @@
         "laranail/console": "Styled, capability-aware seeder output. Without it the same output is written in plain text."
     },
     "bin": [
-        "bin/laranail-dist-integrity"
+        "bin/laranail-dist-integrity",
+        "bin/laranail-pint"
     ],
     "autoload": {
         "psr-4": {
@@ -86,8 +87,8 @@
             "@phpstan",
             "@rector"
         ],
-        "pint": "vendor/bin/pint --test",
-        "pint-fix": "vendor/bin/pint --parallel",
+        "pint": "@php bin/laranail-pint --test",
+        "pint-fix": "@php bin/laranail-pint --parallel",
         "phpstan": "vendor/bin/phpstan analyse --no-progress",
         "rector": "vendor/bin/rector process --dry-run",
         "rector-fix": "vendor/bin/rector process",

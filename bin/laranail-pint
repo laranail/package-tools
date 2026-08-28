@@ -1,0 +1,94 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Run Pint against the shared laranail config, and fail loudly if it is absent.
+ *
+ * Pint accepts `--config <path>` for a path that does not exist, silently falls
+ * back to its own defaults, and exits 0. Verified directly:
+ *
+ *     vendor/bin/pint --test --config /nonexistent/nowhere.json  ->  exit 0
+ *
+ * That turns a stale `vendor/` into a false green: the package reports "code
+ * style clean" while having been checked against a different rule set than the
+ * one it believes it uses. Forty-nine packages in this family were in exactly
+ * that state, all reporting clean.
+ *
+ * So the config is resolved here and its absence is an error, not a fallback.
+ *
+ * Usage, from a consuming package:
+ *
+ *     vendor/bin/laranail-pint --test     # check
+ *     vendor/bin/laranail-pint            # fix
+ *
+ * Every other argument is passed through to Pint untouched.
+ */
+
+/** Candidate locations for the shared config, most specific first. */
+$candidates = [
+    // Installed as a dependency: bin/ is vendor/laranail/package-tools/bin.
+    dirname(__DIR__) . '/pint.json',
+    // Running inside a consuming package's root.
+    getcwd() . '/vendor/laranail/package-tools/pint.json',
+];
+
+$config = null;
+foreach ($candidates as $candidate) {
+    if (is_file($candidate)) {
+        $config = $candidate;
+        break;
+    }
+}
+
+if ($config === null) {
+    fwrite(STDERR, <<<'MSG'
+
+  The shared Pint config could not be found.
+
+  Looked for vendor/laranail/package-tools/pint.json. It ships with
+  laranail/package-tools, so a missing copy means the installed version predates
+  it, or vendor/ is stale.
+
+    composer update laranail/package-tools
+
+  If that reports a package "fixed to" a version the remote does not have, the
+  local composer.lock is carrying a stale resolution -- run a full
+  `composer update`. Libraries in this family do not track a lock file.
+
+  Refusing to run rather than silently falling back to Pint's defaults, which is
+  what `pint --config <missing>` does on its own: it exits 0 and reports clean.
+
+MSG);
+
+    exit(1);
+}
+
+/** Locate Pint itself, whether this runs from a dependency or the root package. */
+$binaries = [
+    dirname(__DIR__) . '/vendor/bin/pint',   // package-tools as the root package
+    getcwd() . '/vendor/bin/pint',           // a consuming package
+    dirname(__DIR__, 3) . '/bin/pint',       // vendor/laranail/package-tools/bin -> vendor/bin
+];
+
+$pint = null;
+foreach ($binaries as $binary) {
+    if (is_file($binary)) {
+        $pint = $binary;
+        break;
+    }
+}
+
+if ($pint === null) {
+    fwrite(STDERR, "\n  Could not find vendor/bin/pint. Run `composer install`.\n\n");
+
+    exit(1);
+}
+
+$arguments = array_slice($argv, 1);
+$command = array_map(escapeshellarg(...), [$pint, '--config', $config, ...$arguments]);
+
+passthru(implode(' ', $command), $status);
+
+exit($status);
