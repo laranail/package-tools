@@ -17,9 +17,9 @@ declare(strict_types=1);
 
 namespace Acme\Hello\Http;
 
+use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
 use Simtabi\Laranail\Package\Tools\Http\Controllers\WebController;
 

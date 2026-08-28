@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Http\Controllers;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 
 /**
  * Abstract JSON-shape controller for package APIs.
@@ -28,6 +28,30 @@ abstract class ApiController extends WebController
         $this->statusCode = $statusCode;
 
         return $this;
+    }
+
+    public function errorForbidden(string $message = 'Forbidden'): JsonResponse
+    {
+        return $this->setStatusCode(Response::HTTP_FORBIDDEN)
+            ->respondWithError($message);
+    }
+
+    public function errorInternalError(string $message = 'Internal Error'): JsonResponse
+    {
+        return $this->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
+            ->respondWithError($message);
+    }
+
+    public function errorNotFound(string $message = 'Resource Not Found'): JsonResponse
+    {
+        return $this->setStatusCode(Response::HTTP_NOT_FOUND)
+            ->respondWithError($message);
+    }
+
+    public function errorUnauthorized(string $message = 'Unauthorized'): JsonResponse
+    {
+        return $this->setStatusCode(Response::HTTP_UNAUTHORIZED)
+            ->respondWithError($message);
     }
 
     /**
@@ -56,29 +80,5 @@ abstract class ApiController extends WebController
     protected function respondWithError(string $message): JsonResponse
     {
         return $this->respondWithArray(['message' => $message]);
-    }
-
-    public function errorForbidden(string $message = 'Forbidden'): JsonResponse
-    {
-        return $this->setStatusCode(Response::HTTP_FORBIDDEN)
-            ->respondWithError($message);
-    }
-
-    public function errorInternalError(string $message = 'Internal Error'): JsonResponse
-    {
-        return $this->setStatusCode(Response::HTTP_INTERNAL_SERVER_ERROR)
-            ->respondWithError($message);
-    }
-
-    public function errorNotFound(string $message = 'Resource Not Found'): JsonResponse
-    {
-        return $this->setStatusCode(Response::HTTP_NOT_FOUND)
-            ->respondWithError($message);
-    }
-
-    public function errorUnauthorized(string $message = 'Unauthorized'): JsonResponse
-    {
-        return $this->setStatusCode(Response::HTTP_UNAUTHORIZED)
-            ->respondWithError($message);
     }
 }

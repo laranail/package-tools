@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasMiddlewareManagement;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasMiddlewareManagement;
 
 /**
  * HasMiddlewareManagementTest - Test middleware management

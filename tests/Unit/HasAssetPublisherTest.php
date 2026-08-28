@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\ServiceProvider;
-use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasAssetPublisher;
+use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Test;
+use Illuminate\Support\ServiceProvider;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasAssetPublisher;
 
 /**
  * HasAssetPublisherTest - Test complete asset management system
@@ -82,7 +82,7 @@ class HasAssetPublisherTest extends TestCase
     public function it_publishes_asset_group(): void
     {
         $this->publishAssetGroup('frontend', [
-            'resources/js' => 'vendor/blog/js',
+            'resources/js'  => 'vendor/blog/js',
             'resources/css' => 'vendor/blog/css',
         ]);
 
@@ -115,7 +115,7 @@ class HasAssetPublisherTest extends TestCase
     public function it_publishes_custom_assets(): void
     {
         $this->publishCustomAssets([
-            'resources/icons' => 'vendor/blog/icons',
+            'resources/icons'  => 'vendor/blog/icons',
             'resources/themes' => 'vendor/blog/themes',
         ]);
 
@@ -198,7 +198,7 @@ class HasAssetPublisherTest extends TestCase
             source: 'resources/custom',
             destination: 'vendor/blog/custom',
             cleanBeforePublish: false,
-            tag: 'my-custom-tag'
+            tag: 'my-custom-tag',
         );
 
         $registry = $this->getAssetRegistry();
@@ -429,18 +429,18 @@ class HasAssetPublisherTest extends TestCase
         $registryPublishes = ServiceProvider::pathsToPublish(null, 'assets-js');
         $this->assertContains(
             public_path('vendor/boot-package/js'),
-            array_values($registryPublishes)
+            array_values($registryPublishes),
         );
         $this->assertContains(
             $basePath . '/public/js',
-            array_keys($registryPublishes)
+            array_keys($registryPublishes),
         );
 
         // Declared group (existing source dir) surfaces under "{shortName}-{name}".
         $groupPublishes = ServiceProvider::pathsToPublish(null, 'boot-package-js');
         $this->assertContains(
             public_path('vendor/boot-package/js'),
-            array_values($groupPublishes)
+            array_values($groupPublishes),
         );
     }
 

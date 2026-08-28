@@ -41,12 +41,12 @@ final class HttpConfigurationServiceTest extends TestCase
         $config = $svc->toGuzzleConfig();
 
         $this->assertSame([
-            'persist' => false,
-            'timeout' => 30,
-            'retry' => ['max' => 3],
+            'persist'   => false,
+            'timeout'   => 30,
+            'retry'     => ['max' => 3],
             'cache_ttl' => 0,
-            'base_uri' => 'https://api.example.com',
-            'proxy' => 'tcp://proxy.local:3128',
+            'base_uri'  => 'https://api.example.com',
+            'proxy'     => 'tcp://proxy.local:3128',
         ], $config);
     }
 
@@ -85,7 +85,7 @@ final class HttpConfigurationServiceTest extends TestCase
     {
         $original = [
             'PKG_HTTP_REQUEST_TIMEOUT' => $_ENV['PKG_HTTP_REQUEST_TIMEOUT'] ?? null,
-            'PKG_HTTP_MAX_RETRIES' => $_ENV['PKG_HTTP_MAX_RETRIES'] ?? null,
+            'PKG_HTTP_MAX_RETRIES'     => $_ENV['PKG_HTTP_MAX_RETRIES'] ?? null,
         ];
         try {
             $_ENV['PKG_HTTP_REQUEST_TIMEOUT'] = '15';

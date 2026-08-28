@@ -109,10 +109,10 @@ final class PlainSeederConsoleFormatter implements SeederConsoleFormatterInterfa
     public function resetStatistics(): void
     {
         $this->statistics = [
-            'groups' => 0,
+            'groups'     => 0,
             'successful' => 0,
-            'failed' => 0,
-            'skipped' => 0,
+            'failed'     => 0,
+            'skipped'    => 0,
         ];
     }
 

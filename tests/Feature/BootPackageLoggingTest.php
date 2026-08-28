@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\File;
-use Orchestra\Testbench\Attributes\DefineEnvironment;
-use Orchestra\Testbench\TestCase;
 use Override;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\File;
+use Illuminate\Foundation\Application;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\LogDefinition;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * $package->log() end to end: lines written INSIDE configurePackage()
@@ -48,24 +48,6 @@ final class BootPackageLoggingTest extends TestCase
         File::deleteDirectory(self::$sandbox);
 
         parent::tearDown();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            PackageToolsServiceProvider::class,
-            LogDemoProvider::class,
-        ];
-    }
-
-    protected function disableViaPerPackageConfig(Application $app): void
-    {
-        $app['config']->set('acme.logdemo.logging.enabled', false);
-    }
-
-    private function logfile(): string
-    {
-        return self::$sandbox . '/acme-logdemo.log';
     }
 
     public function test_early_logging_inside_configure_package_reaches_the_logfile(): void
@@ -115,6 +97,24 @@ final class BootPackageLoggingTest extends TestCase
         $this->app->make('laranail.logger.acme-logdemo')->warning('later on', 'Runtime');
 
         $this->assertStringContainsString('[WARNING] [Runtime] later on', File::get($this->logfile()));
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            PackageToolsServiceProvider::class,
+            LogDemoProvider::class,
+        ];
+    }
+
+    protected function disableViaPerPackageConfig(Application $app): void
+    {
+        $app['config']->set('acme.logdemo.logging.enabled', false);
+    }
+
+    private function logfile(): string
+    {
+        return self::$sandbox . '/acme-logdemo.log';
     }
 }
 

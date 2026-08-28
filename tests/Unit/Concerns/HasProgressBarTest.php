@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
 use Illuminate\Console\Command;
-use Simtabi\Laranail\Package\Tools\Concerns\Commands\HasProgressBar;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Simtabi\Laranail\Package\Tools\Concerns\Commands\HasProgressBar;
 
 final class HasProgressBarTest extends TestCase
 {

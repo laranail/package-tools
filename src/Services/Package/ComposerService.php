@@ -17,6 +17,7 @@ class ComposerService
      *
      * @param string $packagePath Path to package
      * @param bool $dev Include dev dependencies
+     *
      * @return array{success: bool, output: string}
      */
     public function install(string $packagePath, bool $dev = true): array
@@ -35,6 +36,7 @@ class ComposerService
      *
      * @param string $packagePath Path to package
      * @param string|null $package Specific package to update
+     *
      * @return array{success: bool, output: string}
      */
     public function update(string $packagePath, ?string $package = null): array
@@ -54,6 +56,7 @@ class ComposerService
      * @param string $packagePath Path to package
      * @param string $package Package to require
      * @param bool $dev Add to require-dev
+     *
      * @return array{success: bool, output: string}
      */
     public function require(string $packagePath, string $package, bool $dev = false): array
@@ -72,6 +75,7 @@ class ComposerService
      *
      * @param string $packagePath Path to package
      * @param string $package Package to remove
+     *
      * @return array{success: bool, output: string}
      */
     public function remove(string $packagePath, string $package): array
@@ -86,6 +90,7 @@ class ComposerService
      *
      * @param string $packagePath Path to package
      * @param bool $optimize Run with --optimize flag
+     *
      * @return array{success: bool, output: string}
      */
     public function dumpAutoload(string $packagePath, bool $optimize = false): array
@@ -103,6 +108,7 @@ class ComposerService
      * Validate composer.json
      *
      * @param string $packagePath Path to package
+     *
      * @return array{valid: bool, errors: array<int, string>}
      */
     public function validate(string $packagePath): array
@@ -110,7 +116,7 @@ class ComposerService
         $result = $this->runCommand(['composer', 'validate'], $packagePath);
 
         return [
-            'valid' => $result['success'],
+            'valid'  => $result['success'],
             'errors' => $result['success'] ? [] : [$result['output']],
         ];
     }
@@ -119,6 +125,7 @@ class ComposerService
      * Get composer.json data
      *
      * @param string $packagePath Path to package
+     *
      * @return array<string, mixed>|null
      */
     public function getComposerData(string $packagePath): ?array
@@ -159,6 +166,7 @@ class ComposerService
      *
      * @param array<string> $command Command parts
      * @param string $workingDir Working directory
+     *
      * @return array{success: bool, output: string}
      */
     protected function runCommand(array $command, string $workingDir): array
@@ -168,7 +176,7 @@ class ComposerService
 
         return [
             'success' => $process->isSuccessful(),
-            'output' => $process->getOutput() ?: $process->getErrorOutput(),
+            'output'  => $process->getOutput() ?: $process->getErrorOutput(),
         ];
     }
 }

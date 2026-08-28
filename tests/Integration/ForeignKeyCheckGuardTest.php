@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
 use Simtabi\Laranail\Package\Tools\Support\ForeignKeyCheckGuard;
 
 final class ForeignKeyCheckGuardTest extends TestCase

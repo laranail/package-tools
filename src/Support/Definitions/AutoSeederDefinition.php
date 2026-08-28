@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
-use BackedEnum;
 use Closure;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
+use BackedEnum;
+use JsonSerializable;
 use Illuminate\Database\Seeder;
+use Illuminate\Contracts\Support\Jsonable;
 
 use function Illuminate\Support\enum_value;
 
-use JsonSerializable;
-use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
+use Illuminate\Contracts\Support\Arrayable;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
 use Simtabi\Laranail\Package\Tools\Enums\Environment;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
+use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
 use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
 
 /**
  * a package's seeder bundle for db:seed-time execution: an explicit,
@@ -418,37 +418,28 @@ final class AutoSeederDefinition implements Arrayable, Jsonable, JsonSerializabl
     public function toArray(): array
     {
         return [
-            'key' => $this->key,
-            'seeders' => $this->seeders,
-            'ignored' => $this->ignored,
-            'discovery_path' => $this->discoveryPath,
-            'namespace' => $this->namespace,
-            'gate' => $this->gate?->toArray(),
-            'priority' => $this->priorityValue(),
-            'autorun' => $this->autorun,
+            'key'                  => $this->key,
+            'seeders'              => $this->seeders,
+            'ignored'              => $this->ignored,
+            'discovery_path'       => $this->discoveryPath,
+            'namespace'            => $this->namespace,
+            'gate'                 => $this->gate?->toArray(),
+            'priority'             => $this->priorityValue(),
+            'autorun'              => $this->autorun,
             'autorun_environments' => $this->autorunEnvironments,
-            'stop_on_failure' => $this->stopOnFailure,
-            'background' => $this->background,
-            'queue' => $this->queue,
-            'queue_connection' => $this->queueConnection,
-            'notify' => $this->notify,
-            'cadence' => $this->cadence instanceof Closure ? 'closure' : (
+            'stop_on_failure'      => $this->stopOnFailure,
+            'background'           => $this->background,
+            'queue'                => $this->queue,
+            'queue_connection'     => $this->queueConnection,
+            'notify'               => $this->notify,
+            'cadence'              => $this->cadence instanceof Closure ? 'closure' : (
                 $this->cadence instanceof CronExpressible ? $this->cadence->toExpression() : (
                     $this->cadence instanceof Cadence ? $this->cadence->value : $this->cadence
                 )
             ),
             'without_overlapping' => $this->overlapExpiresAt,
-            'options' => $this->options,
+            'options'             => $this->options,
         ];
-    }
-
-    private function discoverer(): SeederPathDiscoverer
-    {
-        if (function_exists('app') && app()->bound(SeederPathDiscoverer::class)) {
-            return app(SeederPathDiscoverer::class);
-        }
-
-        return new SeederPathDiscoverer;
     }
 
     public function toJson($options = 0): string
@@ -462,5 +453,14 @@ final class AutoSeederDefinition implements Arrayable, Jsonable, JsonSerializabl
     public function jsonSerialize(): array
     {
         return $this->toArray();
+    }
+
+    private function discoverer(): SeederPathDiscoverer
+    {
+        if (function_exists('app') && app()->bound(SeederPathDiscoverer::class)) {
+            return app(SeederPathDiscoverer::class);
+        }
+
+        return new SeederPathDiscoverer;
     }
 }

@@ -29,14 +29,14 @@ return [
         | (or the built-in defaults: daily, 14 days, debug, line format,
         | storage/logs/{vendor}-{package}.log).
         */
-        'enabled' => null,
-        'channel' => null,     // delegate every package logger to one host channel
-        'path' => null,
-        'directory' => null,
-        'driver' => null,      // 'daily' | 'single'
-        'days' => null,
-        'level' => null,
-        'format' => null,      // 'line' | 'json'
+        'enabled'    => null,
+        'channel'    => null,     // delegate every package logger to one host channel
+        'path'       => null,
+        'directory'  => null,
+        'driver'     => null,      // 'daily' | 'single'
+        'days'       => null,
+        'level'      => null,
+        'format'     => null,      // 'line' | 'json'
         'permission' => null,
 
     ],
@@ -68,10 +68,10 @@ return [
         | means the connection's default queue — nothing hardcoded.
         */
         'queue' => [
-            'name' => null,
+            'name'       => null,
             'connection' => null,
-            'tries' => 1,
-            'timeout' => 300,
+            'tries'      => 1,
+            'timeout'    => 300,
         ],
 
         /*
@@ -145,15 +145,15 @@ return [
 
         'publish' => [
             'tag_pattern' => '*::*',
-            'always' => [],
+            'always'      => [],
         ],
 
         'prune' => [
-            'roots' => ['public/vendor'],
-            'protect' => ['.gitignore', '.gitkeep'],
-            'min_depth' => 2,
+            'roots'         => ['public/vendor'],
+            'protect'       => ['.gitignore', '.gitkeep'],
+            'min_depth'     => 2,
             'max_deletions' => 500,
-            'max_depth' => 12,
+            'max_depth'     => 12,
         ],
 
     ],

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use InvalidArgumentException;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\RateLimiterDefinition;
 
 /**

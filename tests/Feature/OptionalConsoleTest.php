@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Simtabi\Laranail\Console\Tools\Formatting\ConsoleUIFormatter;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
-use Simtabi\Laranail\Package\Tools\Services\Database\PlainSeederConsoleFormatter;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Services\Database\PlainSeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 
 /**
  * package-tools is the base class for the whole family, so anything in its `require` block is
@@ -62,10 +62,10 @@ it('gives the plain formatter the same contract', function (): void {
     $plain->displaySeederError('BadSeeder', new Exception('boom'), 0.01);
 
     expect($plain->getStatistics())->toBe([
-        'groups' => 1,
+        'groups'     => 1,
         'successful' => 1,
-        'failed' => 1,
-        'skipped' => 1,
+        'failed'     => 1,
+        'skipped'    => 1,
     ])->and($plain->getSessionDuration())->toBeGreaterThan(0.0);
 });
 

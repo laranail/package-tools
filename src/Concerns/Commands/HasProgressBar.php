@@ -96,6 +96,7 @@ trait HasProgressBar
      * @param array $items Items to process
      * @param callable $callback Callback to process each item
      * @param string $message Progress message template (use {item} placeholder)
+     *
      * @return array Results from callbacks
      */
     public function withProgress(array $items, callable $callback, string $message = 'Processing {item}...'): array

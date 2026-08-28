@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use InvalidArgumentException;
-use Simtabi\Laranail\Package\Tools\Support\FluentPackageHelper;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\FluentPackageHelper;
 
 class FluentPackageHelperTest extends TestCase
 {
@@ -22,7 +22,7 @@ class FluentPackageHelperTest extends TestCase
             configNamespace: 'blog',
             viewNamespace: 'acme/blog',
             translationNamespace: 'acme/blog',
-            routePrefix: 'packages.blog'
+            routePrefix: 'packages.blog',
         );
     }
 
@@ -98,7 +98,7 @@ class FluentPackageHelperTest extends TestCase
             configNamespace: 'test.package',
             viewNamespace: 'test/package',
             translationNamespace: 'test/package',
-            routePrefix: 'test.package'
+            routePrefix: 'test.package',
         );
 
         $this->assertInstanceOf(FluentPackageHelper::class, $helper);
@@ -114,7 +114,7 @@ class FluentPackageHelperTest extends TestCase
             configNamespace: 'acme.blog',
             viewNamespace: 'acme/blog',
             translationNamespace: 'acme/blog',
-            routePrefix: 'packages.blog'
+            routePrefix: 'packages.blog',
         );
 
         $this->assertEquals('acme.blog', $helper->configNamespace());
@@ -141,7 +141,7 @@ class FluentPackageHelperTest extends TestCase
             configNamespace: 'blog-post',
             viewNamespace: 'acme-corp/blog-post',
             translationNamespace: 'acme-corp/blog-post',
-            routePrefix: 'packages.blog-post'
+            routePrefix: 'packages.blog-post',
         );
 
         $this->assertEquals('acme-corp', $helper->vendor());

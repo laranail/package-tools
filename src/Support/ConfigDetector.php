@@ -16,7 +16,7 @@ class ConfigDetector
     protected ?array $composerData = null;
 
     public function __construct(
-        protected string $basePath = ''
+        protected string $basePath = '',
     ) {
         $this->basePath = $basePath ?: base_path();
     }
@@ -125,19 +125,19 @@ class ConfigDetector
 
         return match ($structure) {
             'monorepo' => [
-                'modules' => 'modules',
+                'modules'  => 'modules',
                 'packages' => 'platform/packages',
-                'base' => $basePath,
+                'base'     => $basePath,
             ],
             'modular' => [
-                'modules' => File::isDirectory($basePath . '/modules') ? 'modules' : 'app/Modules',
+                'modules'  => File::isDirectory($basePath . '/modules') ? 'modules' : 'app/Modules',
                 'packages' => 'packages',
-                'base' => $basePath,
+                'base'     => $basePath,
             ],
             default => [
-                'modules' => 'modules',
+                'modules'  => 'modules',
                 'packages' => 'packages',
-                'base' => $basePath,
+                'base'     => $basePath,
             ],
         };
     }
@@ -162,13 +162,21 @@ class ConfigDetector
     public function detectAll(): array
     {
         return [
-            'namespace' => $this->detectProjectNamespace(),
-            'vendor' => $this->detectVendorName(),
-            'package' => $this->detectPackageName(),
+            'namespace'  => $this->detectProjectNamespace(),
+            'vendor'     => $this->detectVendorName(),
+            'package'    => $this->detectPackageName(),
             'tag_prefix' => $this->detectTagPrefix(),
-            'structure' => $this->detectStructureType(),
-            'paths' => $this->detectPaths(),
+            'structure'  => $this->detectStructureType(),
+            'paths'      => $this->detectPaths(),
         ];
+    }
+
+    /**
+     * Check if auto-detection is available
+     */
+    public function canAutoDetect(): bool
+    {
+        return File::exists($this->basePath . '/composer.json');
     }
 
     /**
@@ -192,13 +200,5 @@ class ConfigDetector
         $this->composerData = json_decode($contents, true);
 
         return $this->composerData;
-    }
-
-    /**
-     * Check if auto-detection is available
-     */
-    public function canAutoDetect(): bool
-    {
-        return File::exists($this->basePath . '/composer.json');
     }
 }

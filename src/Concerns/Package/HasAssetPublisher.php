@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Illuminate\Support\Facades\File;
 use RuntimeException;
+use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishPathGuard;
 
@@ -30,12 +30,12 @@ trait HasAssetPublisher
 
     /** @var array<string> Standard asset type mappings */
     protected array $standardAssetTypes = [
-        'all' => 'public',
-        'js' => 'public/js',
-        'css' => 'public/css',
-        'images' => 'public/images',
-        'media' => 'public/media',
-        'fonts' => 'public/fonts',
+        'all'     => 'public',
+        'js'      => 'public/js',
+        'css'     => 'public/css',
+        'images'  => 'public/images',
+        'media'   => 'public/media',
+        'fonts'   => 'public/fonts',
         'vendors' => 'public/vendors',
     ];
 
@@ -56,13 +56,13 @@ trait HasAssetPublisher
         string $source,
         string $destination,
         bool $cleanBeforePublish = false,
-        ?string $tag = null
+        ?string $tag = null,
     ): static {
         $this->assetRegistry[$source] = [
-            'source' => $source,
+            'source'      => $source,
             'destination' => $destination,
-            'clean' => $cleanBeforePublish,
-            'tag' => $tag,
+            'clean'       => $cleanBeforePublish,
+            'tag'         => $tag,
         ];
 
         return $this;
@@ -96,17 +96,6 @@ trait HasAssetPublisher
     }
 
     /**
-     * Register a source→destination publish under the package's namespaced tag
-     * for the given suffix (shared by publishFile()/publishDirectory()).
-     */
-    private function publishWithNamespacedTag(string $source, string $destination, string $suffix, bool $clean): static
-    {
-        $this->validatePublishTagName($suffix);
-
-        return $this->publish([$source => $destination], $this->getNamespacedPublishTag($suffix), $clean);
-    }
-
-    /**
      * Publish module assets by standard type.
      *
      * Types: 'all', 'js', 'css', 'images', 'media', 'fonts', 'vendors'.
@@ -121,7 +110,7 @@ trait HasAssetPublisher
      */
     public function publishModuleAssets(
         array|string $types = 'all',
-        bool $cleanBeforePublish = false
+        bool $cleanBeforePublish = false,
     ): static {
         $types = is_string($types) ? [$types] : $types;
 
@@ -137,7 +126,7 @@ trait HasAssetPublisher
                 source: $sourceDir,
                 destination: $destinationDir,
                 cleanBeforePublish: $cleanBeforePublish,
-                tag: "assets-{$type}"
+                tag: "assets-{$type}",
             );
         }
 
@@ -162,7 +151,7 @@ trait HasAssetPublisher
     public function publishAssetGroup(
         string $groupName,
         array $assets,
-        bool $cleanBeforePublish = false
+        bool $cleanBeforePublish = false,
     ): static {
         $this->assetGroups[$groupName] = [];
 
@@ -173,7 +162,7 @@ trait HasAssetPublisher
                 source: $source,
                 destination: $destination,
                 cleanBeforePublish: $cleanBeforePublish,
-                tag: "group-{$groupName}"
+                tag: "group-{$groupName}",
             );
 
             $this->assetGroups[$groupName][] = $assetKey;
@@ -203,7 +192,7 @@ trait HasAssetPublisher
      */
     public function publishAssetGroups(
         array $groups,
-        bool $cleanBeforePublish = false
+        bool $cleanBeforePublish = false,
     ): static {
         foreach ($groups as $groupName => $assets) {
             $this->publishAssetGroup($groupName, $assets, $cleanBeforePublish);
@@ -230,14 +219,14 @@ trait HasAssetPublisher
     public function publishCustomAssets(
         array $customAssets,
         bool $cleanBeforePublish = false,
-        ?string $tag = null
+        ?string $tag = null,
     ): static {
         foreach ($customAssets as $source => $destination) {
             $this->publishAssets(
                 source: $source,
                 destination: $destination,
                 cleanBeforePublish: $cleanBeforePublish,
-                tag: $tag ?? 'custom-assets'
+                tag: $tag ?? 'custom-assets',
             );
         }
 
@@ -336,10 +325,10 @@ trait HasAssetPublisher
     public function declareStandardAssetGroups(): static
     {
         return $this->declareAssetGroups([
-            'js' => [],
-            'css' => [],
+            'js'     => [],
+            'css'    => [],
             'images' => [],
-            'fonts' => [],
+            'fonts'  => [],
         ]);
     }
 
@@ -382,6 +371,7 @@ trait HasAssetPublisher
      * Clean a specific asset destination directory
      *
      * @param string $source Source path (to lookup destination)
+     *
      * @return bool True if cleaned successfully
      */
     /**
@@ -440,22 +430,6 @@ trait HasAssetPublisher
     }
 
     /**
-     * Generate asset destination path based on type
-     *
-     * @param string $type Asset type
-     * @return string Destination path
-     */
-    protected function generateAssetDestination(string $type): string
-    {
-        $packageName = $this->getPackageKebabName();
-
-        return match ($type) {
-            'all' => "vendor/{$packageName}",
-            default => "vendor/{$packageName}/{$type}",
-        };
-    }
-
-    /**
      * Get all registered assets
      *
      * @return array<string, array{source: string, destination: string, clean: bool, tag: string|null}>
@@ -489,6 +463,7 @@ trait HasAssetPublisher
      * Filter assets by type
      *
      * @param string $type Asset type
+     *
      * @return array<string, array{source: string, destination: string, clean: bool, tag: string|null}>
      */
     public function filterAssetsByType(string $type): array
@@ -527,7 +502,35 @@ trait HasAssetPublisher
     }
 
     /**
+     * Generate asset destination path based on type
+     *
+     * @param string $type Asset type
+     *
+     * @return string Destination path
+     */
+    protected function generateAssetDestination(string $type): string
+    {
+        $packageName = $this->getPackageKebabName();
+
+        return match ($type) {
+            'all'   => "vendor/{$packageName}",
+            default => "vendor/{$packageName}/{$type}",
+        };
+    }
+
+    /**
      * Get package name in kebab-case
      */
     abstract protected function getPackageKebabName(): string;
+
+    /**
+     * Register a source→destination publish under the package's namespaced tag
+     * for the given suffix (shared by publishFile()/publishDirectory()).
+     */
+    private function publishWithNamespacedTag(string $source, string $destination, string $suffix, bool $clean): static
+    {
+        $this->validatePublishTagName($suffix);
+
+        return $this->publish([$source => $destination], $this->getNamespacedPublishTag($suffix), $clean);
+    }
 }

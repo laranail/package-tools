@@ -122,18 +122,18 @@ final class PackagesCommand extends Command
         $this->newLine();
 
         $rows = [
-            'Authors' => implode(', ', $package['authors']),
-            'License' => $package['license'],
-            'Docs' => $package['docs'],
-            'Keywords' => implode(', ', $package['keywords']),
-            'Provider' => $package['provider'],
-            'Path' => $package['path'],
-            'Config key' => $package['config'],
-            'Views' => $package['views'],
+            'Authors'      => implode(', ', $package['authors']),
+            'License'      => $package['license'],
+            'Docs'         => $package['docs'],
+            'Keywords'     => implode(', ', $package['keywords']),
+            'Provider'     => $package['provider'],
+            'Path'         => $package['path'],
+            'Config key'   => $package['config'],
+            'Views'        => $package['views'],
             'Translations' => $package['translations'],
-            'Components' => $package['components'],
+            'Components'   => $package['components'],
             'Publish tags' => implode(', ', $package['publishTags']),
-            'Commands' => implode(', ', $package['commands']),
+            'Commands'     => implode(', ', $package['commands']),
         ];
 
         foreach ($rows as $label => $value) {

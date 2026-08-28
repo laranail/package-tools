@@ -62,7 +62,7 @@ trait HasViews
         if ($this->configVendor === null) {
             throw new RuntimeException(
                 'View namespace requires vendor/package format. ' .
-                'Please use $package->setName("vendor/package") instead of just "package".'
+                'Please use $package->setName("vendor/package") instead of just "package".',
             );
         }
 

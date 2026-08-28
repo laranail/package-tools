@@ -26,7 +26,7 @@ trait ProcessInertia
         if ($this->app->runningInConsole()) {
             $this->publishes(
                 [$vendorComponents => $appComponents],
-                "{$viewName}-inertia-components"
+                "{$viewName}-inertia-components",
             );
         }
 

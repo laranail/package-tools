@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Facade;
 
-use Orchestra\Testbench\TestCase;
 use ReflectionClass;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
 use Simtabi\Laranail\Package\Tools\Services\Facade\FacadeAutoGenerator;
 
 final class FacadeAutoGeneratorTest extends TestCase

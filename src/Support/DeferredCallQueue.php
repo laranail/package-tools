@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support;
 
-use BackedEnum;
 use Closure;
+use BackedEnum;
 use InvalidArgumentException;
 use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
 use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
@@ -73,11 +73,11 @@ final class DeferredCallQueue
         return match (true) {
             // recurse into arrays so environments([Environment::Production])
             // normalizes the same as the variadic form
-            is_array($arg) => array_map($this->normalize(...), $arg),
-            $arg instanceof BackedEnum => $arg->value,
-            $arg instanceof TimeOfDay => $arg->format24(),
+            is_array($arg)                  => array_map($this->normalize(...), $arg),
+            $arg instanceof BackedEnum      => $arg->value,
+            $arg instanceof TimeOfDay       => $arg->format24(),
             $arg instanceof CronExpressible => $arg->toExpression(),
-            default => $arg,
+            default                         => $arg,
         };
     }
 }

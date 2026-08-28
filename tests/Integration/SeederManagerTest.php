@@ -6,17 +6,12 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Database\Seeder;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class SeederManagerTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
     public function test_auto_seed_registers_into_shared_registry(): void
     {
         ManagerStubCounter::reset();
@@ -54,6 +49,11 @@ final class SeederManagerTest extends TestCase
             ->discover();
 
         $this->assertSame([ManagerOtherSeeder::class], $resolved);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }
 

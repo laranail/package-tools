@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasEnhancedViewComposers;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasEnhancedViewComposers;
 
 /**
  * HasEnhancedViewComposersTest - Test enhanced view composer registration
@@ -137,7 +137,7 @@ class HasEnhancedViewComposersTest extends TestCase
     {
         $this->registerViewComposers([
             'dashboard' => 'DashboardComposer',
-            'profile' => 'ProfileComposer',
+            'profile'   => 'ProfileComposer',
         ], autoPrefix: false);
 
         $composers = $this->getViewComposerRegistry();

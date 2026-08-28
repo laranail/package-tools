@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Config;
 
-use Illuminate\Contracts\Foundation\Application;
 use PHPUnit\Framework\TestCase;
+use Illuminate\Contracts\Foundation\Application;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigService;
 use Simtabi\Laranail\Package\Tools\Services\Config\PatternResolver;
 
@@ -25,7 +25,7 @@ final class PatternResolverTest extends TestCase
     {
         $result = $this->resolver->resolve('{vendor}/{name}', [
             'vendor' => 'acme',
-            'name' => 'widgets',
+            'name'   => 'widgets',
         ]);
 
         $this->assertSame('acme/widgets', $result);
@@ -43,7 +43,7 @@ final class PatternResolverTest extends TestCase
     public function test_resolve_does_not_override_explicit_kebab_or_snake(): void
     {
         $result = $this->resolver->resolve('{module_kebab}', [
-            'module' => 'BlogPosts',
+            'module'       => 'BlogPosts',
             'module_kebab' => 'custom-value',
         ]);
 

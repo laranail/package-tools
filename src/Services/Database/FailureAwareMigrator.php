@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Closure;
+use Override;
+use Throwable;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Database\ConnectionResolverInterface as Resolver;
 use Illuminate\Database\Migrations\MigrationRepositoryInterface;
-use Illuminate\Database\Migrations\Migrator;
-use Illuminate\Filesystem\Filesystem;
-use Override;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
-use Throwable;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * A drop-in {@see Migrator} that reports the full package-action lifecycle

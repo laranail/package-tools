@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Exceptions;
 
+use Throwable;
 use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\HandlesScheduleFailures;
-use Throwable;
 
 /**
  * Thrown when a package's declarative schedule configuration cannot be
@@ -35,8 +35,8 @@ final class ScheduleConfigurationException extends RuntimeException
             $previous,
         );
         $e->context = [
-            'command' => $command,
-            'reason' => $previous->getMessage(),
+            'command'   => $command,
+            'reason'    => $previous->getMessage(),
             'exception' => $previous::class,
         ];
 
@@ -54,7 +54,7 @@ final class ScheduleConfigurationException extends RuntimeException
             $previous,
         );
         $e->context = [
-            'reason' => $previous->getMessage(),
+            'reason'    => $previous->getMessage(),
             'exception' => $previous::class,
         ];
 
@@ -72,8 +72,8 @@ final class ScheduleConfigurationException extends RuntimeException
             $previous,
         );
         $e->context = [
-            'bundle' => $key,
-            'reason' => $previous->getMessage(),
+            'bundle'    => $key,
+            'reason'    => $previous->getMessage(),
             'exception' => $previous::class,
         ];
 

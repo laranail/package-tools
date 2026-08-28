@@ -23,10 +23,10 @@ final class PackageAnalyzerTest extends TestCase
         mkdir($this->pkg . '/tests', 0o755, true);
 
         file_put_contents($this->pkg . '/composer.json', json_encode([
-            'name' => 'acme/widget',
-            'type' => 'library',
-            'license' => 'MIT',
-            'require' => ['php' => '^8.3', 'illuminate/support' => '^11.0'],
+            'name'        => 'acme/widget',
+            'type'        => 'library',
+            'license'     => 'MIT',
+            'require'     => ['php' => '^8.3', 'illuminate/support' => '^11.0'],
             'require-dev' => ['pestphp/pest' => '^3.0'],
         ]));
         file_put_contents($this->pkg . '/README.md', '# Widget');
@@ -43,24 +43,6 @@ final class PackageAnalyzerTest extends TestCase
     {
         $this->deleteTree($this->pkg);
         parent::tearDown();
-    }
-
-    private function deleteTree(string $dir): void
-    {
-        if (! is_dir($dir)) {
-            return;
-        }
-        foreach (scandir($dir) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-            if ($entry === '..') {
-                continue;
-            }
-            $path = $dir . '/' . $entry;
-            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
-        }
-        @rmdir($dir);
     }
 
     public function test_analyze_returns_all_sections(): void
@@ -163,5 +145,23 @@ final class PackageAnalyzerTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->analyzer->getReport([], 'xml');
+    }
+
+    private function deleteTree(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+            if ($entry === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $entry;
+            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
+        }
+        @rmdir($dir);
     }
 }

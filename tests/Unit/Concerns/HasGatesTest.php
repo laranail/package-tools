@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use Illuminate\Support\Facades\Gate;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Gate;
 use Simtabi\Laranail\Package\Tools\Package;
 
 /**

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Log;
 
+use Throwable;
+use Stringable;
+use Psr\Log\LogLevel;
 use DateTimeImmutable;
+use Psr\Log\LoggerInterface;
 use Illuminate\Support\Facades\Log;
 use Monolog\Formatter\JsonFormatter;
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\LogDefinition;
-use Stringable;
-use Throwable;
 
 /**
  * Per-package logger behind `$package->log()`: writes beautifully
@@ -233,11 +233,11 @@ final class PackageLogger
                     $this->flushBuffer();
                 } else {
                     $this->buffer[] = [
-                        'level' => $level,
+                        'level'   => $level,
                         'message' => (string) $message,
-                        'label' => $label,
+                        'label'   => $label,
                         'context' => $context,
-                        'time' => new DateTimeImmutable,
+                        'time'    => new DateTimeImmutable,
                     ];
 
                     return;
@@ -316,10 +316,10 @@ final class PackageLogger
             : $this->package->name;
 
         $config = [
-            'driver' => $driver === 'single' ? 'single' : 'daily',
-            'path' => $this->logPath(),
-            'level' => (string) $this->setting('level', 'debug'),
-            'days' => (int) $this->setting('days', 14),
+            'driver'               => $driver === 'single' ? 'single' : 'daily',
+            'path'                 => $this->logPath(),
+            'level'                => (string) $this->setting('level', 'debug'),
+            'days'                 => (int) $this->setting('days', 14),
             'replace_placeholders' => true,
         ];
 
@@ -378,16 +378,16 @@ final class PackageLogger
         $definition = $this->package->getLogDefinition();
         if ($definition instanceof LogDefinition) {
             $fromDefinition = match ($key) {
-                'enabled' => $definition->isEnabled(),
-                'path' => $definition->pathValue(),
-                'directory' => $definition->directoryValue(),
-                'driver' => $definition->driverValue(),
-                'days' => $definition->daysValue(),
-                'level' => $definition->levelValue(),
-                'channel' => $definition->channelValue(),
-                'format' => $definition->formatValue(),
+                'enabled'    => $definition->isEnabled(),
+                'path'       => $definition->pathValue(),
+                'directory'  => $definition->directoryValue(),
+                'driver'     => $definition->driverValue(),
+                'days'       => $definition->daysValue(),
+                'level'      => $definition->levelValue(),
+                'channel'    => $definition->channelValue(),
+                'format'     => $definition->formatValue(),
                 'permission' => $definition->permissionValue(),
-                default => null,
+                default      => null,
             };
 
             if ($fromDefinition !== null) {

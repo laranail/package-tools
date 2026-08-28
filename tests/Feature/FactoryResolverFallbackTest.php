@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\File;
-use Orchestra\Testbench\TestCase;
 use ReflectionClass;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\File;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\HasFactoriesAndSeeders;
 
 /**

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\ServiceProvider;
 use Override;
+use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
+use Illuminate\Support\ServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackagePublishCommandTest extends TestCase
 {
@@ -48,40 +48,6 @@ final class PackagePublishCommandTest extends TestCase
         File::deleteDirectory($this->sandbox);
 
         parent::tearDown();
-    }
-
-    /** @return array<int, class-string> */
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
-    private function register(): PublishTagRegistry
-    {
-        $registry = $this->app->make(PublishTagRegistry::class);
-
-        $registry->record(
-            'blog-assets',
-            'blog',
-            [$this->sandbox . '/source' => $this->sandbox . '/public/vendor/blog'],
-            cleanable: true,
-        );
-
-        $registry->record(
-            'blog-config',
-            'blog',
-            [$this->sandbox . '/source/app.css' => $this->sandbox . '/config/blog.php'],
-        );
-
-        ServiceProvider::$publishGroups['blog-assets'] = [
-            $this->sandbox . '/source' => $this->sandbox . '/public/vendor/blog',
-        ];
-        ServiceProvider::$publishGroups['blog-config'] = [
-            $this->sandbox . '/source/app.css' => $this->sandbox . '/config/blog.php',
-        ];
-
-        return $registry;
     }
 
     // -----------------------------------------------------------------
@@ -138,8 +104,8 @@ final class PackagePublishCommandTest extends TestCase
         $this->register();
 
         $this->artisan('laranail::package-tools.publish', [
-            '--tag' => ['blog-assets'],
-            '--clean' => true,
+            '--tag'     => ['blog-assets'],
+            '--clean'   => true,
             '--dry-run' => true,
         ])->assertExitCode(0);
 
@@ -161,7 +127,7 @@ final class PackagePublishCommandTest extends TestCase
         $this->register();
 
         $this->artisan('laranail::package-tools.publish', [
-            '--tag' => ['blog-assets'],
+            '--tag'   => ['blog-assets'],
             '--force' => true,
         ])->assertExitCode(0);
 
@@ -177,7 +143,7 @@ final class PackagePublishCommandTest extends TestCase
         $this->register();
 
         $this->artisan('laranail::package-tools.publish', [
-            '--tag' => ['blog-assets'],
+            '--tag'   => ['blog-assets'],
             '--clean' => true,
             '--force' => true,
         ])->assertExitCode(0);
@@ -194,7 +160,7 @@ final class PackagePublishCommandTest extends TestCase
         $this->register();
 
         $this->artisan('laranail::package-tools.publish', [
-            '--tag' => ['blog-config'],
+            '--tag'   => ['blog-config'],
             '--clean' => true,
             '--force' => true,
         ])->assertExitCode(0);
@@ -211,7 +177,7 @@ final class PackagePublishCommandTest extends TestCase
         $this->register();
 
         $this->artisan('laranail::package-tools.publish', [
-            '--tag' => ['blog-assets'],
+            '--tag'   => ['blog-assets'],
             '--clean' => true,
         ])
             ->expectsConfirmation('About to DELETE the destinations of: blog-assets. Continue?', 'no')
@@ -226,7 +192,7 @@ final class PackagePublishCommandTest extends TestCase
         $this->register();
 
         $this->artisan('laranail::package-tools.publish', [
-            '--tag' => ['blog-assets'],
+            '--tag'   => ['blog-assets'],
             '--clean' => true,
         ])
             ->expectsConfirmation('About to DELETE the destinations of: blog-assets. Continue?', 'yes')
@@ -249,43 +215,13 @@ final class PackagePublishCommandTest extends TestCase
         config()->set('laranail.package-tools.assets.prune.roots', ['public']);
 
         $this->artisan('laranail::package-tools.publish', [
-            '--tag' => ['blog-assets'],
+            '--tag'   => ['blog-assets'],
             '--clean' => true,
             '--force' => true,
         ])->assertExitCode(0);
 
         self::assertFileExists($this->sandbox . '/public/vendor/blog/stale.css');
         self::assertDirectoryExists($this->sandbox . '/public');
-    }
-
-    // -----------------------------------------------------------------
-    // --external
-    // -----------------------------------------------------------------
-
-    /**
-     * A tag registered by something that is not a laranail package —
-     * Livewire, Horizon, anything else the application publishes.
-     *
-     * Every *other* group is dropped first, and that is not tidiness. A real
-     * application's external groups include the framework's own config
-     * publishing, so `--external --force` under Testbench writes config files
-     * into the skeleton — where they persist across runs and break unrelated
-     * tests that assert a key is absent. It did exactly that before this
-     * isolation was added.
-     */
-    private function registerExternal(string $tag): void
-    {
-        File::ensureDirectoryExists($this->sandbox . '/external-src');
-        File::put($this->sandbox . '/external-src/vendor.js', 'console.log(1)');
-
-        ServiceProvider::$publishGroups = array_intersect_key(
-            ServiceProvider::$publishGroups,
-            ['blog-assets' => true, 'blog-config' => true],
-        );
-
-        ServiceProvider::$publishGroups[$tag] = [
-            $this->sandbox . '/external-src' => $this->sandbox . '/public/vendor/' . $tag,
-        ];
     }
 
     #[Test]
@@ -346,5 +282,69 @@ final class PackagePublishCommandTest extends TestCase
         $this->artisan('laranail::package-tools.publish', ['--external' => true])
             ->expectsOutputToContain('No external publish tags')
             ->assertExitCode(1);
+    }
+
+    /** @return array<int, class-string> */
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
+    }
+
+    private function register(): PublishTagRegistry
+    {
+        $registry = $this->app->make(PublishTagRegistry::class);
+
+        $registry->record(
+            'blog-assets',
+            'blog',
+            [$this->sandbox . '/source' => $this->sandbox . '/public/vendor/blog'],
+            cleanable: true,
+        );
+
+        $registry->record(
+            'blog-config',
+            'blog',
+            [$this->sandbox . '/source/app.css' => $this->sandbox . '/config/blog.php'],
+        );
+
+        ServiceProvider::$publishGroups['blog-assets'] = [
+            $this->sandbox . '/source' => $this->sandbox . '/public/vendor/blog',
+        ];
+        ServiceProvider::$publishGroups['blog-config'] = [
+            $this->sandbox . '/source/app.css' => $this->sandbox . '/config/blog.php',
+        ];
+
+        return $registry;
+    }
+
+    // -----------------------------------------------------------------
+    // --external
+    // -----------------------------------------------------------------
+
+    /**
+     * A tag registered by something that is not a laranail package —
+     * Livewire, Horizon, anything else the application publishes.
+     *
+     * Every *other* group is dropped first, and that is not tidiness. A real
+     * application's external groups include the framework's own config
+     * publishing, so `--external --force` under Testbench writes config files
+     * into the skeleton — where they persist across runs and break unrelated
+     * tests that assert a key is absent. It did exactly that before this
+     * isolation was added.
+     */
+    private function registerExternal(string $tag): void
+    {
+        File::ensureDirectoryExists($this->sandbox . '/external-src');
+        File::put($this->sandbox . '/external-src/vendor.js', 'console.log(1)');
+
+        ServiceProvider::$publishGroups = array_intersect_key(
+            ServiceProvider::$publishGroups,
+            ['blog-assets' => true, 'blog-config' => true],
+        );
+
+        ServiceProvider::$publishGroups[$tag] = [
+            $this->sandbox . '/external-src' => $this->sandbox . '/public/vendor/' . $tag,
+        ];
     }
 }

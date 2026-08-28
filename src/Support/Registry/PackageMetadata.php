@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Registry;
 
+use Throwable;
 use Composer\InstalledVersions;
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
-use Throwable;
 
 /**
  * What a package says about itself, read from its own `composer.json`.
@@ -31,6 +31,12 @@ final class PackageMetadata
         return self::$cache[$package] ??= self::read($package);
     }
 
+    /** Test seam: the cache is static, and a test that installs a fake package needs it cleared. */
+    public static function flush(): void
+    {
+        self::$cache = [];
+    }
+
     /**
      * @return array{description: ?string, authors: list<string>, homepage: ?string, license: ?string, keywords: list<string>, docs: ?string}
      */
@@ -38,11 +44,11 @@ final class PackageMetadata
     {
         $empty = [
             'description' => null,
-            'authors' => [],
-            'homepage' => null,
-            'license' => null,
-            'keywords' => [],
-            'docs' => null,
+            'authors'     => [],
+            'homepage'    => null,
+            'license'     => null,
+            'keywords'    => [],
+            'docs'        => null,
         ];
 
         $manifest = self::manifestPath($package);
@@ -61,10 +67,10 @@ final class PackageMetadata
 
         return [
             'description' => self::string($json['description'] ?? null),
-            'authors' => self::authors($json['authors'] ?? null),
-            'homepage' => self::string($json['homepage'] ?? null),
-            'license' => self::license($json['license'] ?? null),
-            'keywords' => array_values(array_filter(
+            'authors'     => self::authors($json['authors'] ?? null),
+            'homepage'    => self::string($json['homepage'] ?? null),
+            'license'     => self::license($json['license'] ?? null),
+            'keywords'    => array_values(array_filter(
                 is_array($json['keywords'] ?? null) ? $json['keywords'] : [],
                 static fn (mixed $k): bool => is_string($k) && $k !== '',
             )),
@@ -131,11 +137,5 @@ final class PackageMetadata
     private static function string(mixed $value): ?string
     {
         return is_string($value) && $value !== '' ? $value : null;
-    }
-
-    /** Test seam: the cache is static, and a test that installs a fake package needs it cleared. */
-    public static function flush(): void
-    {
-        self::$cache = [];
     }
 }

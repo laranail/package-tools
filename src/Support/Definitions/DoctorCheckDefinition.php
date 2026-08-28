@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
 use Closure;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\CallbackCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\ConfigPresentCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\PhpExtensionCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\PhpVersionCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\ReachabilityCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\SoftDependencyCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\WritablePathCheck;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
+use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
-use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\CallbackCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\PhpVersionCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\PhpExtensionCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\ReachabilityCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\WritablePathCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\ConfigPresentCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\SoftDependencyCheck;
 
 /**
  * a fluent doctor check: wraps any DoctorCheck (or a bare closure) with
@@ -169,10 +169,10 @@ final class DoctorCheckDefinition implements Arrayable, DoctorCheck, Jsonable, J
     public function toArray(): array
     {
         return [
-            'name' => $this->name(),
+            'name'        => $this->name(),
             'description' => $this->description(),
-            'check' => $this->inner::class,
-            'gate' => $this->gate?->toArray(),
+            'check'       => $this->inner::class,
+            'gate'        => $this->gate?->toArray(),
         ];
     }
 

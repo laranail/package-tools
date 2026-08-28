@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Console\Command;
-use Illuminate\Console\OutputStyle;
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Illuminate\Console\Command;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Console\OutputStyle;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\CallbackCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\ConfigPresentCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\PhpExtensionCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\PhpVersionCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\ReachabilityCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\SoftDependencyCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\WritablePathCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorReporter;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorStatus;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\HealthResponder;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorStatus;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorReporter;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\HealthResponder;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\CallbackCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\PhpVersionCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\PhpExtensionCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\ReachabilityCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\WritablePathCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\ConfigPresentCheck;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\SoftDependencyCheck;
 
 final class DoctorHelpersTest extends TestCase
 {

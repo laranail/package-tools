@@ -36,10 +36,10 @@ trait AskToStarRepoOnGitHub
             // Pass the URL as a discrete process argument (no shell): even a
             // crafted slug stays a single literal argv entry.
             $opener = match (PHP_OS_FAMILY) {
-                'Darwin' => ['open', $repoUrl],
+                'Darwin'  => ['open', $repoUrl],
                 'Windows' => ['cmd', '/c', 'start', '', $repoUrl],
-                'Linux' => ['xdg-open', $repoUrl],
-                default => null,
+                'Linux'   => ['xdg-open', $repoUrl],
+                default   => null,
             };
 
             if ($opener !== null) {

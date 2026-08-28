@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
-use Illuminate\Contracts\Debug\ExceptionHandler;
-use Orchestra\Testbench\TestCase;
-use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
-use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
-use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 use Throwable;
+use RuntimeException;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
+use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
+use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * The failure-handling runner: classify → report (guarded) → crash-on-critical
@@ -21,46 +21,6 @@ use Throwable;
  */
 final class FailurePolicyTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
-    private function spyHandler(): object
-    {
-        $spy = new class implements ExceptionHandler
-        {
-            /** @var list<Throwable> */
-            public array $reported = [];
-
-            public bool $throwOnReport = false;
-
-            public function report(Throwable $e): void
-            {
-                if ($this->throwOnReport) {
-                    throw new RuntimeException('monitoring is down');
-                }
-                $this->reported[] = $e;
-            }
-
-            public function shouldReport(Throwable $e): bool
-            {
-                return true;
-            }
-
-            public function render($request, Throwable $e)
-            {
-                return null;
-            }
-
-            public function renderForConsole($output, Throwable $e): void {}
-        };
-
-        $this->app->instance(ExceptionHandler::class, $spy);
-
-        return $spy;
-    }
-
     public function test_run_returns_the_result_on_success(): void
     {
         $this->assertSame(42, FailurePolicy::run(static fn (): int => 42, 'thing'));
@@ -160,5 +120,45 @@ final class FailurePolicyTest extends TestCase
         FailurePolicy::warn('a near-miss', ['expected' => 'x', 'actual' => 'y']);
 
         $this->assertTrue($this->app->make(BootReport::class)->isHealthy());
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
+    }
+
+    private function spyHandler(): object
+    {
+        $spy = new class implements ExceptionHandler
+        {
+            /** @var list<Throwable> */
+            public array $reported = [];
+
+            public bool $throwOnReport = false;
+
+            public function report(Throwable $e): void
+            {
+                if ($this->throwOnReport) {
+                    throw new RuntimeException('monitoring is down');
+                }
+                $this->reported[] = $e;
+            }
+
+            public function shouldReport(Throwable $e): bool
+            {
+                return true;
+            }
+
+            public function render($request, Throwable $e)
+            {
+                return null;
+            }
+
+            public function renderForConsole($output, Throwable $e): void {}
+        };
+
+        $this->app->instance(ExceptionHandler::class, $spy);
+
+        return $spy;
     }
 }

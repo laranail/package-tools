@@ -15,6 +15,7 @@ class DependencyResolver
      * Resolve dependencies from composer.json
      *
      * @param string $packagePath Package path
+     *
      * @return array<string, mixed>
      */
     public function resolve(string $packagePath): array
@@ -28,15 +29,29 @@ class DependencyResolver
         $composer = json_decode(File::get($composerPath), true);
 
         return [
-            'runtime' => $this->resolveRuntimeDependencies($composer['require'] ?? []),
+            'runtime'     => $this->resolveRuntimeDependencies($composer['require'] ?? []),
             'development' => $this->resolveRuntimeDependencies($composer['require-dev'] ?? []),
         ];
+    }
+
+    /**
+     * Check if all dependencies are satisfied
+     *
+     * @param string $packagePath Package path
+     */
+    public function areDependenciesSatisfied(string $packagePath): bool
+    {
+        $lockPath = $packagePath . '/composer.lock';
+        $vendorPath = $packagePath . '/vendor';
+
+        return File::exists($lockPath) && File::isDirectory($vendorPath);
     }
 
     /**
      * Resolve runtime dependencies
      *
      * @param array<string, string> $dependencies Dependencies array
+     *
      * @return array<string, mixed>
      */
     protected function resolveRuntimeDependencies(array $dependencies): array
@@ -45,8 +60,8 @@ class DependencyResolver
 
         foreach ($dependencies as $package => $version) {
             $resolved[$package] = [
-                'version' => $version,
-                'type' => $this->getDependencyType($package),
+                'version'          => $version,
+                'type'             => $this->getDependencyType($package),
                 'resolved_version' => $this->resolveVersion($version),
             ];
         }
@@ -81,18 +96,5 @@ class DependencyResolver
     {
         // Simplified: a full version would query packagist or composer.lock.
         return $constraint;
-    }
-
-    /**
-     * Check if all dependencies are satisfied
-     *
-     * @param string $packagePath Package path
-     */
-    public function areDependenciesSatisfied(string $packagePath): bool
-    {
-        $lockPath = $packagePath . '/composer.lock';
-        $vendorPath = $packagePath . '/vendor';
-
-        return File::exists($lockPath) && File::isDirectory($vendorPath);
     }
 }

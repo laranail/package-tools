@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Support\Facades\Artisan;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Artisan;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class WiringTestCheck implements DoctorCheck
 {
@@ -43,11 +43,6 @@ final class WiringTestServiceProvider extends PackageServiceProvider
 
 final class BootPackageDoctorChecksTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class, WiringTestServiceProvider::class];
-    }
-
     public function test_has_doctor_check_is_wired_into_the_doctor_service_after_boot(): void
     {
         $service = $this->app->make(DoctorService::class);
@@ -62,5 +57,10 @@ final class BootPackageDoctorChecksTest extends TestCase
         Artisan::call('laranail::package-tools.doctor');
 
         $this->assertStringContainsString('wiring.test', Artisan::output());
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class, WiringTestServiceProvider::class];
     }
 }

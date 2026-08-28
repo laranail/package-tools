@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 
 /**
  * Registers factory and seeder paths and boots them with Laravel.
@@ -25,14 +25,14 @@ trait HasFactoriesAndSeeders
     protected array $packageSeederDefinitions = [];
 
     /**
-     * The lazily-created definition backing registerSeeder() calls.
-     */
-    private ?AutoSeederDefinition $defaultSeederDefinition = null;
-
-    /**
      * Package-level autorun switch applied to every definition at boot.
      */
     protected bool $autorunAllSeeders = false;
+
+    /**
+     * The lazily-created definition backing registerSeeder() calls.
+     */
+    private ?AutoSeederDefinition $defaultSeederDefinition = null;
 
     /**
      * Load factories from a directory
@@ -91,16 +91,6 @@ trait HasFactoriesAndSeeders
         return $this;
     }
 
-    private function defaultSeederDefinition(): AutoSeederDefinition
-    {
-        if (! $this->defaultSeederDefinition instanceof AutoSeederDefinition) {
-            $this->defaultSeederDefinition = AutoSeederDefinition::make($this->name);
-            $this->packageSeederDefinitions[] = $this->defaultSeederDefinition;
-        }
-
-        return $this->defaultSeederDefinition;
-    }
-
     /**
      * Register the factory paths with Laravel. Call from the service
      * provider's boot() method.
@@ -113,6 +103,7 @@ trait HasFactoriesAndSeeders
             if (File::isDirectory($fullPath)) {
                 /**
                  * @param class-string<Model> $modelName
+                 *
                  * @return class-string<Factory<Model>>
                  */
                 $resolver = function (string $modelName) use ($fullPath): string {
@@ -224,6 +215,54 @@ trait HasFactoriesAndSeeders
         }
     }
 
+    /**
+     * Get all factory paths
+     *
+     * @return array<string>
+     */
+    public function getFactoryPaths(): array
+    {
+        return $this->factoryPaths;
+    }
+
+    /**
+     * Resolve a relative factory path to an absolute one.
+     *
+     * @param string $path Relative path
+     *
+     * @return string Absolute path
+     */
+    protected function resolveFactoryPath(string $path): string
+    {
+        return $this->getPath($path);
+    }
+
+    /**
+     * Guess the factory namespace from the package name.
+     */
+    protected function guessFactoryNamespace(): string
+    {
+        $parts = explode('/', $this->name);
+        if (count($parts) === 2) {
+            $vendor = ucfirst($parts[0]);
+            $package = str_replace(['-', '_'], '', ucwords($parts[1], '-_'));
+
+            return "{$vendor}\\{$package}\\Database\\Factories";
+        }
+
+        return 'Database\\Factories';
+    }
+
+    private function defaultSeederDefinition(): AutoSeederDefinition
+    {
+        if (! $this->defaultSeederDefinition instanceof AutoSeederDefinition) {
+            $this->defaultSeederDefinition = AutoSeederDefinition::make($this->name);
+            $this->packageSeederDefinitions[] = $this->defaultSeederDefinition;
+        }
+
+        return $this->defaultSeederDefinition;
+    }
+
     private function registerSeederDefinition(
         SeederManager $manager,
         AutoSeederDefinition $definition,
@@ -275,42 +314,5 @@ trait HasFactoriesAndSeeders
         $key = $this->getDottedNamespace() . '.seeders.autorun';
 
         return config($key, true) === false;
-    }
-
-    /**
-     * Resolve a relative factory path to an absolute one.
-     *
-     * @param string $path Relative path
-     * @return string Absolute path
-     */
-    protected function resolveFactoryPath(string $path): string
-    {
-        return $this->getPath($path);
-    }
-
-    /**
-     * Guess the factory namespace from the package name.
-     */
-    protected function guessFactoryNamespace(): string
-    {
-        $parts = explode('/', $this->name);
-        if (count($parts) === 2) {
-            $vendor = ucfirst($parts[0]);
-            $package = str_replace(['-', '_'], '', ucwords($parts[1], '-_'));
-
-            return "{$vendor}\\{$package}\\Database\\Factories";
-        }
-
-        return 'Database\\Factories';
-    }
-
-    /**
-     * Get all factory paths
-     *
-     * @return array<string>
-     */
-    public function getFactoryPaths(): array
-    {
-        return $this->factoryPaths;
     }
 }

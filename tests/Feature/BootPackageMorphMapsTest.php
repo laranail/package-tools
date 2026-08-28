@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Auth\User as AuthUser;
-use Orchestra\Testbench\Attributes\DefineEnvironment;
-use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use stdClass;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Foundation\Application;
+use Illuminate\Database\Eloquent\Model;
+use Simtabi\Laranail\Package\Tools\Package;
+use Illuminate\Foundation\Auth\User as AuthUser;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
  * registerMorphMap() / registerMorphMapFromConfig() on the Package must
@@ -29,31 +29,6 @@ final class BootPackageMorphMapsTest extends TestCase
         Relation::requireMorphMap(false);
 
         parent::tearDown();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [MorphMapTestPackageProvider::class];
-    }
-
-    protected function withUserModelConfig(Application $app): void
-    {
-        $app['config']->set('test.user_model', MorphFixtureUserModel::class);
-    }
-
-    protected function withAuthFallbackUserModel(Application $app): void
-    {
-        // no test.user_model — the spec must fall back to the auth provider model
-        $app['config']->set('auth.providers.users.model', MorphFixtureUserModel::class);
-    }
-
-    protected function withInvalidMapEntries(Application $app): void
-    {
-        $app['config']->set('test.morph_map', [
-            'bad' => 'Not\\A\\Real\\Class',
-            'plain' => stdClass::class, // real class but not a Model
-            'extra' => MorphFixtureThingModel::class,
-        ]);
     }
 
     public function test_static_morph_map_applies_at_boot(): void
@@ -103,6 +78,31 @@ final class BootPackageMorphMapsTest extends TestCase
             Relation::requiresMorphMap(),
             'a package must never force Relation::requireMorphMap() on the host',
         );
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [MorphMapTestPackageProvider::class];
+    }
+
+    protected function withUserModelConfig(Application $app): void
+    {
+        $app['config']->set('test.user_model', MorphFixtureUserModel::class);
+    }
+
+    protected function withAuthFallbackUserModel(Application $app): void
+    {
+        // no test.user_model — the spec must fall back to the auth provider model
+        $app['config']->set('auth.providers.users.model', MorphFixtureUserModel::class);
+    }
+
+    protected function withInvalidMapEntries(Application $app): void
+    {
+        $app['config']->set('test.morph_map', [
+            'bad'   => 'Not\\A\\Real\\Class',
+            'plain' => stdClass::class, // real class but not a Model
+            'extra' => MorphFixtureThingModel::class,
+        ]);
     }
 }
 

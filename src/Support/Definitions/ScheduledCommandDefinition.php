@@ -4,21 +4,21 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
-use BackedEnum;
 use Closure;
+use BackedEnum;
 use DateTimeZone;
-use Illuminate\Console\Scheduling\Event;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
-use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
+use Illuminate\Console\Scheduling\Event;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
-use Simtabi\Laranail\Package\Tools\Enums\Environment;
 use Simtabi\Laranail\Package\Tools\Enums\Weekday;
+use Simtabi\Laranail\Package\Tools\Enums\Environment;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
+use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
 use Simtabi\Laranail\Package\Tools\Support\DeferredCallQueue;
-use Simtabi\Laranail\Package\Tools\Support\Scheduling\CronBuilder;
 use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
+use Simtabi\Laranail\Package\Tools\Support\Scheduling\CronBuilder;
 
 /**
  * one fluent surface for scheduling a package command, composed from
@@ -83,11 +83,6 @@ final class ScheduledCommandDefinition implements Arrayable, Jsonable, JsonSeria
         private readonly DeferredCallQueue $eventCalls = new DeferredCallQueue,
     ) {}
 
-    public static function make(string $command, ?CronBuilder $cron = null): self
-    {
-        return new self($command, $cron ?? new CronBuilder);
-    }
-
     /**
      * @param array<int, mixed> $args
      */
@@ -102,6 +97,11 @@ final class ScheduledCommandDefinition implements Arrayable, Jsonable, JsonSeria
         $this->eventCalls->record($method, $args);
 
         return $this;
+    }
+
+    public static function make(string $command, ?CronBuilder $cron = null): self
+    {
+        return new self($command, $cron ?? new CronBuilder);
     }
 
     /**
@@ -147,9 +147,9 @@ final class ScheduledCommandDefinition implements Arrayable, Jsonable, JsonSeria
     {
         $this->cadenceConfigKey = $key;
         $this->cadenceConfigDefault = match (true) {
-            $default instanceof Cadence => $default->value,
+            $default instanceof Cadence         => $default->value,
             $default instanceof CronExpressible => $default->toExpression(),
-            default => $default,
+            default                             => $default,
         };
 
         return $this;
@@ -245,15 +245,15 @@ final class ScheduledCommandDefinition implements Arrayable, Jsonable, JsonSeria
     public function toArray(): array
     {
         return [
-            'command' => $this->command,
-            'cron' => $this->cron->isTouched() ? $this->cron->toArray() : null,
+            'command'        => $this->command,
+            'cron'           => $this->cron->isTouched() ? $this->cron->toArray() : null,
             'deferred_calls' => array_map(
                 static fn (array|Closure $call): array|string => $call instanceof Closure ? 'closure' : $call,
                 $this->eventCalls->all(),
             ),
-            'gate' => $this->gate?->toArray(),
+            'gate'           => $this->gate?->toArray(),
             'cadence_config' => $this->cadenceConfigKey === null ? null : [
-                'key' => $this->cadenceConfigKey,
+                'key'     => $this->cadenceConfigKey,
                 'default' => $this->cadenceConfigDefault,
             ],
         ];

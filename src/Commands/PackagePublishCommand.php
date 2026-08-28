@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Commands;
 
 use Illuminate\Support\ServiceProvider;
 use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishPathGuard;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagEntry;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishPathGuard;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 
 /**
@@ -97,7 +97,7 @@ final class PackagePublishCommand extends Command
             }
 
             $exit = $this->callSilently('vendor:publish', array_filter([
-                '--tag' => $tag,
+                '--tag'   => $tag,
                 '--force' => (bool) $this->option('force'),
             ]));
 
@@ -160,7 +160,7 @@ final class PackagePublishCommand extends Command
         if (! $this->input->isInteractive()) {
             $this->warn(
                 'Refusing to clean in a non-interactive shell without --force. '
-                . 'Nobody would have been asked.'
+                . 'Nobody would have been asked.',
             );
 
             return false;
@@ -185,10 +185,10 @@ final class PackagePublishCommand extends Command
             $destinations = $entry?->destinations() ?? [];
 
             $plan[] = [
-                'tag' => $tag,
-                'package' => $entry?->package,
+                'tag'          => $tag,
+                'package'      => $entry?->package,
                 'destinations' => $destinations,
-                'would_clean' => $this->option('clean')
+                'would_clean'  => $this->option('clean')
                     ? array_values(array_filter($destinations, $guard->isDeletable(...)))
                     : [],
             ];
@@ -244,10 +244,10 @@ final class PackagePublishCommand extends Command
         if ($this->option('json')) {
             $this->line((string) json_encode(
                 array_map(static fn (PublishTagEntry $e): array => [
-                    'tag' => $e->tag,
-                    'package' => $e->package,
+                    'tag'          => $e->tag,
+                    'package'      => $e->package,
                     'destinations' => $e->destinations(),
-                    'cleanable' => $e->cleanable,
+                    'cleanable'    => $e->cleanable,
                 ], array_values($known)),
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
             ));

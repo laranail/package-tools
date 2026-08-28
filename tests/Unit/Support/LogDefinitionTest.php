@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\LogDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\LogDefinition;
 
 /**
  * the log definition: the package author's logging defaults — file

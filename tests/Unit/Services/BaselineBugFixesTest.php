@@ -6,11 +6,11 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services;
 
 use Illuminate\Contracts\Http\Kernel;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Services\Asset\AssetRegistry;
-use Simtabi\Laranail\Package\Tools\Services\Component\ComponentRegistry;
-use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
-use Simtabi\Laranail\Package\Tools\Services\Event\MiddlewareRegistry;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Services\Asset\AssetRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Event\MiddlewareRegistry;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
+use Simtabi\Laranail\Package\Tools\Services\Component\ComponentRegistry;
 
 /**
  * Regression tests for the call-site corrections that were previously masked

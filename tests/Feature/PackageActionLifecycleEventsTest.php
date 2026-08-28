@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
+use RuntimeException;
 use Illuminate\Database\Seeder;
+use Orchestra\Testbench\TestCase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use Orchestra\Testbench\TestCase;
-use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionStarted;
-use Simtabi\Laranail\Package\Tools\Events\PackageActionSucceeded;
 use Simtabi\Laranail\Package\Tools\Events\PackageSeedingFailed;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
+use Simtabi\Laranail\Package\Tools\Events\PackageActionSucceeded;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * The unified PackageAction{Started,Succeeded,Failed} lifecycle layer for
@@ -26,11 +26,6 @@ use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
  */
 final class PackageActionLifecycleEventsTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
     public function test_a_clean_bundle_emits_started_then_succeeded(): void
     {
         Event::fake([PackageActionStarted::class, PackageActionSucceeded::class, PackageActionFailed::class]);
@@ -109,6 +104,11 @@ final class PackageActionLifecycleEventsTest extends TestCase
 
         Event::assertNotDispatched(PackageActionStarted::class);
         Event::assertNotDispatched(PackageActionSucceeded::class);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }
 

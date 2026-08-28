@@ -27,34 +27,6 @@ final class ConfigServiceTest extends TestCase
         parent::tearDown();
     }
 
-    private function deleteTree(string $dir): void
-    {
-        if (! is_dir($dir)) {
-            return;
-        }
-
-        foreach (scandir($dir) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-            if ($entry === '..') {
-                continue;
-            }
-            $path = $dir . '/' . $entry;
-            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
-        }
-
-        @rmdir($dir);
-    }
-
-    private function writeConfig(string $name, array $values): string
-    {
-        $path = $this->tmpRoot . '/' . $name;
-        file_put_contents($path, '<?php return ' . var_export($values, true) . ';');
-
-        return $path;
-    }
-
     public function test_set_get_has_round_trip_with_dot_notation(): void
     {
         $this->service->set('foo.bar', 'baz');
@@ -162,10 +134,38 @@ final class ConfigServiceTest extends TestCase
         $this->assertSame(
             [
                 'admin.panel' => ['title' => 'Admin'],
-                'widget' => ['enabled' => true],
+                'widget'      => ['enabled' => true],
             ],
             $this->service->loadFrom($base),
         );
         $this->assertFalse($this->service->has('admin.panel'));
+    }
+
+    private function deleteTree(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+            if ($entry === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $entry;
+            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
+        }
+
+        @rmdir($dir);
+    }
+
+    private function writeConfig(string $name, array $values): string
+    {
+        $path = $this->tmpRoot . '/' . $name;
+        file_put_contents($path, '<?php return ' . var_export($values, true) . ';');
+
+        return $path;
     }
 }

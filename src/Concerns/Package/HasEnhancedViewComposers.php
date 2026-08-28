@@ -40,7 +40,7 @@ trait HasEnhancedViewComposers
     public function registerViewComposer(
         string|array $views,
         string|callable $composer,
-        bool $autoPrefix = true
+        bool $autoPrefix = true,
     ): static {
         $views = (array) $views;
 
@@ -92,7 +92,7 @@ trait HasEnhancedViewComposers
     public function registerViewCreator(
         string|array $views,
         string|callable $creator,
-        bool $autoPrefix = true
+        bool $autoPrefix = true,
     ): static {
         $views = (array) $views;
 
@@ -122,7 +122,7 @@ trait HasEnhancedViewComposers
         string|array $views,
         string $composer,
         array $dependencies = [],
-        bool $autoPrefix = true
+        bool $autoPrefix = true,
     ): static {
         $resolver = fn ($view) => app()->make($composer, $dependencies)->compose($view);
 
@@ -157,23 +157,6 @@ trait HasEnhancedViewComposers
     }
 
     /**
-     * Prefix view name with package namespace
-     *
-     * @param string $view View name
-     * @return string Prefixed view name
-     */
-    protected function prefixViewName(string $view): string
-    {
-        $namespace = $this->getViewNamespace();
-
-        if (str_starts_with($view, $namespace . '::')) {
-            return $view;
-        }
-
-        return $namespace . '::' . $view;
-    }
-
-    /**
      * Get all registered view composers
      *
      * @return array<string, array<int, string|callable>>
@@ -201,6 +184,24 @@ trait HasEnhancedViewComposers
         $this->autoPrefixViewComposers = false;
 
         return $this;
+    }
+
+    /**
+     * Prefix view name with package namespace
+     *
+     * @param string $view View name
+     *
+     * @return string Prefixed view name
+     */
+    protected function prefixViewName(string $view): string
+    {
+        $namespace = $this->getViewNamespace();
+
+        if (str_starts_with($view, $namespace . '::')) {
+            return $view;
+        }
+
+        return $namespace . '::' . $view;
     }
 
     /**

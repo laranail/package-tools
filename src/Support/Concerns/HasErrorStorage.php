@@ -19,30 +19,6 @@ trait HasErrorStorage
     private ?ErrorStorageServiceInterface $errorStorageInstance = null;
 
     /**
-     * Cache the resolved bag per host instance.
-     *
-     * The default container binding is `bind` (per-resolution), so
-     * without this cache every trait method would resolve a fresh
-     * empty bag and lose state across `addError()` / `hasErrors()`
-     * calls. Tests can swap implementations by binding a singleton
-     * before constructing the host.
-     */
-    protected function errorStorage(): ErrorStorageServiceInterface
-    {
-        return $this->errorStorageInstance ??= app(ErrorStorageServiceInterface::class);
-    }
-
-    /**
-     * @param array<string, string|array<int, string>>|string $errors
-     */
-    protected function setErrors(array|string $errors): static
-    {
-        $this->errorStorage()->setErrors($errors);
-
-        return $this;
-    }
-
-    /**
      * @return array<int|string, mixed>
      */
     public function getErrors(?string $key = null): array
@@ -77,5 +53,29 @@ trait HasErrorStorage
     public function getFirstError(): ?string
     {
         return $this->errorStorage()->getFirstError();
+    }
+
+    /**
+     * Cache the resolved bag per host instance.
+     *
+     * The default container binding is `bind` (per-resolution), so
+     * without this cache every trait method would resolve a fresh
+     * empty bag and lose state across `addError()` / `hasErrors()`
+     * calls. Tests can swap implementations by binding a singleton
+     * before constructing the host.
+     */
+    protected function errorStorage(): ErrorStorageServiceInterface
+    {
+        return $this->errorStorageInstance ??= app(ErrorStorageServiceInterface::class);
+    }
+
+    /**
+     * @param array<string, string|array<int, string>>|string $errors
+     */
+    protected function setErrors(array|string $errors): static
+    {
+        $this->errorStorage()->setErrors($errors);
+
+        return $this;
     }
 }

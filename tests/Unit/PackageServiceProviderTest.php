@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
-use Closure;
 use Error;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\ServiceProvider;
+use Closure;
 use Mockery;
 use Mockery\MockInterface;
+use Illuminate\Foundation\Application;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Illuminate\Support\ServiceProvider;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * An Application mock that can hand back the PackageRegistry.
@@ -110,7 +110,7 @@ class PackageServiceProviderTest extends TestCase
             },
             function () use (&$callOrder): void {
                 $callOrder[] = 'registered';
-            }
+            },
         );
 
         $provider->register();
@@ -242,7 +242,7 @@ class PackageServiceProviderTest extends TestCase
     private function createConcreteProvider(
         ?Closure $configureCallback = null,
         ?Closure $registeringCallback = null,
-        ?Closure $registeredCallback = null
+        ?Closure $registeredCallback = null,
     ): PackageServiceProvider {
         $app = mockApplicationForProvider();
         $app->shouldReceive('runningInConsole')->andReturn(false);
@@ -253,7 +253,7 @@ class PackageServiceProviderTest extends TestCase
                 $app,
                 private readonly ?Closure $configureCallback = null,
                 private readonly ?Closure $registeringCallback = null,
-                private readonly ?Closure $registeredCallback = null
+                private readonly ?Closure $registeredCallback = null,
             ) {
                 parent::__construct($app);
             }

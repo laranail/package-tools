@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
-use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
 
 /**

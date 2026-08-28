@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Discovery;
 
-use FilesystemIterator;
 use Generator;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use ReflectionAttribute;
+use SplFileInfo;
 use ReflectionClass;
 use RuntimeException;
-use SplFileInfo;
+use FilesystemIterator;
+use ReflectionAttribute;
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
 
 /**
  * Walks a directory tree, parses PHP files, and yields ReflectionClass
@@ -31,13 +31,14 @@ final class AttributeDiscoverer
      * @param string $directory Absolute path to scan recursively.
      * @param string $rootNamespace PSR-4 root for $directory (e.g. "App\\").
      * @param class-string<T> $attributeClass Attribute to look for.
+     *
      * @return Generator<int, array{class: ReflectionClass<object>, attributes: list<ReflectionAttribute<T>>}>
      */
     public function discover(string $directory, string $rootNamespace, string $attributeClass): Generator
     {
         if (! is_dir($directory)) {
             throw new RuntimeException(
-                "AttributeDiscoverer: directory does not exist: {$directory}"
+                "AttributeDiscoverer: directory does not exist: {$directory}",
             );
         }
 
@@ -65,7 +66,7 @@ final class AttributeDiscoverer
             }
 
             yield [
-                'class' => $rc,
+                'class'      => $rc,
                 'attributes' => $attrs,
             ];
         }
@@ -82,13 +83,14 @@ final class AttributeDiscoverer
      * @param string $directory Absolute path to scan recursively.
      * @param string $rootNamespace PSR-4 root for $directory (e.g. "App\\").
      * @param class-string $parentClass Ancestor class to match against.
+     *
      * @return Generator<int, class-string>
      */
     public function discoverSubclasses(string $directory, string $rootNamespace, string $parentClass): Generator
     {
         if (! is_dir($directory)) {
             throw new RuntimeException(
-                "AttributeDiscoverer: directory does not exist: {$directory}"
+                "AttributeDiscoverer: directory does not exist: {$directory}",
             );
         }
 

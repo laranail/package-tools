@@ -38,8 +38,8 @@ trait ProcessLivewireComponents
             foreach ($this->package->livewireComponents as $name => $class) {
                 $componentName = match (true) {
                     ! $this->package->livewirePrefixComponents => $name,
-                    str_contains((string) $name, '::') => $name,
-                    default => "{$viewNamespace}::{$name}",
+                    str_contains((string) $name, '::')         => $name,
+                    default                                    => "{$viewNamespace}::{$name}",
                 };
 
                 Livewire::component($componentName, $class);

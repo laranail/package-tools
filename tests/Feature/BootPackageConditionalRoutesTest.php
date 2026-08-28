@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Application;
 use Simtabi\Laranail\Package\Tools\Package;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
@@ -18,21 +18,6 @@ use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
  */
 final class BootPackageConditionalRoutesTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [ConditionalRoutesTestPackageProvider::class];
-    }
-
-    protected function enableExtraRoutes(Application $app): void
-    {
-        $app['config']->set('test.routes_on', true);
-    }
-
-    protected function disableDefaultOnRoutes(Application $app): void
-    {
-        $app['config']->set('test.routes_default_on', false);
-    }
-
     #[DefineEnvironment('enableExtraRoutes')]
     public function test_conditional_routes_load_when_the_config_gate_is_on(): void
     {
@@ -56,6 +41,21 @@ final class BootPackageConditionalRoutesTest extends TestCase
     public function test_explicit_config_overrides_a_true_default(): void
     {
         $this->assertFalse(Route::has('pkg.default-on'));
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [ConditionalRoutesTestPackageProvider::class];
+    }
+
+    protected function enableExtraRoutes(Application $app): void
+    {
+        $app['config']->set('test.routes_on', true);
+    }
+
+    protected function disableDefaultOnRoutes(Application $app): void
+    {
+        $app['config']->set('test.routes_default_on', false);
     }
 }
 

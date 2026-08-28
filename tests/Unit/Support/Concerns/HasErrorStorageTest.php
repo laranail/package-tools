@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support\Concerns;
 
-use Simtabi\Laranail\Package\Tools\Support\Concerns\HasErrorStorage;
-use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
-use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\Concerns\HasErrorStorage;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
 
 final class HasErrorStorageTest extends TestCase
 {

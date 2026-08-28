@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Queue\TimeoutExceededException;
-use Illuminate\Support\Facades\Event;
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Illuminate\Database\Seeder;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Queue\TimeoutExceededException;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
+use Simtabi\Laranail\Package\Tools\Jobs\RunSeederBundleJob;
 use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionStarted;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionSucceeded;
-use Simtabi\Laranail\Package\Tools\Jobs\RunSeederBundleJob;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * The queued job now reports a full Job lifecycle: Started/Succeeded on a
@@ -29,20 +29,6 @@ use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
  */
 final class RunSeederBundleJobLifecycleTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
-    private function handle(RunSeederBundleJob $job): void
-    {
-        $job->handle(
-            $this->app->make(SeederRegistry::class),
-            $this->app->make(SeederExecutor::class),
-            $this->app->make(SeederAutorun::class),
-        );
-    }
-
     public function test_a_clean_run_emits_job_started_and_succeeded(): void
     {
         Event::fake([PackageActionStarted::class, PackageActionSucceeded::class, PackageActionFailed::class]);
@@ -94,6 +80,20 @@ final class RunSeederBundleJobLifecycleTest extends TestCase
         (new RunSeederBundleJob('t/broke'))->failed(new RuntimeException('kaboom'));
 
         Event::assertDispatched(PackageActionFailed::class, fn (PackageActionFailed $e): bool => $e->type === PackageActionType::Job && $e->reason === FailureReason::Failed && $e->exceptionClass === RuntimeException::class);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
+    }
+
+    private function handle(RunSeederBundleJob $job): void
+    {
+        $job->handle(
+            $this->app->make(SeederRegistry::class),
+            $this->app->make(SeederExecutor::class),
+            $this->app->make(SeederAutorun::class),
+        );
     }
 }
 

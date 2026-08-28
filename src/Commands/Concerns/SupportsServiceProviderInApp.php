@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Commands\Concerns;
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 
 trait SupportsServiceProviderInApp
 {
@@ -57,20 +57,20 @@ trait SupportsServiceProviderInApp
             File::put(config_path('app.php'), str_replace(
                 "{$namespace}\\Providers\\BroadcastServiceProvider::class,",
                 "{$namespace}\\Providers\\BroadcastServiceProvider::class," . PHP_EOL . "        {$namespace}{$class},",
-                $appConfig
+                $appConfig,
             ));
         } else {
             File::put(base_path('bootstrap/providers.php'), str_replace(
                 "{$namespace}\\Providers\\AppServiceProvider::class,",
                 "{$namespace}\\Providers\\AppServiceProvider::class," . PHP_EOL . "        {$namespace}{$class},",
-                $appConfig
+                $appConfig,
             ));
         }
 
         File::put(app_path('Providers/' . $providerName . '.php'), str_replace(
             "namespace App\Providers;",
             "namespace {$namespace}\Providers;",
-            File::get(app_path('Providers/' . $providerName . '.php'))
+            File::get(app_path('Providers/' . $providerName . '.php')),
         ));
 
         return $this;

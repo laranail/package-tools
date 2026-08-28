@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Config;
 
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
-use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 final class ConfigFileResolverTest extends TestCase
 {
@@ -30,28 +30,10 @@ final class ConfigFileResolverTest extends TestCase
         parent::tearDown();
     }
 
-    private function deleteTree(string $dir): void
-    {
-        if (! is_dir($dir)) {
-            return;
-        }
-        foreach (scandir($dir) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-            if ($entry === '..') {
-                continue;
-            }
-            $path = $dir . '/' . $entry;
-            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
-        }
-        @rmdir($dir);
-    }
-
     public function test_resolve_builds_config_path(): void
     {
         $expected = PathResolver::normalizePath(
-            $this->basePath . '/config/app.php'
+            $this->basePath . '/config/app.php',
         );
 
         $this->assertSame($expected, $this->resolver->resolve('app'));
@@ -60,7 +42,7 @@ final class ConfigFileResolverTest extends TestCase
     public function test_resolve_nested_builds_subfolder_path(): void
     {
         $expected = PathResolver::normalizePath(
-            $this->basePath . '/config/modules/admin.php'
+            $this->basePath . '/config/modules/admin.php',
         );
 
         $this->assertSame($expected, $this->resolver->resolveNested('admin', 'modules'));
@@ -140,7 +122,7 @@ final class ConfigFileResolverTest extends TestCase
 
         $this->assertSame(
             ['admin/panel.php', 'api/v1/limits.php', 'flat.php'],
-            $this->resolver->getAllNested()
+            $this->resolver->getAllNested(),
         );
     }
 
@@ -154,7 +136,7 @@ final class ConfigFileResolverTest extends TestCase
 
         $this->assertSame(
             ['api/v1/limits.php'],
-            $this->resolver->getAllNested('api')
+            $this->resolver->getAllNested('api'),
         );
     }
 
@@ -204,9 +186,9 @@ final class ConfigFileResolverTest extends TestCase
 
         $this->assertSame(
             [
-                'admin.panel' => ['title' => 'Admin'],
+                'admin.panel'   => ['title' => 'Admin'],
                 'api.v1.limits' => ['rate' => 60],
-                'flat' => ['a' => 1],
+                'flat'          => ['a' => 1],
             ],
             $this->resolver->loadAll(),
         );
@@ -246,5 +228,23 @@ final class ConfigFileResolverTest extends TestCase
             ['custom.thing' => ['__namespace' => 'acme.custom', 'enabled' => true]],
             $this->resolver->loadAll('custom'),
         );
+    }
+
+    private function deleteTree(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+            if ($entry === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $entry;
+            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
+        }
+        @rmdir($dir);
     }
 }

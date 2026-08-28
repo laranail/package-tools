@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Log;
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\LogDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\LogDefinition;
 
 final class PackageLoggerTest extends TestCase
 {
@@ -28,21 +28,6 @@ final class PackageLoggerTest extends TestCase
         File::deleteDirectory($this->sandbox);
 
         parent::tearDown();
-    }
-
-    private function makePackage(?LogDefinition $definition = null): Package
-    {
-        $package = new Package;
-        $package->name('acme/blog');
-        $package->basePath = $this->sandbox;
-        $package->hasLogging($definition ?? LogDefinition::make()->single()->directory($this->sandbox));
-
-        return $package;
-    }
-
-    private function logfile(): string
-    {
-        return $this->sandbox . '/acme-blog.log';
     }
 
     #[Test]
@@ -115,7 +100,7 @@ final class PackageLoggerTest extends TestCase
         $hostPath = $this->sandbox . '/host-defined.log';
         config()->set('logging.channels.acme-blog', [
             'driver' => 'single',
-            'path' => $hostPath,
+            'path'   => $hostPath,
         ]);
 
         $package = $this->makePackage();
@@ -195,5 +180,20 @@ final class PackageLoggerTest extends TestCase
         $content = File::get($this->logfile());
         $this->assertStringNotContainsString('filtered by global', $content);
         $this->assertStringContainsString('passes global', $content);
+    }
+
+    private function makePackage(?LogDefinition $definition = null): Package
+    {
+        $package = new Package;
+        $package->name('acme/blog');
+        $package->basePath = $this->sandbox;
+        $package->hasLogging($definition ?? LogDefinition::make()->single()->directory($this->sandbox));
+
+        return $package;
+    }
+
+    private function logfile(): string
+    {
+        return $this->sandbox . '/acme-blog.log';
     }
 }

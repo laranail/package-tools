@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Illuminate\Support\Facades\Config;
 use RuntimeException;
+use Illuminate\Support\Facades\Config;
 
 /**
  * Config handling: deep merge into global config keys (e.g. services.php),
@@ -32,12 +32,12 @@ trait HasAdvancedConfig
     public function mergeConfigInto(
         string $sourceKey,
         string $targetKey,
-        bool $deep = true
+        bool $deep = true,
     ): static {
         $this->configMerges[$sourceKey] = [
             'source' => $sourceKey,
             'target' => $targetKey,
-            'deep' => $deep,
+            'deep'   => $deep,
         ];
 
         return $this;
@@ -53,113 +53,9 @@ trait HasAdvancedConfig
             $this->executeMerge(
                 $merge['source'],
                 $merge['target'],
-                $merge['deep']
+                $merge['deep'],
             );
         }
-    }
-
-    /**
-     * @param string $sourceKey Source key from package config
-     * @param string $targetKey Target global config key
-     * @param bool $deep Use deep merge
-     *
-     * @throws RuntimeException If merge validation fails
-     */
-    protected function executeMerge(string $sourceKey, string $targetKey, bool $deep): void
-    {
-        $namespace = $this->getConfigNamespace();
-        $fullSourceKey = $namespace . '.' . $sourceKey;
-
-        $sourceData = Config::get($fullSourceKey);
-
-        if ($sourceData === null) {
-            return;
-        }
-
-        $targetData = Config::get($targetKey, []);
-
-        if ($this->configSafeMode && ! empty($targetData)) {
-            $this->validateSafeMerge($targetData, $sourceData, $targetKey);
-        }
-
-        $merged = $deep
-            ? $this->deepMerge($targetData, $sourceData)
-            : array_merge((array) $targetData, (array) $sourceData);
-
-        Config::set($targetKey, $merged);
-    }
-
-    /**
-     * Recursively merge two arrays. Unlike array_merge_recursive, this
-     * preserves integer keys and replaces scalars instead of nesting them.
-     *
-     * @param array<array-key, mixed> $target Target array
-     * @param array<array-key, mixed> $source Source array
-     * @return array<array-key, mixed> Merged array
-     */
-    protected function deepMerge(array $target, array $source): array
-    {
-        foreach ($source as $key => $value) {
-            if (is_array($value) && isset($target[$key]) && is_array($target[$key])) {
-                $target[$key] = $this->deepMerge($target[$key], $value);
-            } else {
-                $target[$key] = $value;
-            }
-        }
-
-        return $target;
-    }
-
-    /**
-     * Throw if the merge would overwrite existing keys while safe mode is on.
-     *
-     * @param array<array-key, mixed> $target Target config
-     * @param array<array-key, mixed> $source Source config
-     * @param string $targetKey Target key path (for error messages)
-     *
-     * @throws RuntimeException If keys would be overwritten
-     */
-    protected function validateSafeMerge(array $target, array $source, string $targetKey): void
-    {
-        $conflicts = $this->findConflicts($target, $source);
-
-        if (! empty($conflicts)) {
-            throw new RuntimeException(
-                "Config merge conflict: The following keys in '{$targetKey}' would be overwritten: " .
-                implode(', ', $conflicts) . '. ' .
-                'Disable safe mode with disableConfigSafeMode() if this is intentional.'
-            );
-        }
-    }
-
-    /**
-     * Find conflicting keys between target and source
-     *
-     * @param array<array-key, mixed> $target Target array
-     * @param array<array-key, mixed> $source Source array
-     * @param string $prefix Key prefix for nested paths
-     * @return list<string> Array of conflicting key paths
-     */
-    protected function findConflicts(array $target, array $source, string $prefix = ''): array
-    {
-        $conflicts = [];
-
-        foreach ($source as $key => $value) {
-            $fullKey = $prefix === '' ? $key : $prefix . '.' . $key;
-
-            if (! isset($target[$key])) {
-                continue;
-            }
-
-            if (is_array($value) && is_array($target[$key])) {
-                $nestedConflicts = $this->findConflicts($target[$key], $value, $fullKey);
-                $conflicts = array_merge($conflicts, $nestedConflicts);
-            } else {
-                $conflicts[] = $fullKey;
-            }
-        }
-
-        return $conflicts;
     }
 
     /**
@@ -211,6 +107,112 @@ trait HasAdvancedConfig
     }
 
     /**
+     * @param string $sourceKey Source key from package config
+     * @param string $targetKey Target global config key
+     * @param bool $deep Use deep merge
+     *
+     * @throws RuntimeException If merge validation fails
+     */
+    protected function executeMerge(string $sourceKey, string $targetKey, bool $deep): void
+    {
+        $namespace = $this->getConfigNamespace();
+        $fullSourceKey = $namespace . '.' . $sourceKey;
+
+        $sourceData = Config::get($fullSourceKey);
+
+        if ($sourceData === null) {
+            return;
+        }
+
+        $targetData = Config::get($targetKey, []);
+
+        if ($this->configSafeMode && ! empty($targetData)) {
+            $this->validateSafeMerge($targetData, $sourceData, $targetKey);
+        }
+
+        $merged = $deep
+            ? $this->deepMerge($targetData, $sourceData)
+            : array_merge((array) $targetData, (array) $sourceData);
+
+        Config::set($targetKey, $merged);
+    }
+
+    /**
+     * Recursively merge two arrays. Unlike array_merge_recursive, this
+     * preserves integer keys and replaces scalars instead of nesting them.
+     *
+     * @param array<array-key, mixed> $target Target array
+     * @param array<array-key, mixed> $source Source array
+     *
+     * @return array<array-key, mixed> Merged array
+     */
+    protected function deepMerge(array $target, array $source): array
+    {
+        foreach ($source as $key => $value) {
+            if (is_array($value) && isset($target[$key]) && is_array($target[$key])) {
+                $target[$key] = $this->deepMerge($target[$key], $value);
+            } else {
+                $target[$key] = $value;
+            }
+        }
+
+        return $target;
+    }
+
+    /**
+     * Throw if the merge would overwrite existing keys while safe mode is on.
+     *
+     * @param array<array-key, mixed> $target Target config
+     * @param array<array-key, mixed> $source Source config
+     * @param string $targetKey Target key path (for error messages)
+     *
+     * @throws RuntimeException If keys would be overwritten
+     */
+    protected function validateSafeMerge(array $target, array $source, string $targetKey): void
+    {
+        $conflicts = $this->findConflicts($target, $source);
+
+        if (! empty($conflicts)) {
+            throw new RuntimeException(
+                "Config merge conflict: The following keys in '{$targetKey}' would be overwritten: " .
+                implode(', ', $conflicts) . '. ' .
+                'Disable safe mode with disableConfigSafeMode() if this is intentional.',
+            );
+        }
+    }
+
+    /**
+     * Find conflicting keys between target and source
+     *
+     * @param array<array-key, mixed> $target Target array
+     * @param array<array-key, mixed> $source Source array
+     * @param string $prefix Key prefix for nested paths
+     *
+     * @return list<string> Array of conflicting key paths
+     */
+    protected function findConflicts(array $target, array $source, string $prefix = ''): array
+    {
+        $conflicts = [];
+
+        foreach ($source as $key => $value) {
+            $fullKey = $prefix === '' ? $key : $prefix . '.' . $key;
+
+            if (! isset($target[$key])) {
+                continue;
+            }
+
+            if (is_array($value) && is_array($target[$key])) {
+                $nestedConflicts = $this->findConflicts($target[$key], $value, $fullKey);
+                $conflicts = array_merge($conflicts, $nestedConflicts);
+            } else {
+                $conflicts[] = $fullKey;
+            }
+        }
+
+        return $conflicts;
+    }
+
+    /**
      * @param string $key Key to validate
      *
      * @throws RuntimeException If key is invalid
@@ -224,7 +226,7 @@ trait HasAdvancedConfig
         if (preg_match('/[^a-zA-Z0-9._-]/', $key)) {
             throw new RuntimeException(
                 "Invalid config key '{$key}'. " .
-                'Only alphanumeric characters, dots (.), dashes (-), and underscores (_) are allowed'
+                'Only alphanumeric characters, dots (.), dashes (-), and underscores (_) are allowed',
             );
         }
     }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\ServiceProvider;
 use Override;
+use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
+use Illuminate\Support\ServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackageAssetsPruneCommandTest extends TestCase
 {
@@ -53,20 +53,6 @@ final class PackageAssetsPruneCommandTest extends TestCase
         File::deleteDirectory($this->sandbox);
 
         parent::tearDown();
-    }
-
-    /** @return array<int, class-string> */
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
-    private function assertNothingWasDeleted(string $because): void
-    {
-        self::assertFileExists($this->sandbox . '/public/vendor/ghost/old.css', $because);
-        self::assertFileExists($this->sandbox . '/public/vendor/blog/app.css', $because);
-        self::assertFileExists($this->sandbox . '/public/index.php', $because);
     }
 
     // -----------------------------------------------------------------
@@ -280,5 +266,19 @@ final class PackageAssetsPruneCommandTest extends TestCase
             ->assertExitCode(0);
 
         $this->assertNothingWasDeleted('A report run deleted something.');
+    }
+
+    /** @return array<int, class-string> */
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
+    }
+
+    private function assertNothingWasDeleted(string $because): void
+    {
+        self::assertFileExists($this->sandbox . '/public/vendor/ghost/old.css', $because);
+        self::assertFileExists($this->sandbox . '/public/vendor/blog/app.css', $because);
+        self::assertFileExists($this->sandbox . '/public/index.php', $because);
     }
 }

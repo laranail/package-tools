@@ -36,34 +36,6 @@ final readonly class DistIntegrityAuditor
     public function __construct(private RevisionReader $reader) {}
 
     /**
-     * @throws CouldNotReadRevision|JsonException
-     */
-    public function audit(string $revision = 'HEAD'): DistIntegrityReport
-    {
-        /** @var array<string, mixed> $composer */
-        $composer = json_decode($this->reader->manifest($revision), true, 512, JSON_THROW_ON_ERROR);
-
-        $archived = $this->reader->archivedPaths($revision);
-        $tracked = $this->reader->trackedPaths($revision);
-
-        $references = [];
-
-        foreach (self::referencedPaths($composer) as [$key, $path]) {
-            $references[] = new PathReference($key, $path, match (true) {
-                ! $this->contains($tracked, $path) => ReferenceStatus::NotCommitted,
-                $this->contains($archived, $path) => ReferenceStatus::Shipped,
-                default => ReferenceStatus::Stripped,
-            });
-        }
-
-        return new DistIntegrityReport(
-            packageName: is_string($composer['name'] ?? null) ? $composer['name'] : '?',
-            revision: $revision,
-            references: $references,
-        );
-    }
-
-    /**
      * The paths the manifest promises a consumer will find.
      *
      * Deliberately not every key -- only those where a missing file is a
@@ -71,6 +43,7 @@ final readonly class DistIntegrityAuditor
      * repository.
      *
      * @param array<string, mixed> $composer
+     *
      * @return list<array{0: string, 1: string}>
      */
     public static function referencedPaths(array $composer): array
@@ -98,6 +71,34 @@ final readonly class DistIntegrityAuditor
         }
 
         return $paths;
+    }
+
+    /**
+     * @throws CouldNotReadRevision|JsonException
+     */
+    public function audit(string $revision = 'HEAD'): DistIntegrityReport
+    {
+        /** @var array<string, mixed> $composer */
+        $composer = json_decode($this->reader->manifest($revision), true, 512, JSON_THROW_ON_ERROR);
+
+        $archived = $this->reader->archivedPaths($revision);
+        $tracked = $this->reader->trackedPaths($revision);
+
+        $references = [];
+
+        foreach (self::referencedPaths($composer) as [$key, $path]) {
+            $references[] = new PathReference($key, $path, match (true) {
+                ! $this->contains($tracked, $path) => ReferenceStatus::NotCommitted,
+                $this->contains($archived, $path)  => ReferenceStatus::Shipped,
+                default                            => ReferenceStatus::Stripped,
+            });
+        }
+
+        return new DistIntegrityReport(
+            packageName: is_string($composer['name'] ?? null) ? $composer['name'] : '?',
+            revision: $revision,
+            references: $references,
+        );
     }
 
     /**

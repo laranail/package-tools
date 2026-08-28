@@ -33,7 +33,7 @@ trait HasRoutes
         $flattened = collect($routeFileNames)->flatten()->toArray();
         $this->routeFileNames = array_merge(
             $this->routeFileNames,
-            $flattened
+            $flattened,
         );
 
         return $this;
@@ -48,8 +48,8 @@ trait HasRoutes
     public function hasRoutesWhen(string $configKey, string|array $routeFileNames, bool $default = false): static
     {
         $this->conditionalRouteFileNames[] = [
-            'key' => $configKey,
-            'files' => array_values((array) $routeFileNames),
+            'key'     => $configKey,
+            'files'   => array_values((array) $routeFileNames),
             'default' => $default,
         ];
 

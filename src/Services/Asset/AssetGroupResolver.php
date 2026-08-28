@@ -18,6 +18,7 @@ class AssetGroupResolver
      * Resolve asset groups from configuration
      *
      * @param array<string, array<string, string>> $config Group configuration
+     *
      * @return array<string, array{source: string, target: string}> Resolved groups
      */
     public function resolve(array $config): array
@@ -41,6 +42,7 @@ class AssetGroupResolver
      * Get asset groups by type
      *
      * @param string $type Asset type (js, css, media, etc.)
+     *
      * @return array<string, array<string, string>>
      */
     public function getGroups(string $type): array
@@ -85,6 +87,7 @@ class AssetGroupResolver
      * Build paths for a group
      *
      * @param array{source: string, target: string} $group Group configuration
+     *
      * @return array{source: string, target: string, exists: bool}
      */
     public function buildPaths(array $group): array
@@ -103,6 +106,7 @@ class AssetGroupResolver
      * Resolve source path
      *
      * @param string $path Relative path
+     *
      * @return string Absolute path
      */
     protected function resolveSourcePath(string $path): string
@@ -118,6 +122,7 @@ class AssetGroupResolver
      * Resolve target path
      *
      * @param string $path Relative path
+     *
      * @return string Full target path
      */
     protected function resolveTargetPath(string $path): string

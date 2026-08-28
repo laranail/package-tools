@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
 use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
-use Simtabi\Laranail\Package\Tools\Services\Config\ConfigMerger;
 use Simtabi\Laranail\Package\Tools\Support\ConfigDecorator;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigMerger;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
@@ -106,6 +106,8 @@ trait HasConfigDecorations
         }
     }
 
+    abstract public function basePath(?string $directory = null): string;
+
     private function mergeDefaultsFile(ConfigMerger $merger, string $globalKey, string $file): void
     {
         $defaults = $this->loadArray($file);
@@ -139,6 +141,4 @@ trait HasConfigDecorations
 
         return is_array($data) ? $data : [];
     }
-
-    abstract public function basePath(?string $directory = null): string;
 }

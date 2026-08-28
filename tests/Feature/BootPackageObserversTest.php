@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Database\Eloquent\Model;
+use Orchestra\Testbench\TestCase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
-use Orchestra\Testbench\TestCase;
+use Illuminate\Database\Eloquent\Model;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
@@ -23,21 +23,6 @@ final class BootPackageObserversTest extends TestCase
 
         ObserverFixtureObserver::$creatingFired = false;
         ObserverFixtureObserver::$createdFired = false;
-    }
-
-    protected function defineEnvironment($app): void
-    {
-        $app['config']->set('database.default', 'testing');
-        $app['config']->set('database.connections.testing', [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-        ]);
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [ObserverTestPackageProvider::class];
     }
 
     public function test_observer_listener_is_registered_for_model_events(): void
@@ -58,6 +43,21 @@ final class BootPackageObserversTest extends TestCase
 
         $this->assertTrue(ObserverFixtureObserver::$creatingFired, 'creating() should fire on the observer');
         $this->assertTrue(ObserverFixtureObserver::$createdFired, 'created() should fire on the observer');
+    }
+
+    protected function defineEnvironment($app): void
+    {
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('database.connections.testing', [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix'   => '',
+        ]);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [ObserverTestPackageProvider::class];
     }
 }
 

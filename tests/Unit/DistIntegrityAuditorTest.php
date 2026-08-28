@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\Dist\RevisionReader;
+use Simtabi\Laranail\Package\Tools\Support\Dist\ReferenceStatus;
+use Simtabi\Laranail\Package\Tools\Support\Dist\DistIntegrityReport;
 use Simtabi\Laranail\Package\Tools\Support\Dist\CouldNotReadRevision;
 use Simtabi\Laranail\Package\Tools\Support\Dist\DistIntegrityAuditor;
-use Simtabi\Laranail\Package\Tools\Support\Dist\DistIntegrityReport;
-use Simtabi\Laranail\Package\Tools\Support\Dist\ReferenceStatus;
-use Simtabi\Laranail\Package\Tools\Support\Dist\RevisionReader;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 class DistIntegrityAuditorTest extends TestCase
 {
@@ -20,7 +20,7 @@ class DistIntegrityAuditorTest extends TestCase
         // carried /extension.neon export-ignore.
         $report = $this->audit(
             manifest: [
-                'name' => 'laranail/enumerator',
+                'name'  => 'laranail/enumerator',
                 'extra' => ['phpstan' => ['includes' => ['extension.neon']]],
             ],
             tracked: ['extension.neon', 'src/Foo.php'],
@@ -89,8 +89,8 @@ class DistIntegrityAuditorTest extends TestCase
     public function test_referenced_paths_covers_every_consumer_facing_key(): void
     {
         $paths = DistIntegrityAuditor::referencedPaths([
-            'extra' => ['phpstan' => ['includes' => ['ext.neon']]],
-            'bin' => ['bin/x'],
+            'extra'    => ['phpstan' => ['includes' => ['ext.neon']]],
+            'bin'      => ['bin/x'],
             'autoload' => [
                 'psr-4' => ['A\\' => 'src/'],
                 'psr-0' => ['B' => 'legacy/'],

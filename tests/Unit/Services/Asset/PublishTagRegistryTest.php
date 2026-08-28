@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Asset;
 
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 
 final class PublishTagRegistryTest extends TestCase

@@ -6,14 +6,14 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Database\Seeder;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Enums\SeederRunStatus;
 use Simtabi\Laranail\Package\Tools\Jobs\RunSeederBundleJob;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRunTracker;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class RunSeederBundleJobTest extends TestCase
 {
@@ -22,20 +22,6 @@ final class RunSeederBundleJobTest extends TestCase
         JobLedgerFixture::reset();
 
         parent::setUp();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
-    private function handle(RunSeederBundleJob $job): void
-    {
-        $job->handle(
-            $this->app->make(SeederRegistry::class),
-            $this->app->make(SeederExecutor::class),
-            $this->app->make(SeederAutorun::class),
-        );
     }
 
     public function test_the_job_resolves_its_bundle_by_key_and_executes_it(): void
@@ -93,6 +79,20 @@ final class RunSeederBundleJobTest extends TestCase
         $this->assertSame(3, $job->tries);
         $this->assertSame(120, $job->timeout);
         $this->assertSame(SeederExecutionMode::Queued, $job->mode);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
+    }
+
+    private function handle(RunSeederBundleJob $job): void
+    {
+        $job->handle(
+            $this->app->make(SeederRegistry::class),
+            $this->app->make(SeederExecutor::class),
+            $this->app->make(SeederAutorun::class),
+        );
     }
 }
 

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Services\Doctor\Checks;
 
 use Closure;
+use Throwable;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
-use Throwable;
 
 /**
  * Runs a boolean reachability probe. A probe that throws (or an unreachable

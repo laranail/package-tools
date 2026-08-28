@@ -38,7 +38,7 @@ trait HasAboutSections
 
         $this->aboutSections[] = [
             'label' => $label,
-            'data' => $data,
+            'data'  => $data,
         ];
 
         return $this;

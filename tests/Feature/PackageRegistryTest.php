@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * The registry answers the one question Laravel's flat global maps cannot: did two packages claim

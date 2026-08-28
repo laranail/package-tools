@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Routing\Route as RoutingRoute;
-use Illuminate\Support\Facades\Route;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Route;
 use Simtabi\Laranail\Package\Tools\Package;
+use Illuminate\Routing\Route as RoutingRoute;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\RouteGroupDefinition;
 
@@ -34,6 +34,15 @@ final class RouteGroupTestProvider extends PackageServiceProvider
  */
 final class RouteGroupDefinitionTest extends TestCase
 {
+    public function test_the_group_registers_the_route_with_prefix_middleware_and_name(): void
+    {
+        $route = Route::getRoutes()->getByName('acme.ping');
+
+        $this->assertInstanceOf(RoutingRoute::class, $route);
+        $this->assertSame('api/ping', $route->uri());
+        $this->assertContains('api', $route->gatherMiddleware());
+    }
+
     protected function getPackageProviders($app): array
     {
         return [RouteGroupTestProvider::class];
@@ -42,14 +51,5 @@ final class RouteGroupDefinitionTest extends TestCase
     protected function defineEnvironment($app): void
     {
         $app['config']->set('acme.features.api', true);
-    }
-
-    public function test_the_group_registers_the_route_with_prefix_middleware_and_name(): void
-    {
-        $route = Route::getRoutes()->getByName('acme.ping');
-
-        $this->assertInstanceOf(RoutingRoute::class, $route);
-        $this->assertSame('api/ping', $route->uri());
-        $this->assertContains('api', $route->gatherMiddleware());
     }
 }

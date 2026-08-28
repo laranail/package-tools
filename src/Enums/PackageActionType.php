@@ -31,11 +31,11 @@ enum PackageActionType: string
     {
         return match ($this) {
             self::Migration => 'Migration',
-            self::Seeder => 'Seeder',
-            self::Job => 'Job',
-            self::Schedule => 'Schedule',
-            self::Install => 'Install',
-            self::Custom => 'Custom',
+            self::Seeder    => 'Seeder',
+            self::Job       => 'Job',
+            self::Schedule  => 'Schedule',
+            self::Install   => 'Install',
+            self::Custom    => 'Custom',
         };
     }
 }

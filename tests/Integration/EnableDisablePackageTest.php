@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ManagesComposer;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ManagesComposer;
 
 /**
  * EnableDisablePackageTest - Integration tests for enable/disable functionality
@@ -45,7 +45,7 @@ class EnableDisablePackageTest extends TestCase
         if (isset($this->originalComposer)) {
             File::put(
                 $this->testComposerPath,
-                json_encode($this->originalComposer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+                json_encode($this->originalComposer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
             );
         }
 
@@ -219,7 +219,7 @@ class EnableDisablePackageTest extends TestCase
 
         File::put(
             $this->testComposerPath,
-            json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+            json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
         );
     }
 }

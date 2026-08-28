@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Enums;
 
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Enums\QueueConnection;
-use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Enums\SeederRunStatus;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 
 final class SeederEnumsTest extends TestCase
 {

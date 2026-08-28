@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
-use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
@@ -14,11 +14,6 @@ use Simtabi\Laranail\Package\Tools\Tests\TestCase;
  */
 class HasConfigNamespaceCachingTest extends TestCase
 {
-    protected function makePackage(string $name = 'acme/widget'): Package
-    {
-        return (new Package)->setName($name);
-    }
-
     #[Test]
     public function it_computes_all_four_namespace_formats(): void
     {
@@ -113,5 +108,10 @@ class HasConfigNamespaceCachingTest extends TestCase
         // Once a valid name is set, the getter resolves correctly.
         $package->setName('acme/widget');
         $this->assertSame('acme.widget', $package->getDottedNamespace());
+    }
+
+    protected function makePackage(string $name = 'acme/widget'): Package
+    {
+        return (new Package)->setName($name);
     }
 }

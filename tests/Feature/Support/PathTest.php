@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishRoot;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 use Simtabi\Laranail\Package\Tools\Support\PathResolver;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishRoot;
 
 it('joins with the platform separator whichever separator it is given', function (): void {
     expect(Path::join('a', 'b/c', 'd\\e'))

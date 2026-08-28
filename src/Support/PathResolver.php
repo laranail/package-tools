@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Support;
 
 use ReflectionClass;
-use ReflectionException;
 use RuntimeException;
+use ReflectionException;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 
 /**
@@ -31,6 +31,7 @@ class PathResolver
      * Normalize separators to the native one and collapse duplicates.
      *
      * @param string $path Path to normalize
+     *
      * @return string Normalized path
      */
     public static function normalizePath(string $path): string
@@ -146,7 +147,7 @@ class PathResolver
             $reason = implode(', ', $errors);
             throw new RuntimeException(
                 "Security violation in path '{$originalPath}': Path {$reason}. " .
-                "Use relative paths within the package like 'config/file.php' or 'resources/views'."
+                "Use relative paths within the package like 'config/file.php' or 'resources/views'.",
             );
         }
     }
@@ -156,6 +157,7 @@ class PathResolver
      * parent as the module root.
      *
      * @param string $classFile Full path to the class file
+     *
      * @return string Module root path
      *
      * @throws RuntimeException If 'src' directory not found
@@ -179,48 +181,8 @@ class PathResolver
 
         throw new RuntimeException(
             "Could not detect module root from class file: '{$classFile}'. " .
-            "Expected to find 'src' directory in path hierarchy."
+            "Expected to find 'src' directory in path hierarchy.",
         );
-    }
-
-    /**
-     * Check if path is a filesystem root: `/`, a Windows drive like `C:\`,
-     * or a WSL mount point like `/mnt/c`.
-     *
-     * @param string $path Path to check
-     * @return bool True if path is root
-     */
-    private static function isRoot(string $path): bool
-    {
-        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
-        $path = rtrim($path, DIRECTORY_SEPARATOR);
-
-        // Unix root.
-        if ($path === '') {
-            return true;
-        }
-
-        // Windows drive letter (C:, D:, etc.).
-        if (preg_match('/^[a-zA-Z]:$/', $path)) {
-            return true;
-        }
-
-        // WSL mount point (/mnt/c, /mnt/d, etc.).
-        return (bool) preg_match('#^' . preg_quote(DIRECTORY_SEPARATOR, '#') . 'mnt' . preg_quote(DIRECTORY_SEPARATOR, '#') . '[a-zA-Z]$#', $path . DIRECTORY_SEPARATOR);
-    }
-
-    /**
-     * Get parent directory with cross-platform support
-     *
-     * @param string $path Current path
-     * @return string Parent path
-     */
-    private static function getParentDirectory(string $path): string
-    {
-        $normalized = static::normalizePath($path);
-        $parent = dirname($normalized);
-
-        return static::normalizePath($parent);
     }
 
     /**
@@ -228,6 +190,7 @@ class PathResolver
      *
      * @param string|object $caller The service provider class name or instance
      * @param int $levelsUp Number of directory levels to traverse upward
+     *
      * @return string Absolute path to package root (normalized for current platform)
      *
      * @throws RuntimeException If reflection fails or invalid levelsUp value
@@ -237,7 +200,7 @@ class PathResolver
         if ($levelsUp < 1 || $levelsUp > 10) {
             throw new RuntimeException(
                 "Invalid levelsUp value: {$levelsUp}. Must be between 1 and 10. " .
-                'Common values: 2 (from Providers/), 3 (from src/Providers/), 4 (from packages/vendor/package/src/Providers/)'
+                'Common values: 2 (from Providers/), 3 (from src/Providers/), 4 (from packages/vendor/package/src/Providers/)',
             );
         }
 
@@ -261,7 +224,7 @@ class PathResolver
             }
         } else {
             throw new RuntimeException(
-                "Could not resolve caller '{$caller}': it is neither an existing file nor a loadable class."
+                "Could not resolve caller '{$caller}': it is neither an existing file nor a loadable class.",
             );
         }
 
@@ -269,7 +232,7 @@ class PathResolver
             $describe = is_object($caller) ? $caller::class : $caller;
             throw new RuntimeException(
                 "Could not determine file path for caller '{$describe}'. " .
-                'This may be an internal PHP class or trait.'
+                'This may be an internal PHP class or trait.',
             );
         }
 
@@ -286,7 +249,7 @@ class PathResolver
                     "Reached filesystem root while traversing up {$levelsUp} levels from '{$filePath}' (Platform: {$platform}). " .
                     "Current level: {$i}. Current path: '{$currentPath}'. " .
                     'You may need to decrease the levelsUp value. ' .
-                    "Hint: Count the directories from your service provider file to where 'config/', 'resources/', and 'database/' are located."
+                    "Hint: Count the directories from your service provider file to where 'config/', 'resources/', and 'database/' are located.",
                 );
             }
 
@@ -304,6 +267,7 @@ class PathResolver
      * @param string|object $caller The service provider class name or instance
      * @param int $levelsUp Number of directory levels to traverse upward
      * @param array<int, string> $expectedDirs Directories that should exist in package root (e.g., ['src', 'config'])
+     *
      * @return string Absolute path to package root (normalized for current platform)
      *
      * @throws RuntimeException If validation fails
@@ -311,7 +275,7 @@ class PathResolver
     public static function packageRootFromProviderWithValidation(
         string|object $caller,
         int $levelsUp = 3,
-        array $expectedDirs = []
+        array $expectedDirs = [],
     ): string {
         $packageRoot = static::packageRootFromProvider($caller, $levelsUp);
 
@@ -333,7 +297,7 @@ class PathResolver
                     "Package root validation failed at '{$packageRoot}' (Platform: {$platform}). " .
                     'Missing expected directories: ' . implode(', ', $missingDirs) . '. ' .
                     'You may need to adjust the levelsUp value. ' .
-                    "Current levelsUp: {$levelsUp}"
+                    "Current levelsUp: {$levelsUp}",
                 );
             }
         }
@@ -345,6 +309,7 @@ class PathResolver
      * Join path segments with cross-platform separator handling.
      *
      * @param string ...$segments Path segments to join
+     *
      * @return string Joined and normalized path
      */
     public static function joinPaths(string ...$segments): string
@@ -374,6 +339,7 @@ class PathResolver
      * @param string|object $caller The service provider class name or instance
      * @param array<int, string> $markers Files/dirs that indicate package root (default: ['composer.json', 'src'])
      * @param int $maxLevels Maximum levels to search (default: 10)
+     *
      * @return int Detected levelsUp value
      *
      * @throws RuntimeException If package root cannot be detected
@@ -381,7 +347,7 @@ class PathResolver
     public static function autoDetectLevelsUp(
         string|object $caller,
         array $markers = ['composer.json', 'src'],
-        int $maxLevels = 10
+        int $maxLevels = 10,
     ): int {
         $className = is_object($caller) ? $caller::class : $caller;
 
@@ -422,7 +388,7 @@ class PathResolver
         throw new RuntimeException(
             "Could not auto-detect package root for class '{$className}' (Platform: {$platform}). " .
             "Searched up to {$maxLevels} levels from '{$filePath}'. " .
-            'Please specify levelsUp manually.'
+            'Please specify levelsUp manually.',
         );
     }
 
@@ -431,6 +397,7 @@ class PathResolver
      *
      * @param string $from Starting path
      * @param string $to Target path
+     *
      * @return string Relative path
      */
     public static function getRelativePath(string $from, string $to): string
@@ -481,6 +448,7 @@ class PathResolver
      * letters and UNC paths, and WSL mounts.
      *
      * @param string $path Path to check
+     *
      * @return bool True if path is absolute
      */
     public static function isAbsolutePath(string $path): bool
@@ -510,6 +478,7 @@ class PathResolver
      *
      * @param string $path Path to make absolute
      * @param string|null $basePath Base path for relative paths (defaults to getcwd())
+     *
      * @return string Absolute path
      */
     public static function toAbsolutePath(string $path, ?string $basePath = null): string
@@ -535,10 +504,53 @@ class PathResolver
      *
      * @param string $absolutePath Absolute path to convert.
      * @param string $basePath Base path the result is relative to.
+     *
      * @return string Relative path. Returns '.' when paths are identical.
      */
     public static function toRelativePath(string $absolutePath, string $basePath): string
     {
         return static::getRelativePath($basePath, $absolutePath);
+    }
+
+    /**
+     * Check if path is a filesystem root: `/`, a Windows drive like `C:\`,
+     * or a WSL mount point like `/mnt/c`.
+     *
+     * @param string $path Path to check
+     *
+     * @return bool True if path is root
+     */
+    private static function isRoot(string $path): bool
+    {
+        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+        $path = rtrim($path, DIRECTORY_SEPARATOR);
+
+        // Unix root.
+        if ($path === '') {
+            return true;
+        }
+
+        // Windows drive letter (C:, D:, etc.).
+        if (preg_match('/^[a-zA-Z]:$/', $path)) {
+            return true;
+        }
+
+        // WSL mount point (/mnt/c, /mnt/d, etc.).
+        return (bool) preg_match('#^' . preg_quote(DIRECTORY_SEPARATOR, '#') . 'mnt' . preg_quote(DIRECTORY_SEPARATOR, '#') . '[a-zA-Z]$#', $path . DIRECTORY_SEPARATOR);
+    }
+
+    /**
+     * Get parent directory with cross-platform support
+     *
+     * @param string $path Current path
+     *
+     * @return string Parent path
+     */
+    private static function getParentDirectory(string $path): string
+    {
+        $normalized = static::normalizePath($path);
+        $parent = dirname($normalized);
+
+        return static::normalizePath($parent);
     }
 }

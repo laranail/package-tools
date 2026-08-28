@@ -6,14 +6,14 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Simtabi\Laranail\Package\Tools\Enums\Environment;
 use Simtabi\Laranail\Package\Tools\Enums\QueueConnection;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
-use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Seeders\AlphaFixtureSeeder;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Seeders\BetaFixtureSeeder;
+use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Seeders\AlphaFixtureSeeder;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Seeders\GammaFixtureSeeder;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * the auto-seeder definition: explicit ordered lists vs directory
@@ -311,23 +311,23 @@ final class AutoSeederDefinitionTest extends TestCase
             ->options(['fire_events' => true]);
 
         $expected = [
-            'key' => 'acme/blog',
-            'seeders' => [AlphaFixtureSeeder::class],
-            'ignored' => [BetaFixtureSeeder::class],
-            'discovery_path' => '/pkg/database/seeders',
-            'namespace' => 'Acme\\Blog',
-            'gate' => ['key' => 'acme.seed', 'default' => true, 'mode' => 'truthy'],
-            'priority' => 3,
-            'autorun' => false,
+            'key'                  => 'acme/blog',
+            'seeders'              => [AlphaFixtureSeeder::class],
+            'ignored'              => [BetaFixtureSeeder::class],
+            'discovery_path'       => '/pkg/database/seeders',
+            'namespace'            => 'Acme\\Blog',
+            'gate'                 => ['key' => 'acme.seed', 'default' => true, 'mode' => 'truthy'],
+            'priority'             => 3,
+            'autorun'              => false,
             'autorun_environments' => [],
-            'stop_on_failure' => false,
-            'background' => false,
-            'queue' => null,
-            'queue_connection' => null,
-            'notify' => true,
-            'cadence' => null,
-            'without_overlapping' => null,
-            'options' => ['fire_events' => true],
+            'stop_on_failure'      => false,
+            'background'           => false,
+            'queue'                => null,
+            'queue_connection'     => null,
+            'notify'               => true,
+            'cadence'              => null,
+            'without_overlapping'  => null,
+            'options'              => ['fire_events' => true],
         ];
 
         $this->assertSame($expected, $definition->toArray());

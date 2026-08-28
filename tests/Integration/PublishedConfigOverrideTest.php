@@ -8,8 +8,8 @@ use Closure;
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
  * A namespaced config publishes to a NESTED path (config/vendor/package.php)

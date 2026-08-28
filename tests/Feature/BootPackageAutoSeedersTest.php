@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Foundation\Application;
-use Orchestra\Testbench\Attributes\DefineEnvironment;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Foundation\Application;
 use Simtabi\Laranail\Package\Tools\Package;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
-use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoSeeders\DiscoveredAlphaSeeder;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoSeeders\DiscoveredBetaSeeder;
+use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoSeeders\DiscoveredAlphaSeeder;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoSeeders\DiscoveredIgnoredSeeder;
 
 /**
@@ -32,29 +32,6 @@ final class BootPackageAutoSeedersTest extends TestCase
         SeederFixtureAlpha::$ran = false;
 
         parent::setUp();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            PackageToolsServiceProvider::class,
-            AutoSeederPackageProviderA::class,
-            AutoSeederHighPriorityProvider::class,
-            AutoSeederLowPriorityProvider::class,
-            AutoSeederDiscoveryProvider::class,
-        ];
-    }
-
-    protected function defineEnvironment($app): void
-    {
-        // The default root (Database\Seeders\DatabaseSeeder) doesn't exist
-        // in the Testbench skeleton; register a fixture root instead.
-        $app['config']->set('laranail.package-tools.seeders.root_seeders', [TestRootSeeder::class]);
-    }
-
-    protected function disableSeedGate(Application $app): void
-    {
-        $app['config']->set('test.seed_on', false);
     }
 
     public function test_gated_bundle_registers_when_the_config_gate_is_on(): void
@@ -121,6 +98,29 @@ final class BootPackageAutoSeedersTest extends TestCase
         $this->assertNotFalse($lowIndex);
         $this->assertNotFalse($highIndex);
         $this->assertLessThan($highIndex, $lowIndex, 'priority 0 must execute before priority 10');
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            PackageToolsServiceProvider::class,
+            AutoSeederPackageProviderA::class,
+            AutoSeederHighPriorityProvider::class,
+            AutoSeederLowPriorityProvider::class,
+            AutoSeederDiscoveryProvider::class,
+        ];
+    }
+
+    protected function defineEnvironment($app): void
+    {
+        // The default root (Database\Seeders\DatabaseSeeder) doesn't exist
+        // in the Testbench skeleton; register a fixture root instead.
+        $app['config']->set('laranail.package-tools.seeders.root_seeders', [TestRootSeeder::class]);
+    }
+
+    protected function disableSeedGate(Application $app): void
+    {
+        $app['config']->set('test.seed_on', false);
     }
 
     private function manager(): SeederManager

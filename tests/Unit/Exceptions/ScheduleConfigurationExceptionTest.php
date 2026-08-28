@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Exceptions;
 
-use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use PHPUnit\Framework\TestCase;
 use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
 
 final class ScheduleConfigurationExceptionTest extends TestCase

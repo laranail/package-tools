@@ -48,6 +48,7 @@ class EventRegistry implements RegistryInterface
      * Get listeners for an event
      *
      * @param string $event Event name
+     *
      * @return array<int, string|callable>
      */
     public function getListeners(string $event): array
@@ -85,7 +86,7 @@ class EventRegistry implements RegistryInterface
     public function getRegistered(): array
     {
         return [
-            'listeners' => $this->listeners,
+            'listeners'   => $this->listeners,
             'subscribers' => $this->subscribers,
         ];
     }

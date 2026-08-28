@@ -38,7 +38,7 @@ final class ComposerServiceTest extends TestCase
     public function test_get_composer_data_decodes_json(): void
     {
         file_put_contents($this->pkg . '/composer.json', json_encode([
-            'name' => 'acme/widget',
+            'name'    => 'acme/widget',
             'require' => ['php' => '^8.3'],
         ]));
 
@@ -51,7 +51,7 @@ final class ComposerServiceTest extends TestCase
     public function test_update_composer_json_merges_recursively(): void
     {
         file_put_contents($this->pkg . '/composer.json', json_encode([
-            'name' => 'acme/widget',
+            'name'    => 'acme/widget',
             'require' => ['php' => '^8.3'],
         ]));
 

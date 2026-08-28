@@ -4,20 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
-use Illuminate\Support\Facades\Artisan;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
+use Illuminate\Support\Facades\Artisan;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackageDoctorCommandTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
     public function test_doctor_passes_with_only_the_builtin_boot_health_check(): void
     {
         // package-tools always registers its own boot:health check, so a
@@ -111,5 +106,10 @@ final class PackageDoctorCommandTest extends TestCase
         $this->assertIsArray($decoded);
         // sample.pass + the always-registered boot:health.
         $this->assertGreaterThanOrEqual(2, $decoded['summary']['pass']);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }

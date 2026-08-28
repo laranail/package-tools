@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
-use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Pagination\Paginator;
 use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
-use Simtabi\Laranail\Package\Tools\Support\Configurators\PaginatorConfigurator;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
+use Simtabi\Laranail\Package\Tools\Support\Configurators\PaginatorConfigurator;
 
 /**
  * Declarative runtime tweaks a provider used to hand-write in its boot:

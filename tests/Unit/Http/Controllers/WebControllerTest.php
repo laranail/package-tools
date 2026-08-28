@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Http\Controllers;
 
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Foundation\Bus\DispatchesJobs;
-use Illuminate\Foundation\Validation\ValidatesRequests;
-use Illuminate\Routing\Controller as BaseController;
 use ReflectionClass;
-use Simtabi\Laranail\Package\Tools\Http\Controllers\WebController;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Simtabi\Laranail\Package\Tools\Http\Controllers\WebController;
 
 final class WebControllerTest extends TestCase
 {

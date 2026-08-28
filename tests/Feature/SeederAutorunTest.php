@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Database\Events\MigrationsEnded;
+use RuntimeException;
 use Illuminate\Database\Seeder;
 use Orchestra\Testbench\TestCase;
-use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
+use Illuminate\Database\Events\MigrationsEnded;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 
 /**
@@ -27,27 +27,6 @@ final class SeederAutorunTest extends TestCase
         AutorunLedgerFixture::reset();
 
         parent::setUp();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            PackageToolsServiceProvider::class,
-            AutorunOptedInProvider::class,
-            AutorunNotOptedInProvider::class,
-        ];
-    }
-
-    protected function defineEnvironment($app): void
-    {
-        // Tests run under runningUnitTests(); autorun is gated off there by
-        // default — opt in so the feature is exercisable at all.
-        $app['config']->set('laranail.package-tools.seeders.autorun.in_tests', true);
-    }
-
-    private function fireMigrationsEnded(string $method = 'up', array $options = []): void
-    {
-        $this->app['events']->dispatch(new MigrationsEnded($method, $options));
     }
 
     public function test_migrations_ended_runs_only_autorun_flagged_bundles(): void
@@ -130,6 +109,27 @@ final class SeederAutorunTest extends TestCase
         $this->fireMigrationsEnded();
 
         $this->assertSame(['opted-in', 'opted-in'], AutorunLedgerFixture::$ran);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            PackageToolsServiceProvider::class,
+            AutorunOptedInProvider::class,
+            AutorunNotOptedInProvider::class,
+        ];
+    }
+
+    protected function defineEnvironment($app): void
+    {
+        // Tests run under runningUnitTests(); autorun is gated off there by
+        // default — opt in so the feature is exercisable at all.
+        $app['config']->set('laranail.package-tools.seeders.autorun.in_tests', true);
+    }
+
+    private function fireMigrationsEnded(string $method = 'up', array $options = []): void
+    {
+        $this->app['events']->dispatch(new MigrationsEnded($method, $options));
     }
 }
 

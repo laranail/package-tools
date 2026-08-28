@@ -15,6 +15,7 @@ class NamespaceResolver implements ResolverInterface
      * Resolve namespace to canonical format
      *
      * @param string $namespace Input namespace
+     *
      * @return string Resolved namespace
      */
     public function resolve(string $namespace): string
@@ -26,6 +27,7 @@ class NamespaceResolver implements ResolverInterface
      * Normalize namespace format
      *
      * @param string $namespace Namespace to normalize
+     *
      * @return string Normalized namespace
      */
     public function normalize(string $namespace): string
@@ -53,6 +55,7 @@ class NamespaceResolver implements ResolverInterface
      * Convert namespace to dashed format
      *
      * @param string $namespace Namespace to convert
+     *
      * @return string Dashed namespace (e.g., 'modules/admin' -> 'modules/admin')
      */
     public function toDashed(string $namespace): string
@@ -64,6 +67,7 @@ class NamespaceResolver implements ResolverInterface
      * Convert namespace to dotted format
      *
      * @param string $namespace Namespace to convert
+     *
      * @return string Dotted namespace (e.g., 'modules/admin' -> 'modules.admin')
      */
     public function toDotted(string $namespace): string
@@ -75,6 +79,7 @@ class NamespaceResolver implements ResolverInterface
      * Convert to PSR-4 namespace format
      *
      * @param string $namespace Namespace to convert
+     *
      * @return string PSR-4 namespace (e.g., 'modules/admin' -> 'Modules\\Admin')
      */
     public function toPsr4(string $namespace): string

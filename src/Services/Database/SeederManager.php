@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
-use Illuminate\Console\OutputStyle;
 use Illuminate\Database\Seeder;
+use Illuminate\Console\OutputStyle;
 use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 
 /**

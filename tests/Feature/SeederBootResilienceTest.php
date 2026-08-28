@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * A package shipping a malformed seeder file must NOT crash app boot on
@@ -33,11 +33,6 @@ final class SeederBootResilienceTest extends TestCase
         File::deleteDirectory($this->sandbox);
 
         parent::tearDown();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
     }
 
     public function test_a_broken_seeder_file_does_not_crash_boot(): void
@@ -80,6 +75,11 @@ final class SeederBootResilienceTest extends TestCase
         // The healthy bundle survived the broken one.
         $registry = $this->app->make(SeederManager::class)->registry();
         $this->assertNotNull($registry->get('acme/healthy'));
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }
 

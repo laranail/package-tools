@@ -30,10 +30,10 @@ final readonly class OrphanEntry implements Arrayable
     public function toArray(): array
     {
         return [
-            'path' => $this->path,
-            'relative_path' => $this->relativePath,
-            'is_directory' => $this->isDirectory,
-            'bytes' => $this->bytes,
+            'path'           => $this->path,
+            'relative_path'  => $this->relativePath,
+            'is_directory'   => $this->isDirectory,
+            'bytes'          => $this->bytes,
             'attributed_tag' => $this->attributedTag,
         ];
     }

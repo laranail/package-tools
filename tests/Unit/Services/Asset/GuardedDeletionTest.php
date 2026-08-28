@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Asset;
 
-use Illuminate\Support\Facades\File;
 use Override;
+use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Asset\AssetRegistry;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Services\Asset\AssetRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * The two delete paths that were bypassing the guard.
@@ -46,13 +46,6 @@ final class GuardedDeletionTest extends TestCase
         File::deleteDirectory($this->sandbox);
 
         parent::tearDown();
-    }
-
-    /** @return array<int, class-string> */
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
     }
 
     #[Test]
@@ -138,5 +131,12 @@ final class GuardedDeletionTest extends TestCase
 
         self::assertNotSame([], $registry->cleanup('blog'));
         self::assertFileExists($this->sandbox . '/public/vendor/blog/app.css');
+    }
+
+    /** @return array<int, class-string> */
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }

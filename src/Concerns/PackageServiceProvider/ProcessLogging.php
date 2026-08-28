@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
-use Illuminate\Support\Facades\Event;
-use Simtabi\Laranail\Package\Tools\Events\PackageSeedingCompleted;
-use Simtabi\Laranail\Package\Tools\Events\PackageSeedingFailed;
-use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 use Throwable;
+use Illuminate\Support\Facades\Event;
+use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
+use Simtabi\Laranail\Package\Tools\Events\PackageSeedingFailed;
+use Simtabi\Laranail\Package\Tools\Events\PackageSeedingCompleted;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 
 trait ProcessLogging
 {
@@ -78,9 +78,9 @@ trait ProcessLogging
             }
 
             $this->package->log()->error("{$event->seederClass} failed: {$event->message}", 'Seeder', [
-                'bundle' => $event->bundleKey,
+                'bundle'    => $event->bundleKey,
                 'exception' => $event->exceptionClass,
-                'mode' => $event->mode->value,
+                'mode'      => $event->mode->value,
             ]);
         });
     }

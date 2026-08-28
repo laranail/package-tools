@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Audit;
 
+use RuntimeException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
-use RuntimeException;
 
 /**
  * Posts package@version pairs from composer.lock to OSV.dev's batch query
@@ -28,26 +28,16 @@ final readonly class OsvAuditService
     ) {
         if ($this->timeoutSeconds < 1 || $this->timeoutSeconds > 600) {
             throw new RuntimeException(
-                "OsvAuditService timeout must be between 1 and 600 seconds (got {$this->timeoutSeconds})."
+                "OsvAuditService timeout must be between 1 and 600 seconds (got {$this->timeoutSeconds}).",
             );
         }
-    }
-
-    /**
-     * Strip ANSI control sequences from network-supplied text so they can't
-     * rewrite the operator's terminal scrollback or spoof prompts.
-     */
-    private static function sanitizeRemote(string $value): string
-    {
-        $stripped = preg_replace('/\x1B\[[0-9;?]*[A-Za-z]/', '', $value) ?? '';
-
-        return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $stripped) ?? '';
     }
 
     /**
      * Run an audit. Returns a list of advisories per affected package.
      *
      * @param bool $includeDev Include packages-dev entries.
+     *
      * @return array{
      *     scanned: int,
      *     vulnerable_count: int,
@@ -78,14 +68,14 @@ final readonly class OsvAuditService
             $advisories[] = [
                 'package' => $pkg['name'],
                 'version' => $pkg['version'],
-                'vulns' => array_map(static function (mixed $v): array {
+                'vulns'   => array_map(static function (mixed $v): array {
                     $v = is_array($v) ? $v : [];
 
                     $id = self::sanitizeRemote((string) ($v['id'] ?? 'UNKNOWN'));
 
                     return [
-                        'id' => $id,
-                        'summary' => self::sanitizeRemote((string) ($v['summary'] ?? '')),
+                        'id'       => $id,
+                        'summary'  => self::sanitizeRemote((string) ($v['summary'] ?? '')),
                         'severity' => isset($v['severity'][0]['score'])
                             ? self::sanitizeRemote((string) $v['severity'][0]['score'])
                             : null,
@@ -98,10 +88,21 @@ final readonly class OsvAuditService
         }
 
         return [
-            'scanned' => count($packages),
+            'scanned'          => count($packages),
             'vulnerable_count' => $vulnerable,
-            'advisories' => $advisories,
+            'advisories'       => $advisories,
         ];
+    }
+
+    /**
+     * Strip ANSI control sequences from network-supplied text so they can't
+     * rewrite the operator's terminal scrollback or spoof prompts.
+     */
+    private static function sanitizeRemote(string $value): string
+    {
+        $stripped = preg_replace('/\x1B\[[0-9;?]*[A-Za-z]/', '', $value) ?? '';
+
+        return preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $stripped) ?? '';
     }
 
     /**
@@ -112,7 +113,7 @@ final readonly class OsvAuditService
         $path = $this->projectRoot . '/composer.lock';
         if (! File::isFile($path)) {
             throw new RuntimeException(
-                "composer.lock not found at: {$path}. Run `composer install` first."
+                "composer.lock not found at: {$path}. Run `composer install` first.",
             );
         }
 
@@ -131,7 +132,7 @@ final readonly class OsvAuditService
             foreach ($bucket as $pkg) {
                 $version = (string) Arr::get($pkg, 'version', '');
                 $out[] = [
-                    'name' => (string) Arr::get($pkg, 'name', ''),
+                    'name'    => (string) Arr::get($pkg, 'name', ''),
                     'version' => Str::startsWith($version, 'v') ? Str::after($version, 'v') : $version,
                 ];
             }
@@ -142,6 +143,7 @@ final readonly class OsvAuditService
 
     /**
      * @param list<array{name: string, version: string}> $packages
+     *
      * @return list<array<string, mixed>>
      */
     private function postBatchQuery(array $packages): array
@@ -165,7 +167,7 @@ final readonly class OsvAuditService
             $body = self::sanitizeRemote($response->body());
 
             throw new RuntimeException(
-                "OSV.dev request failed (HTTP {$response->status()}): {$body}"
+                "OSV.dev request failed (HTTP {$response->status()}): {$body}",
             );
         }
 

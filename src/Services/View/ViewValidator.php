@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\View;
 
-use Illuminate\Contracts\Validation\Validator as LaravelValidator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Simtabi\Laranail\Package\Tools\Contracts\ValidatorInterface;
+use Illuminate\Contracts\Validation\Validator as LaravelValidator;
 
 /**
  * Validates view paths, names, and configurations.
@@ -23,6 +23,7 @@ class ViewValidator implements ValidatorInterface
      * Validate input and return array of errors (empty array if valid)
      *
      * @param mixed $input Value to validate (can be array with 'path' and 'namespace', or string path)
+     *
      * @return array<string> Array of validation errors
      */
     public function validate(mixed $input): array
@@ -53,16 +54,45 @@ class ViewValidator implements ValidatorInterface
     }
 
     /**
+     * Validate view path exists
+     *
+     * @param string $path Path to validate
+     *
+     * @return bool True if valid, false otherwise
+     */
+    public function validatePath(string $path): bool
+    {
+        $errors = $this->validatePathInternal($path);
+
+        return $errors === [];
+    }
+
+    /**
+     * Validate view namespace format
+     *
+     * @param string $namespace Namespace to validate
+     *
+     * @return bool True if valid, false otherwise
+     */
+    public function validateNamespace(string $namespace): bool
+    {
+        $errors = $this->validateNamespaceString($namespace);
+
+        return $errors === [];
+    }
+
+    /**
      * Validate view data array
      *
      * @param array<string, mixed> $data View data to validate
      * @param array<string, mixed> $rules Additional validation rules
+     *
      * @return array<string> Array of validation errors
      */
     protected function validateViewData(array $data, array $rules = []): array
     {
         $defaultRules = [
-            'path' => ['required', 'string'],
+            'path'      => ['required', 'string'],
             'namespace' => ['nullable', 'string'],
         ];
 
@@ -90,6 +120,7 @@ class ViewValidator implements ValidatorInterface
      * Validate view path exists (internal method)
      *
      * @param string $path Path to validate
+     *
      * @return array<string> Array of validation errors
      */
     protected function validatePathInternal(string $path): array
@@ -111,6 +142,7 @@ class ViewValidator implements ValidatorInterface
      * Validate view namespace format
      *
      * @param string $namespace Namespace to validate
+     *
      * @return array<string> Array of validation errors
      */
     protected function validateNamespaceString(string $namespace): array
@@ -122,31 +154,5 @@ class ViewValidator implements ValidatorInterface
         }
 
         return $errors;
-    }
-
-    /**
-     * Validate view path exists
-     *
-     * @param string $path Path to validate
-     * @return bool True if valid, false otherwise
-     */
-    public function validatePath(string $path): bool
-    {
-        $errors = $this->validatePathInternal($path);
-
-        return $errors === [];
-    }
-
-    /**
-     * Validate view namespace format
-     *
-     * @param string $namespace Namespace to validate
-     * @return bool True if valid, false otherwise
-     */
-    public function validateNamespace(string $namespace): bool
-    {
-        $errors = $this->validateNamespaceString($namespace);
-
-        return $errors === [];
     }
 }

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Scheduling;
 
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
-use InvalidArgumentException;
 use JsonSerializable;
-use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
+use InvalidArgumentException;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
 use Simtabi\Laranail\Package\Tools\Enums\Weekday;
+use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
 
 /**
  * a fluent, validated cron-expression designer. standalone by design —
@@ -227,12 +227,12 @@ final class CronBuilder implements Arrayable, CronExpressible, Jsonable, JsonSer
         }
 
         return [
-            'minute' => $this->minute,
-            'hour' => $this->hour,
+            'minute'       => $this->minute,
+            'hour'         => $this->hour,
             'day_of_month' => $this->dayOfMonth,
-            'month' => $this->month,
-            'day_of_week' => $this->dayOfWeek,
-            'expression' => $this->toExpression(),
+            'month'        => $this->month,
+            'day_of_week'  => $this->dayOfWeek,
+            'expression'   => $this->toExpression(),
         ];
     }
 
@@ -330,6 +330,7 @@ final class CronBuilder implements Arrayable, CronExpressible, Jsonable, JsonSer
 
     /**
      * @param Weekday|int|string|array<int, Weekday|int|string> $day
+     *
      * @return int|string|array<int, int|string>
      */
     private function fromWeekdays(Weekday|int|string|array $day): int|string|array

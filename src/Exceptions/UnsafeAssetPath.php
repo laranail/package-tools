@@ -23,12 +23,6 @@ class UnsafeAssetPath extends RuntimeException
         parent::__construct($message, $code);
     }
 
-    /** @return array<string, mixed> */
-    public function context(): array
-    {
-        return $this->context;
-    }
-
     public static function empty(): self
     {
         return new self('A publish root cannot be empty.', 5001);
@@ -114,5 +108,11 @@ class UnsafeAssetPath extends RuntimeException
             5009,
             ['path' => $path, 'pattern' => $pattern],
         );
+    }
+
+    /** @return array<string, mixed> */
+    public function context(): array
+    {
+        return $this->context;
     }
 }

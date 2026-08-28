@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
-use Illuminate\Contracts\Config\Repository;
-use ReflectionException;
 use ReflectionProperty;
+use ReflectionException;
+use Illuminate\Contracts\Config\Repository;
 
 /**
  * Writes a pruned item set back over a config repository.

@@ -20,7 +20,7 @@ class InvalidPath extends Exception
     {
         return new static(
             'Package base path has not been set. ' .
-            'Call $package->setPathFrom($this) or $package->setPathFrom("/path/to/package") before configuring package resources.'
+            'Call $package->setPathFrom($this) or $package->setPathFrom("/path/to/package") before configuring package resources.',
         );
     }
 
@@ -33,7 +33,7 @@ class InvalidPath extends Exception
     {
         return new static(
             "Package base path does not exist: '{$path}'. " .
-            'Please verify the path or adjust the levelsUp parameter if using setPathFrom() with file reference.'
+            'Please verify the path or adjust the levelsUp parameter if using setPathFrom() with file reference.',
         );
     }
 
@@ -50,7 +50,7 @@ class InvalidPath extends Exception
         return new static(
             "Required directory '{$directory}' not found in package. " .
             "Expected at: '{$fullPath}'. " .
-            'Please create the directory or verify your package structure.'
+            'Please create the directory or verify your package structure.',
         );
     }
 
@@ -65,7 +65,7 @@ class InvalidPath extends Exception
         return new static(
             "Config file '{$configFile}' not found. " .
             "Expected at: '{$expectedPath}'. " .
-            'Please create the config file or remove it from your package configuration.'
+            'Please create the config file or remove it from your package configuration.',
         );
     }
 
@@ -78,7 +78,7 @@ class InvalidPath extends Exception
     {
         return new static(
             "Config file is missing or not readable: '{$path}'. " .
-            'Verify the file exists and its permissions allow reading.'
+            'Verify the file exists and its permissions allow reading.',
         );
     }
 
@@ -91,7 +91,7 @@ class InvalidPath extends Exception
     {
         return new static(
             "Config file did not return an array: '{$path}'. " .
-            'A config file must `return [ ... ];`.'
+            'A config file must `return [ ... ];`.',
         );
     }
 
@@ -106,7 +106,7 @@ class InvalidPath extends Exception
         return new static(
             "Migration file '{$migrationFile}' not found. " .
             "Expected at: '{$expectedPath}' or '{$expectedPath}.stub'. " .
-            'Please create the migration file or remove it from your package configuration.'
+            'Please create the migration file or remove it from your package configuration.',
         );
     }
 
@@ -119,7 +119,7 @@ class InvalidPath extends Exception
     {
         return new static(
             "View directory not found at: '{$viewPath}'. " .
-            "Please create the directory at 'resources/views' in your package root."
+            "Please create the directory at 'resources/views' in your package root.",
         );
     }
 
@@ -132,7 +132,7 @@ class InvalidPath extends Exception
     {
         return new static(
             "Translation directory not found at: '{$translationPath}'. " .
-            "Please create the directory at 'resources/lang' in your package root."
+            "Please create the directory at 'resources/lang' in your package root.",
         );
     }
 
@@ -147,7 +147,7 @@ class InvalidPath extends Exception
         return new static(
             "Route file '{$routeFile}' not found. " .
             "Expected at: '{$expectedPath}'. " .
-            'Please create the route file or remove it from your package configuration.'
+            'Please create the route file or remove it from your package configuration.',
         );
     }
 
@@ -187,7 +187,7 @@ class InvalidPath extends Exception
             "Reached filesystem root while traversing from '{$startPath}'. " .
             "Requested to go up {$levelsUp} levels but only achieved {$levelsAchieved} levels. " .
             'Please reduce the levelsUp value. ' .
-            "Hint: Count the directories from your service provider file to where 'config/', 'resources/', and 'database/' are located."
+            "Hint: Count the directories from your service provider file to where 'config/', 'resources/', and 'database/' are located.",
         );
     }
 
@@ -204,7 +204,7 @@ class InvalidPath extends Exception
         return new static(
             "Package structure validation failed at: '{$basePath}'. " .
             "Missing expected items:\n  - {$itemsList}\n\n" .
-            'Please verify your package structure or adjust the levelsUp parameter.'
+            'Please verify your package structure or adjust the levelsUp parameter.',
         );
     }
 
@@ -236,7 +236,7 @@ class InvalidPath extends Exception
         return new static(
             'Package base path cannot be empty. ' .
             'You must provide a non-empty path using `$package->setPathFrom("/path/to/package")` or `$package->setPathFrom($this)`. ' .
-            'The path cannot be an empty string or whitespace only.'
+            'The path cannot be an empty string or whitespace only.',
         );
     }
 
@@ -247,7 +247,7 @@ class InvalidPath extends Exception
     {
         return new static(
             'Package base path is required. ' .
-            'Call $package->setPathFrom($this) or $package->setPathFrom("/path/to/package") before configuring package resources.'
+            'Call $package->setPathFrom($this) or $package->setPathFrom("/path/to/package") before configuring package resources.',
         );
     }
 
@@ -260,7 +260,7 @@ class InvalidPath extends Exception
     {
         return new static(
             "Invalid path format: '{$path}'. " .
-            'Paths must be non-empty strings and cannot contain only whitespace.'
+            'Paths must be non-empty strings and cannot contain only whitespace.',
         );
     }
 }

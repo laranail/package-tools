@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use Exception;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasConsoleWrapper;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasConsoleWrapper;
 
 /**
  * HasConsoleWrapperTest - Test console wrapper functionality
@@ -51,7 +51,7 @@ class HasConsoleWrapperTest extends TestCase
             callback: function () use (&$executed): void {
                 $executed = true;
             },
-            andWhen: false
+            andWhen: false,
         );
 
         $this->assertFalse($executed);
@@ -66,7 +66,7 @@ class HasConsoleWrapperTest extends TestCase
             callback: function () use (&$executed): void {
                 $executed = true;
             },
-            andWhen: fn (): false => false
+            andWhen: fn (): false => false,
         );
 
         $this->assertFalse($executed);
@@ -78,7 +78,7 @@ class HasConsoleWrapperTest extends TestCase
         $result = $this->shouldRunInConsole(
             callback: fn () => throw new Exception('Test error'),
             expectReturn: true,
-            default: 'fallback'
+            default: 'fallback',
         );
 
         $this->assertEquals('fallback', $result);
@@ -89,7 +89,7 @@ class HasConsoleWrapperTest extends TestCase
     {
         $result = $this->shouldRunInConsole(
             callback: fn (): string => 'success',
-            expectReturn: true
+            expectReturn: true,
         );
 
         $this->assertEquals('success', $result);
@@ -100,7 +100,7 @@ class HasConsoleWrapperTest extends TestCase
     {
         $result = $this->shouldRunInConsole(
             callback: fn (): string => 'success',
-            expectReturn: false
+            expectReturn: false,
         );
 
         $this->assertNull($result);
@@ -113,7 +113,7 @@ class HasConsoleWrapperTest extends TestCase
             callback: fn (): string => 'success',
             andWhen: false,
             expectReturn: true,
-            default: 'default_value'
+            default: 'default_value',
         );
 
         $this->assertEquals('default_value', $result);
@@ -128,7 +128,7 @@ class HasConsoleWrapperTest extends TestCase
             callback: function () use (&$executed): void {
                 $executed = true;
             },
-            environments: app()->environment()
+            environments: app()->environment(),
         );
 
         $this->assertTrue($executed);
@@ -143,7 +143,7 @@ class HasConsoleWrapperTest extends TestCase
             callback: function () use (&$executed): void {
                 $executed = true;
             },
-            environments: 'nonexistent-environment'
+            environments: 'nonexistent-environment',
         );
 
         $this->assertFalse($executed);
@@ -158,7 +158,7 @@ class HasConsoleWrapperTest extends TestCase
             callback: function () use (&$executed): void {
                 $executed = true;
             },
-            condition: true
+            condition: true,
         );
 
         $this->assertTrue($executed);
@@ -173,7 +173,7 @@ class HasConsoleWrapperTest extends TestCase
             callback: function () use (&$executed): void {
                 $executed = true;
             },
-            condition: false
+            condition: false,
         );
 
         $this->assertFalse($executed);
@@ -238,7 +238,7 @@ class HasConsoleWrapperTest extends TestCase
                     $count++;
                 },
             ],
-            andWhen: false
+            andWhen: false,
         );
 
         $this->assertFalse($result);

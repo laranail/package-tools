@@ -27,35 +27,6 @@ final class PackageValidatorTest extends TestCase
         parent::tearDown();
     }
 
-    private function deleteTree(string $dir): void
-    {
-        if (! is_dir($dir)) {
-            return;
-        }
-        foreach (scandir($dir) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-            if ($entry === '..') {
-                continue;
-            }
-            $path = $dir . '/' . $entry;
-            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
-        }
-        @rmdir($dir);
-    }
-
-    private function makeValidPackage(): string
-    {
-        $path = $this->tmpRoot . '/pkg';
-        if (! is_dir($path . '/src')) {
-            mkdir($path . '/src', 0o755, true);
-        }
-        file_put_contents($path . '/composer.json', '{"name":"acme/pkg"}');
-
-        return $path;
-    }
-
     public function test_validate_name_accepts_vendor_package_format(): void
     {
         $this->assertTrue($this->validator->validateName('acme/widget'));
@@ -113,8 +84,8 @@ final class PackageValidatorTest extends TestCase
     public function test_validate_package_data_array_happy_path(): void
     {
         $errors = $this->validator->validate([
-            'name' => 'acme/widget',
-            'path' => $this->makeValidPackage(),
+            'name'      => 'acme/widget',
+            'path'      => $this->makeValidPackage(),
             'namespace' => 'Acme\\Widget',
         ]);
 
@@ -124,8 +95,8 @@ final class PackageValidatorTest extends TestCase
     public function test_validate_package_data_array_reports_rule_failures(): void
     {
         $errors = $this->validator->validate([
-            'name' => 'INVALID NAME',
-            'path' => '',
+            'name'      => 'INVALID NAME',
+            'path'      => '',
             'namespace' => '',
         ]);
 
@@ -137,5 +108,34 @@ final class PackageValidatorTest extends TestCase
         $errors = $this->validator->validate(42);
 
         $this->assertContains('Invalid input type. Expected string (path) or array (package data)', $errors);
+    }
+
+    private function deleteTree(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+            if ($entry === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $entry;
+            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
+        }
+        @rmdir($dir);
+    }
+
+    private function makeValidPackage(): string
+    {
+        $path = $this->tmpRoot . '/pkg';
+        if (! is_dir($path . '/src')) {
+            mkdir($path . '/src', 0o755, true);
+        }
+        file_put_contents($path . '/composer.json', '{"name":"acme/pkg"}');
+
+        return $path;
     }
 }

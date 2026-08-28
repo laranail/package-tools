@@ -4,41 +4,41 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Providers;
 
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Routing\Router;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Str;
 use Override;
 use ReflectionClass;
 use RuntimeException;
+use Illuminate\Support\Str;
+use Illuminate\Routing\Router;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Contracts\Events\Dispatcher;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Support\Path\Path;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\LoadsHelpers;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessAboutSections;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViews;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessAssets;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessBladeComponents;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessBladeDirectives;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessCommands;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessRoutes;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessConfigs;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessInertia;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLivewireComponents;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLogging;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessCommands;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessMigrations;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessRoutes;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessScheduledCommands;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessTranslations;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessAboutSections;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViewComposers;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViewSharedData;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessBladeComponents;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessBladeDirectives;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessValidationRules;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\RegisterChildProviders;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessScheduledSeeders;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessServiceProviders;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessTranslations;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessValidationRules;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViewComposers;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViews;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessViewSharedData;
-use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\RegisterChildProviders;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
-use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
-use Simtabi\Laranail\Package\Tools\Support\Path\Path;
-use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessScheduledCommands;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLivewireComponents;
 
 /**
  * Base service provider for Laravel packages. Manages the package
@@ -191,17 +191,6 @@ abstract class PackageServiceProvider extends ServiceProvider
     }
 
     /**
-     * Apply the package's declarative config-default merges
-     * (`mergesConfigDefaults()` / `mergesConfigDefaultsFrom()`) in the
-     * register phase, after registerPackageConfigs() so the package's own
-     * config is already present and host values win.
-     */
-    protected function registerPackageConfigDecorations(): void
-    {
-        $this->package->applyPackageConfigDefaults();
-    }
-
-    /**
      * Bootstrap application services. Override bootPackage() for custom boot
      * logic. Laravel's base ServiceProvider::boot() is empty, so there is no
      * parent::boot() to call.
@@ -250,6 +239,44 @@ abstract class PackageServiceProvider extends ServiceProvider
     }
 
     /**
+     * Hook called before package boot begins. Override for setup that must
+     * run before boot: early middleware, route bindings, and services that
+     * need to be ready beforehand.
+     */
+    public function bootingPackage(): void
+    {
+        // Override in child class to add custom pre-boot logic.
+    }
+
+    /**
+     * Hook called after package boot completes. Override for bindings and
+     * event listeners that depend on booted services, and for finalizing
+     * package setup.
+     */
+    public function packageBooted(): void
+    {
+        // Override in child class to add custom post-boot logic.
+    }
+
+    public function packageView(?string $namespace): ?string
+    {
+        return is_null($namespace)
+            ? $this->package->shortName()
+            : $this->package->viewNamespace;
+    }
+
+    /**
+     * Apply the package's declarative config-default merges
+     * (`mergesConfigDefaults()` / `mergesConfigDefaultsFrom()`) in the
+     * register phase, after registerPackageConfigs() so the package's own
+     * config is already present and host values win.
+     */
+    protected function registerPackageConfigDecorations(): void
+    {
+        $this->package->applyPackageConfigDefaults();
+    }
+
+    /**
      * Drive the boot-time hooks that live on the Package object itself
      * (middleware, event listeners, factories, seeders). Their
      * `bootPackage*` methods aren't part of the Process* chain above, so the
@@ -261,20 +288,20 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->package->bootPackageMorphMaps();
 
         $this->package->bootPackageMiddleware(
-            $this->app->make(Router::class)
+            $this->app->make(Router::class),
         );
 
         $this->package->bootPackageEventListeners();
         $this->package->bootPackageEventSubscribers();
         $this->package->bootPackageEventSubscriberCallbacks(
-            $this->app->make(Dispatcher::class)
+            $this->app->make(Dispatcher::class),
         );
         $this->package->bootPackagePolicies();
         $this->package->bootPackageObservers();
         $this->package->bootPackageRateLimiters();
         $this->package->bootPackageGates();
         $this->package->bootPackageRouteBindings(
-            $this->app->make(Router::class)
+            $this->app->make(Router::class),
         );
         $this->package->bootPackageRuntimeTweaks();
         $this->package->bootPackageConfigDecorators();
@@ -317,26 +344,6 @@ abstract class PackageServiceProvider extends ServiceProvider
         }
 
         return $this;
-    }
-
-    /**
-     * Hook called before package boot begins. Override for setup that must
-     * run before boot: early middleware, route bindings, and services that
-     * need to be ready beforehand.
-     */
-    public function bootingPackage(): void
-    {
-        // Override in child class to add custom pre-boot logic.
-    }
-
-    /**
-     * Hook called after package boot completes. Override for bindings and
-     * event listeners that depend on booted services, and for finalizing
-     * package setup.
-     */
-    public function packageBooted(): void
-    {
-        // Override in child class to add custom post-boot logic.
     }
 
     /**
@@ -388,13 +395,6 @@ abstract class PackageServiceProvider extends ServiceProvider
         return $packageBaseDir;
     }
 
-    public function packageView(?string $namespace): ?string
-    {
-        return is_null($namespace)
-            ? $this->package->shortName()
-            : $this->package->viewNamespace;
-    }
-
     /**
      * Record every publish tag this package registers, then register it.
      *
@@ -425,22 +425,6 @@ abstract class PackageServiceProvider extends ServiceProvider
     }
 
     /**
-     * Whether the package asked for this tag's destination to be cleaned.
-     *
-     * Two places record that intent — the fluent `publish(..., clean: true)`
-     * and an asset-registry entry's `clean` flag — so both are consulted rather
-     * than whichever one the caller happened to use.
-     */
-    private function tagWantsCleaning(string $tag): bool
-    {
-        if ((bool) ($this->package->getPublishPathsToClean()[$tag] ?? false)) {
-            return true;
-        }
-
-        return array_any($this->package->getAssetRegistry(), fn (array $entry): bool => ($entry['tag'] ?? null) === $tag && ($entry['clean'] ?? false));
-    }
-
-    /**
      * Boot custom publish paths registered via $package->publish().
      *
      * A destination marked `cleanBeforePublish` is recorded, not deleted.
@@ -466,5 +450,21 @@ abstract class PackageServiceProvider extends ServiceProvider
         }
 
         return $this;
+    }
+
+    /**
+     * Whether the package asked for this tag's destination to be cleaned.
+     *
+     * Two places record that intent — the fluent `publish(..., clean: true)`
+     * and an asset-registry entry's `clean` flag — so both are consulted rather
+     * than whichever one the caller happened to use.
+     */
+    private function tagWantsCleaning(string $tag): bool
+    {
+        if ((bool) ($this->package->getPublishPathsToClean()[$tag] ?? false)) {
+            return true;
+        }
+
+        return array_any($this->package->getAssetRegistry(), fn (array $entry): bool => ($entry['tag'] ?? null) === $tag && ($entry['clean'] ?? false));
     }
 }

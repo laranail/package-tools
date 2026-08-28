@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasAdvancedConfig;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasAdvancedConfig;
 
 /**
  * HasAdvancedConfigTest - Test advanced configuration management
@@ -41,7 +41,7 @@ class HasAdvancedConfigTest extends TestCase
     public function it_performs_deep_merge(): void
     {
         $target = [
-            'key1' => 'value1',
+            'key1'   => 'value1',
             'nested' => [
                 'a' => 1,
                 'b' => 2,
@@ -49,7 +49,7 @@ class HasAdvancedConfigTest extends TestCase
         ];
 
         $source = [
-            'key2' => 'value2',
+            'key2'   => 'value2',
             'nested' => [
                 'b' => 3,
                 'c' => 4,
@@ -59,8 +59,8 @@ class HasAdvancedConfigTest extends TestCase
         $result = $this->deepMerge($target, $source);
 
         $this->assertEquals([
-            'key1' => 'value1',
-            'key2' => 'value2',
+            'key1'   => 'value1',
+            'key2'   => 'value2',
             'nested' => [
                 'a' => 1,
                 'b' => 3,

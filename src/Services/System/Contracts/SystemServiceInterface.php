@@ -26,6 +26,7 @@ interface SystemServiceInterface
      * Resolve declared version constraints for the given Composer packages.
      *
      * @param list<string> $packages Package names (e.g. `vendor/name`).
+     *
      * @return array<string, array{version: string, type: 'require'|'require-dev'}>
      *                                                                              Keyed by package name. Packages not
      *                                                                              present in composer.json are omitted.

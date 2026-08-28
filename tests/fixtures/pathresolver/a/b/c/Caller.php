@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Simtabi\Laranail\Package\Tools\Support\Path\PathDirection;
 use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
+use Simtabi\Laranail\Package\Tools\Support\Path\PathDirection;
 
 /**
  * Lives three directories deep so a test can assert the climb lands where the *caller* expects, and

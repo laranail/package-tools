@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Closure;
-use Illuminate\Support\Facades\File;
 use Override;
+use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * Recording happens in ONE place — the `publishes()` override — so every
@@ -45,37 +45,6 @@ final class PublishTagSeamTest extends TestCase
         File::deleteDirectory($this->sandbox);
 
         parent::tearDown();
-    }
-
-    /** @return array<int, class-string> */
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
-    private function registry(): PublishTagRegistry
-    {
-        return $this->app->make(PublishTagRegistry::class);
-    }
-
-    private function bootPackage(callable $configure): void
-    {
-        $provider = new class($this->app, $configure) extends PackageServiceProvider
-        {
-            public function __construct($app, private readonly Closure $configure)
-            {
-                parent::__construct($app);
-            }
-
-            public function configurePackage(Package $package): void
-            {
-                ($this->configure)($package);
-            }
-        };
-
-        $provider->register();
-        $provider->boot();
     }
 
     #[Test]
@@ -135,5 +104,36 @@ final class PublishTagSeamTest extends TestCase
         self::assertNotNull($entry);
         self::assertCount(2, $entry->paths);
         self::assertTrue($entry->cleanable, 'cleanable must be sticky across repeat records.');
+    }
+
+    /** @return array<int, class-string> */
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
+    }
+
+    private function registry(): PublishTagRegistry
+    {
+        return $this->app->make(PublishTagRegistry::class);
+    }
+
+    private function bootPackage(callable $configure): void
+    {
+        $provider = new class($this->app, $configure) extends PackageServiceProvider
+        {
+            public function __construct($app, private readonly Closure $configure)
+            {
+                parent::__construct($app);
+            }
+
+            public function configurePackage(Package $package): void
+            {
+                ($this->configure)($package);
+            }
+        };
+
+        $provider->register();
+        $provider->boot();
     }
 }

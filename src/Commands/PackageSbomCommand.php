@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Commands;
 
-use Simtabi\Laranail\Package\Tools\Services\Sbom\SbomGenerator;
 use Throwable;
+use Simtabi\Laranail\Package\Tools\Services\Sbom\SbomGenerator;
 
 /**
  * `php artisan laranail::package-tools.sbom` generates a CycloneDX 1.5 JSON SBOM for the

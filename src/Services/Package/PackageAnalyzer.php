@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Package;
 
-use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Contracts\AnalyzerInterface;
 
 /**
@@ -17,36 +17,53 @@ class PackageAnalyzer implements AnalyzerInterface
      * Analyze package
      *
      * @param string $packagePath Path to package
+     *
      * @return array<string, mixed> Analysis results
      */
     public function analyze(string $packagePath): array
     {
         return [
             'structure' => $this->analyzeStructure($packagePath),
-            'metrics' => $this->calculateMetrics($packagePath),
-            'files' => $this->countFiles($packagePath),
-            'composer' => $this->analyzeComposerJson($packagePath),
+            'metrics'   => $this->calculateMetrics($packagePath),
+            'files'     => $this->countFiles($packagePath),
+            'composer'  => $this->analyzeComposerJson($packagePath),
         ];
+    }
+
+    /**
+     * Render an analysis result. `json` is the canonical machine format;
+     * `text` is a flat key/value listing for terminal viewing.
+     *
+     * @param array<string, mixed> $findings
+     */
+    public function getReport(array $findings, string $format = 'json'): string
+    {
+        return match ($format) {
+            'json'  => json_encode($findings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}',
+            'text'  => $this->renderText($findings),
+            default => throw new InvalidArgumentException("Unsupported report format: {$format}"),
+        };
     }
 
     /**
      * Analyze package structure
      *
      * @param string $packagePath Package path
+     *
      * @return array<string, bool>
      */
     protected function analyzeStructure(string $packagePath): array
     {
         return [
-            'has_src' => File::isDirectory($packagePath . '/src'),
-            'has_tests' => File::isDirectory($packagePath . '/tests'),
-            'has_config' => File::isDirectory($packagePath . '/config'),
+            'has_src'       => File::isDirectory($packagePath . '/src'),
+            'has_tests'     => File::isDirectory($packagePath . '/tests'),
+            'has_config'    => File::isDirectory($packagePath . '/config'),
             'has_resources' => File::isDirectory($packagePath . '/resources'),
-            'has_routes' => File::isDirectory($packagePath . '/routes'),
-            'has_database' => File::isDirectory($packagePath . '/database'),
-            'has_composer' => File::exists($packagePath . '/composer.json'),
-            'has_readme' => File::exists($packagePath . '/README.md'),
-            'has_license' => File::exists($packagePath . '/LICENSE') || File::exists($packagePath . '/LICENSE.md'),
+            'has_routes'    => File::isDirectory($packagePath . '/routes'),
+            'has_database'  => File::isDirectory($packagePath . '/database'),
+            'has_composer'  => File::exists($packagePath . '/composer.json'),
+            'has_readme'    => File::exists($packagePath . '/README.md'),
+            'has_license'   => File::exists($packagePath . '/LICENSE') || File::exists($packagePath . '/LICENSE.md'),
         ];
     }
 
@@ -54,6 +71,7 @@ class PackageAnalyzer implements AnalyzerInterface
      * Calculate package metrics
      *
      * @param string $packagePath Package path
+     *
      * @return array<string, int>
      */
     protected function calculateMetrics(string $packagePath): array
@@ -63,8 +81,8 @@ class PackageAnalyzer implements AnalyzerInterface
         if (! File::isDirectory($srcPath)) {
             return [
                 'lines_of_code' => 0,
-                'classes' => 0,
-                'methods' => 0,
+                'classes'       => 0,
+                'methods'       => 0,
             ];
         }
 
@@ -87,8 +105,8 @@ class PackageAnalyzer implements AnalyzerInterface
 
         return [
             'lines_of_code' => $loc,
-            'classes' => $classes,
-            'methods' => $methods,
+            'classes'       => $classes,
+            'methods'       => $methods,
         ];
     }
 
@@ -96,15 +114,16 @@ class PackageAnalyzer implements AnalyzerInterface
      * Count files by type
      *
      * @param string $packagePath Package path
+     *
      * @return array<string, int>
      */
     protected function countFiles(string $packagePath): array
     {
         $counts = [
-            'php' => 0,
+            'php'   => 0,
             'blade' => 0,
-            'js' => 0,
-            'css' => 0,
+            'js'    => 0,
+            'css'   => 0,
         ];
 
         if (File::isDirectory($packagePath)) {
@@ -131,6 +150,7 @@ class PackageAnalyzer implements AnalyzerInterface
      * Analyze composer.json
      *
      * @param string $packagePath Package path
+     *
      * @return array<string, mixed>
      */
     protected function analyzeComposerJson(string $packagePath): array
@@ -144,27 +164,12 @@ class PackageAnalyzer implements AnalyzerInterface
         $composer = json_decode(File::get($composerPath), true);
 
         return [
-            'name' => $composer['name'] ?? null,
-            'type' => $composer['type'] ?? null,
-            'license' => $composer['license'] ?? null,
-            'dependencies_count' => count($composer['require'] ?? []),
+            'name'                   => $composer['name'] ?? null,
+            'type'                   => $composer['type'] ?? null,
+            'license'                => $composer['license'] ?? null,
+            'dependencies_count'     => count($composer['require'] ?? []),
             'dev_dependencies_count' => count($composer['require-dev'] ?? []),
         ];
-    }
-
-    /**
-     * Render an analysis result. `json` is the canonical machine format;
-     * `text` is a flat key/value listing for terminal viewing.
-     *
-     * @param array<string, mixed> $findings
-     */
-    public function getReport(array $findings, string $format = 'json'): string
-    {
-        return match ($format) {
-            'json' => json_encode($findings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}',
-            'text' => $this->renderText($findings),
-            default => throw new InvalidArgumentException("Unsupported report format: {$format}"),
-        };
     }
 
     /**

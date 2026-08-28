@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Symfony\Component\Process\Exception\ProcessFailedException;
+use Illuminate\Support\Facades\File;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 /**
  * Adds/removes composer repositories and installs/uninstalls packages.
@@ -44,7 +44,7 @@ trait ManagesComposer
         string $vendor,
         string $package,
         string $path,
-        bool $symlink = true
+        bool $symlink = true,
     ): bool {
         $vendorKebab = Str::kebab($vendor);
         $packageKebab = Str::kebab($package);
@@ -52,7 +52,7 @@ trait ManagesComposer
 
         $config = [
             'type' => 'path',
-            'url' => $path,
+            'url'  => $path,
         ];
 
         if ($symlink) {
@@ -96,7 +96,7 @@ trait ManagesComposer
     public function composerRequire(
         string $vendor,
         string $package,
-        string $version = '*@dev'
+        string $version = '*@dev',
     ): bool {
         $vendorKebab = Str::kebab($vendor);
         $packageKebab = Str::kebab($package);
@@ -152,7 +152,7 @@ trait ManagesComposer
         string $vendor,
         string $package,
         string $path,
-        string $version = '*@dev'
+        string $version = '*@dev',
     ): bool {
         if (! $this->addComposerRepository($vendor, $package, $path)) {
             return false;
@@ -178,28 +178,6 @@ trait ManagesComposer
         }
 
         return $this->removeComposerRepository($vendor, $package);
-    }
-
-    /**
-     * Run a composer process
-     *
-     * @throws ProcessFailedException
-     */
-    protected function runComposerProcess(Process $process): bool
-    {
-        $process->setTimeout($this->composerTimeout);
-        $process->setWorkingDirectory(base_path());
-        $process->run();
-
-        if ($process->isSuccessful() || $process->getExitCode() === 0) {
-            return true;
-        }
-
-        if ($this->printComposerErrors) {
-            throw new ProcessFailedException($process);
-        }
-
-        return false;
     }
 
     /**
@@ -350,5 +328,27 @@ trait ManagesComposer
         File::put($composerPath, $newContent);
 
         return true;
+    }
+
+    /**
+     * Run a composer process
+     *
+     * @throws ProcessFailedException
+     */
+    protected function runComposerProcess(Process $process): bool
+    {
+        $process->setTimeout($this->composerTimeout);
+        $process->setWorkingDirectory(base_path());
+        $process->run();
+
+        if ($process->isSuccessful() || $process->getExitCode() === 0) {
+            return true;
+        }
+
+        if ($this->printComposerErrors) {
+            throw new ProcessFailedException($process);
+        }
+
+        return false;
     }
 }

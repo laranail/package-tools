@@ -4,30 +4,16 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Log;
 
-use DateTimeImmutable;
 use Monolog\Level;
-use Monolog\LogRecord;
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use DateTimeImmutable;
+use Monolog\LogRecord;
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogFormatter;
 
 final class PackageLogFormatterTest extends TestCase
 {
-    private function record(
-        string $message,
-        Level $level = Level::Info,
-        array $context = [],
-    ): LogRecord {
-        return new LogRecord(
-            datetime: new DateTimeImmutable('2026-07-08 14:03:22.512'),
-            channel: 'acme-blog',
-            level: $level,
-            message: $message,
-            context: $context,
-        );
-    }
-
     #[Test]
     public function it_renders_the_bracketed_prefix(): void
     {
@@ -58,7 +44,7 @@ final class PackageLogFormatterTest extends TestCase
     {
         $line = (new PackageLogFormatter('acme/blog'))->format($this->record('Migrations published', context: [
             PackageLogFormatter::LEVEL_LABEL_KEY => 'SUCCESS',
-            'count' => 3,
+            'count'                              => 3,
         ]));
 
         $this->assertStringContainsString('[SUCCESS]', $line);
@@ -121,5 +107,19 @@ final class PackageLogFormatterTest extends TestCase
 
         $this->assertSame(1, substr_count($line, "\n"));
         $this->assertStringContainsString('first second third', $line);
+    }
+
+    private function record(
+        string $message,
+        Level $level = Level::Info,
+        array $context = [],
+    ): LogRecord {
+        return new LogRecord(
+            datetime: new DateTimeImmutable('2026-07-08 14:03:22.512'),
+            channel: 'acme-blog',
+            level: $level,
+            message: $message,
+            context: $context,
+        );
     }
 }

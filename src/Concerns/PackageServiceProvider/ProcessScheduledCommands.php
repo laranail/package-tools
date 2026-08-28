@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
+use Throwable;
 use Illuminate\Console\Scheduling\Schedule;
 use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
-use Throwable;
 
 trait ProcessScheduledCommands
 {

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Console\Scheduling\Event as ScheduleEvent;
-use Illuminate\Console\Scheduling\Schedule;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Illuminate\Console\Scheduling\Schedule;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Illuminate\Console\Scheduling\Event as ScheduleEvent;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
 
@@ -20,11 +20,6 @@ use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinitio
  */
 final class BootPackageScheduledCommandsTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [ScheduledCommandsTestPackageProvider::class];
-    }
-
     public function test_daily_definition_schedules_at_midnight(): void
     {
         $event = $this->findEvent('pkg-sched:plain-daily');
@@ -154,6 +149,11 @@ final class BootPackageScheduledCommandsTest extends TestCase
         $manual = (new Schedule)->command('manual-reference')->twiceDaily(1, 13);
 
         $this->assertSame($manual->expression, $event->expression);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [ScheduledCommandsTestPackageProvider::class];
     }
 
     private function findEvent(string $command): ?ScheduleEvent

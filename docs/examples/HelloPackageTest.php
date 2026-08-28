@@ -20,22 +20,13 @@ declare(strict_types=1);
 
 namespace Acme\Hello\Tests;
 
-use Acme\Hello\HelloPackageServiceProvider;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Schema;
+use Acme\Hello\HelloPackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Testing\IsolatedTestCase;
 
 final class HelloPackageTest extends IsolatedTestCase
 {
-    /**
-     * @param Application $app
-     * @return list<class-string>
-     */
-    protected function getPackageProviders($app): array
-    {
-        return [HelloPackageServiceProvider::class];
-    }
-
     public function test_install_command_is_registered(): void
     {
         // The package registers `php artisan acme::hello.install` via hasInstallCommand().
@@ -67,5 +58,15 @@ final class HelloPackageTest extends IsolatedTestCase
         // Anything written here is removed at tearDown.
         file_put_contents($path . '/note.txt', 'ok');
         self::assertFileExists($path . '/note.txt');
+    }
+
+    /**
+     * @param Application $app
+     *
+     * @return list<class-string>
+     */
+    protected function getPackageProviders($app): array
+    {
+        return [HelloPackageServiceProvider::class];
     }
 }

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Registry;
 
+use Throwable;
 use Composer\InstalledVersions;
 use Illuminate\Support\ServiceProvider;
 use Simtabi\Laranail\Package\Tools\Package;
-use Throwable;
 
 /**
  * Every package built on `PackageServiceProvider`, and what each one claimed.
@@ -64,23 +64,23 @@ final class PackageRegistry
         // package wants to say something different at runtime.
         $manifest = is_string($name) ? PackageMetadata::for($name) : [
             'description' => null, 'authors' => [], 'homepage' => null,
-            'license' => null, 'keywords' => [], 'docs' => null,
+            'license'     => null, 'keywords' => [], 'docs' => null,
         ];
 
         return [
             // getSlashNamespace(), not ->name: the property holds the SHORT name ('atlas'), and a
             // report keyed on that cannot distinguish acme/atlas from laranail/atlas -- which is
             // precisely the confusion this class exists to remove.
-            'name' => $this->quietly($package->getSlashNamespace(...), $package->name),
+            'name'     => $this->quietly($package->getSlashNamespace(...), $package->name),
             'provider' => $provider,
             // $name, not $package->name: the property holds the SHORT name ('captcha'), which
             // composer has never heard of, so every version resolved as 'unknown'. The same slip
             // was already fixed once for the 'name' field above and survived here.
-            'version' => is_string($name) ? $this->versionOf($name) : 'unknown',
-            'config' => $this->quietly(fn (): string => $package->getDottedNamespace()),
-            'views' => $package->hasViews ? $this->quietly($package->viewNamespace(...)) : null,
+            'version'      => is_string($name) ? $this->versionOf($name) : 'unknown',
+            'config'       => $this->quietly(fn (): string => $package->getDottedNamespace()),
+            'views'        => $package->hasViews ? $this->quietly($package->viewNamespace(...)) : null,
             'translations' => $package->hasTranslations ? $this->quietly($package->translationNamespace(...)) : null,
-            'components' => $package->hasViews ? $this->quietly($package->componentPrefix(...)) : null,
+            'components'   => $package->hasViews ? $this->quietly($package->componentPrefix(...)) : null,
             // Read from the LIVE registry rather than recomputed from the Package: what the
             // framework ended up holding is the only thing that matters for a flat global map, and
             // it is also the only way a tag registered by a direct publishes() call shows up here.
@@ -89,15 +89,15 @@ final class PackageRegistry
             // Resolved from the console kernel, so a command whose name is set at construction --
             // which is how the family's `vendor::slug.command` shape gets past Symfony's validator --
             // reports the name it actually answers to.
-            'commands' => $this->commandNames($package->commands),
-            'path' => $package->basePath(),
+            'commands'    => $this->commandNames($package->commands),
+            'path'        => $package->basePath(),
             'description' => $package->summary ?? $manifest['description'],
-            'authors' => $package->maintainers !== [] ? $package->maintainers : $manifest['authors'],
-            'homepage' => $manifest['homepage'],
-            'license' => $manifest['license'],
-            'keywords' => $manifest['keywords'],
-            'docs' => $package->documentationUrl ?? $manifest['docs'] ?? $manifest['homepage'],
-            'stability' => $package->stability,
+            'authors'     => $package->maintainers !== [] ? $package->maintainers : $manifest['authors'],
+            'homepage'    => $manifest['homepage'],
+            'license'     => $manifest['license'],
+            'keywords'    => $manifest['keywords'],
+            'docs'        => $package->documentationUrl ?? $manifest['docs'] ?? $manifest['homepage'],
+            'stability'   => $package->stability,
         ];
     }
 
@@ -171,6 +171,7 @@ final class PackageRegistry
      * @param list<string> $classes Command class names. Not narrowed to class-string: the property
      *                              they come from is a plain list, and asserting a narrower type
      *                              here would be this class vouching for a value it does not own.
+     *
      * @return list<string>
      */
     private function commandNames(array $classes): array
@@ -207,6 +208,7 @@ final class PackageRegistry
      *
      * @param callable(): T $resolve
      * @param T|null $fallback
+     *
      * @return T|null
      */
     private function quietly(callable $resolve, mixed $fallback = null): mixed

@@ -26,11 +26,11 @@ abstract class HandlesPackageActionFailure
     {
         match ($event->type) {
             PackageActionType::Migration => $this->onMigration($event),
-            PackageActionType::Seeder => $this->onSeeder($event),
-            PackageActionType::Job => $this->onJob($event),
-            PackageActionType::Schedule => $this->onSchedule($event),
-            PackageActionType::Install => $this->onInstall($event),
-            PackageActionType::Custom => $this->onCustom($event),
+            PackageActionType::Seeder    => $this->onSeeder($event),
+            PackageActionType::Job       => $this->onJob($event),
+            PackageActionType::Schedule  => $this->onSchedule($event),
+            PackageActionType::Install   => $this->onInstall($event),
+            PackageActionType::Custom    => $this->onCustom($event),
         };
     }
 

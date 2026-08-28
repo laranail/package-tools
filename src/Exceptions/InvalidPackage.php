@@ -13,7 +13,7 @@ class InvalidPackage extends Exception
         return new static(
             'A package name is required. This package does not have a name; ' .
             'you can set one with `$package->name("vendor/yourPackage")` ' .
-            '(or the equivalent `$package->setName(...)`).'
+            '(or the equivalent `$package->setName(...)`).',
         );
     }
 
@@ -22,7 +22,7 @@ class InvalidPackage extends Exception
         return new static(
             'Package name cannot be empty. ' .
             'You must provide a non-empty name using `$package->setName("yourName")`. ' .
-            'The name cannot be an empty string or whitespace only.'
+            'The name cannot be an empty string or whitespace only.',
         );
     }
 
@@ -31,7 +31,7 @@ class InvalidPackage extends Exception
         return new static(
             "Invalid package name: '{$name}'. " .
             'Package names must contain only alphanumeric characters, dashes (-), slashes (/), and underscores (_). ' .
-            'Examples: "vendor/package-name", "acme/widget"'
+            'Examples: "vendor/package-name", "acme/widget"',
         );
     }
 
@@ -47,7 +47,7 @@ class InvalidPackage extends Exception
             "Provided: '{$name}'. " .
             'BREAKING CHANGE: Legacy single package name format is no longer supported. ' .
             'Please update to vendor/package format (e.g., "acme/widget" instead of "widget"). ' .
-            'This ensures proper namespacing and prevents collisions in the ecosystem.'
+            'This ensures proper namespacing and prevents collisions in the ecosystem.',
         );
     }
 }

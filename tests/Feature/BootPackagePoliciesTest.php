@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Database\Eloquent\Model;
+use Override;
+use Orchestra\Testbench\TestCase;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Support\Facades\Gate;
-use Orchestra\Testbench\TestCase;
-use Override;
+use Illuminate\Database\Eloquent\Model;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
@@ -18,11 +18,6 @@ use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
  */
 final class BootPackagePoliciesTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PolicyTestPackageProvider::class];
-    }
-
     public function test_registered_policy_resolves_through_the_gate(): void
     {
         $policy = Gate::getPolicyFor(PolicyFixtureModel::class);
@@ -46,6 +41,11 @@ final class BootPackagePoliciesTest extends TestCase
             [PolicyFixtureModel::class => PolicyFixturePolicy::class],
             $package->getPolicies(),
         );
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PolicyTestPackageProvider::class];
     }
 }
 

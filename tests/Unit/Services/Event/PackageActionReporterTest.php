@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Event;
 
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Log;
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Event;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionStarted;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionSucceeded;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRunTracker;
 use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * The reporter is the single lifecycle choke point: it always logs failures
@@ -24,16 +24,6 @@ use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
  */
 final class PackageActionReporterTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
-    private function reporter(): PackageActionReporter
-    {
-        return $this->app->make(PackageActionReporter::class);
-    }
-
     public function test_a_failure_is_always_logged_at_error(): void
     {
         Log::spy();
@@ -186,5 +176,15 @@ final class PackageActionReporterTest extends TestCase
         Event::assertDispatched(PackageActionStarted::class);
         Event::assertDispatched(PackageActionFailed::class);
         Event::assertNotDispatched(PackageActionSucceeded::class);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
+    }
+
+    private function reporter(): PackageActionReporter
+    {
+        return $this->app->make(PackageActionReporter::class);
     }
 }

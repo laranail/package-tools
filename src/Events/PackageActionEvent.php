@@ -37,11 +37,11 @@ abstract readonly class PackageActionEvent
     public function toArray(): array
     {
         return [
-            'type' => $this->type->value,
-            'action' => $this->action,
+            'type'    => $this->type->value,
+            'action'  => $this->action,
             'package' => $this->packageName,
             'context' => $this->context,
-            'mode' => $this->mode?->value,
+            'mode'    => $this->mode?->value,
         ];
     }
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
+use Throwable;
+use ReflectionClass;
+use InvalidArgumentException;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
-use InvalidArgumentException;
-use ReflectionClass;
-use Simtabi\Laranail\Package\Tools\Exceptions\SeederException;
 use Symfony\Component\Finder\SplFileInfo;
-use Throwable;
+use Simtabi\Laranail\Package\Tools\Exceptions\SeederException;
 
 /**
  * Walks a directory of seeder source files and yields the FQCNs of every
@@ -33,7 +33,7 @@ final class SeederPathDiscoverer
     {
         if (! File::isDirectory($path)) {
             throw new InvalidArgumentException(
-                "Seeder path does not exist or is not a directory: {$path}"
+                "Seeder path does not exist or is not a directory: {$path}",
             );
         }
 
@@ -67,15 +67,6 @@ final class SeederPathDiscoverer
         }
 
         return array_values(array_unique($found));
-    }
-
-    private function requireFile(string $file, string $path): void
-    {
-        try {
-            require_once $file;
-        } catch (Throwable $e) {
-            throw SeederException::discoveryFailed($path, "failed loading {$file}: {$e->getMessage()}");
-        }
     }
 
     /**
@@ -118,6 +109,15 @@ final class SeederPathDiscoverer
         }
 
         return $classes;
+    }
+
+    private function requireFile(string $file, string $path): void
+    {
+        try {
+            require_once $file;
+        } catch (Throwable $e) {
+            throw SeederException::discoveryFailed($path, "failed loading {$file}: {$e->getMessage()}");
+        }
     }
 
     private function extractNamespace(string $source): string

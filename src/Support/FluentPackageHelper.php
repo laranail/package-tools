@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support;
 
+use InvalidArgumentException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\View as ViewFactory;
-use InvalidArgumentException;
 
 /**
  * Chainable interface for package-specific operations, modelled on
@@ -108,10 +108,10 @@ class FluentPackageHelper
     public function namespace(string $type = 'view'): string
     {
         return match ($type) {
-            'view' => $this->viewNamespace,
+            'view'                         => $this->viewNamespace,
             'translation', 'trans', 'lang' => $this->translationNamespace,
-            'config' => $this->configNamespace,
-            default => throw new InvalidArgumentException("Unknown namespace type: {$type}"),
+            'config'                       => $this->configNamespace,
+            default                        => throw new InvalidArgumentException("Unknown namespace type: {$type}"),
         };
     }
 

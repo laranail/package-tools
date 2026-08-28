@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Database\Migrations\Migrator;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Database\Migrations\Migrator;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
 
@@ -15,6 +15,14 @@ use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
  */
 final class MigrationLifecycleGateTest extends TestCase
 {
+    public function test_the_gate_off_leaves_the_migrator_undecorated(): void
+    {
+        $migrator = $this->app->make('migrator');
+
+        $this->assertInstanceOf(Migrator::class, $migrator);
+        $this->assertNotInstanceOf(FailureAwareMigrator::class, $migrator);
+    }
+
     protected function getPackageProviders($app): array
     {
         return [PackageToolsServiceProvider::class];
@@ -23,13 +31,5 @@ final class MigrationLifecycleGateTest extends TestCase
     protected function defineEnvironment($app): void
     {
         $app['config']->set('laranail.package-tools.migrations.failure_detection.enabled', false);
-    }
-
-    public function test_the_gate_off_leaves_the_migrator_undecorated(): void
-    {
-        $migrator = $this->app->make('migrator');
-
-        $this->assertInstanceOf(Migrator::class, $migrator);
-        $this->assertNotInstanceOf(FailureAwareMigrator::class, $migrator);
     }
 }

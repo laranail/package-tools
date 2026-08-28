@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
 
 /**
  * Core Package class tests

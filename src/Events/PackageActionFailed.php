@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Events;
 
 use Override;
+use Throwable;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
-use Throwable;
 
 /**
  * The one general failure event for any package action — migrations,
@@ -79,9 +79,9 @@ final readonly class PackageActionFailed extends PackageActionEvent
     {
         return [
             ...parent::toArray(),
-            'reason' => $this->reason->value,
+            'reason'    => $this->reason->value,
             'exception' => $this->exceptionClass,
-            'message' => $this->message,
+            'message'   => $this->message,
         ];
     }
 }

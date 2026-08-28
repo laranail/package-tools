@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Doctor;
 
 use PHPUnit\Framework\Attributes\Test;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorStatus;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\UnregisteredPublishableCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorStatus;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * The failure this reports is silent by construction: a module whose provider
@@ -36,30 +36,6 @@ final class UnregisteredPublishableCheckTest extends TestCase
         exec('rm -rf ' . escapeshellarg($this->sandbox));
 
         parent::tearDown();
-    }
-
-    private function makeModule(string $name): void
-    {
-        mkdir($this->sandbox . '/modules/' . $name, 0o777, true);
-    }
-
-    private function registry(string ...$packages): PublishTagRegistry
-    {
-        $registry = new PublishTagRegistry;
-
-        foreach ($packages as $i => $package) {
-            $registry->record('tag-' . $i, $package, ['/tmp/whatever'], true);
-        }
-
-        return $registry;
-    }
-
-    private function check(PublishTagRegistry $registry, ?array $directories = null): UnregisteredPublishableCheck
-    {
-        return new UnregisteredPublishableCheck(
-            $registry,
-            $directories ?? [$this->sandbox . '/modules'],
-        );
     }
 
     #[Test]
@@ -158,5 +134,29 @@ final class UnregisteredPublishableCheckTest extends TestCase
         $this->check($this->registry())->run();
 
         self::assertSame($before, scandir($this->sandbox . '/modules/forgotten'));
+    }
+
+    private function makeModule(string $name): void
+    {
+        mkdir($this->sandbox . '/modules/' . $name, 0o777, true);
+    }
+
+    private function registry(string ...$packages): PublishTagRegistry
+    {
+        $registry = new PublishTagRegistry;
+
+        foreach ($packages as $i => $package) {
+            $registry->record('tag-' . $i, $package, ['/tmp/whatever'], true);
+        }
+
+        return $registry;
+    }
+
+    private function check(PublishTagRegistry $registry, ?array $directories = null): UnregisteredPublishableCheck
+    {
+        return new UnregisteredPublishableCheck(
+            $registry,
+            $directories ?? [$this->sandbox . '/modules'],
+        );
     }
 }

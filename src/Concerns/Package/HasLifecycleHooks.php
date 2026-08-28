@@ -116,6 +116,25 @@ trait HasLifecycleHooks
     }
 
     /**
+     * Get all registered hooks (for testing)
+     *
+     * @return array<string, int>
+     */
+    public function getRegisteredHooks(): array
+    {
+        return [
+            'beforeRegister'   => count($this->beforeRegisterHooks),
+            'afterRegister'    => count($this->afterRegisterHooks),
+            'beforeBoot'       => count($this->beforeBootHooks),
+            'afterBoot'        => count($this->afterBootHooks),
+            'beforeConfigLoad' => count($this->beforeConfigLoadHooks),
+            'afterConfigLoad'  => count($this->afterConfigLoadHooks),
+            'beforeViewLoad'   => count($this->beforeViewLoadHooks),
+            'afterViewLoad'    => count($this->afterViewLoadHooks),
+        ];
+    }
+
+    /**
      * Execute before register hooks
      */
     protected function executeBeforeRegisterHooks(): void
@@ -193,24 +212,5 @@ trait HasLifecycleHooks
         foreach ($this->afterViewLoadHooks as $hook) {
             $hook($this);
         }
-    }
-
-    /**
-     * Get all registered hooks (for testing)
-     *
-     * @return array<string, int>
-     */
-    public function getRegisteredHooks(): array
-    {
-        return [
-            'beforeRegister' => count($this->beforeRegisterHooks),
-            'afterRegister' => count($this->afterRegisterHooks),
-            'beforeBoot' => count($this->beforeBootHooks),
-            'afterBoot' => count($this->afterBootHooks),
-            'beforeConfigLoad' => count($this->beforeConfigLoadHooks),
-            'afterConfigLoad' => count($this->afterConfigLoadHooks),
-            'beforeViewLoad' => count($this->beforeViewLoadHooks),
-            'afterViewLoad' => count($this->afterViewLoadHooks),
-        ];
     }
 }

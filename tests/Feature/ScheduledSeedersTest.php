@@ -4,38 +4,19 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Console\Scheduling\Event;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Seeder;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Illuminate\Console\Scheduling\Event;
+use Illuminate\Console\Scheduling\Schedule;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Enums\Cadence;
+use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
-use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
 
 final class ScheduledSeedersTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [
-            PackageToolsServiceProvider::class,
-            ScheduledSeederProvider::class,
-        ];
-    }
-
-    /**
-     * @return list<Event>
-     */
-    private function seedEvents(): array
-    {
-        return array_values(array_filter(
-            $this->app->make(Schedule::class)->events(),
-            static fn (Event $event): bool => str_contains((string) $event->command, 'laranail::package-tools.seed'),
-        ));
-    }
-
     public function test_a_cadenced_definition_lands_on_the_schedule(): void
     {
         $events = $this->seedEvents();
@@ -73,6 +54,25 @@ final class ScheduledSeedersTest extends TestCase
         );
 
         $this->assertCount(1, $overlapping);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            PackageToolsServiceProvider::class,
+            ScheduledSeederProvider::class,
+        ];
+    }
+
+    /**
+     * @return list<Event>
+     */
+    private function seedEvents(): array
+    {
+        return array_values(array_filter(
+            $this->app->make(Schedule::class)->events(),
+            static fn (Event $event): bool => str_contains((string) $event->command, 'laranail::package-tools.seed'),
+        ));
     }
 }
 

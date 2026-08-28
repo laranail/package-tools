@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
 
 /**
@@ -74,8 +74,8 @@ class HasRoutesTest extends TestCase
 
         $this->assertSame($this->package, $result, 'Should support fluent chaining');
         $this->assertSame([[
-            'key' => 'test-package.routes.enabled',
-            'files' => ['api'],
+            'key'     => 'test-package.routes.enabled',
+            'files'   => ['api'],
             'default' => false,
         ]], $this->package->conditionalRouteFileNames);
     }
@@ -86,8 +86,8 @@ class HasRoutesTest extends TestCase
         $this->package->hasRoutesWhen('test-package.routes.enabled', ['web', 'api'], true);
 
         $this->assertSame([[
-            'key' => 'test-package.routes.enabled',
-            'files' => ['web', 'api'],
+            'key'     => 'test-package.routes.enabled',
+            'files'   => ['web', 'api'],
             'default' => true,
         ]], $this->package->conditionalRouteFileNames);
     }

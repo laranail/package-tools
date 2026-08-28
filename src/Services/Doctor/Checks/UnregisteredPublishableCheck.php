@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Services\Doctor\Checks;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 
 /**
  * Reports directories that look like packages but registered no publish tags.
@@ -94,7 +94,7 @@ final readonly class UnregisteredPublishableCheck implements DoctorCheck
             sprintf('%d package directories registered no publish tag', count($missing)),
             [
                 'directories' => $missing,
-                'hint' => 'Each of these exists on disk but publishes nothing. That is fine for a package '
+                'hint'        => 'Each of these exists on disk but publishes nothing. That is fine for a package '
                     . 'with no assets; otherwise the provider is missing setPublishTagId() or a has*() call.',
             ],
         );

@@ -14,9 +14,9 @@ declare(strict_types=1);
 
 namespace Acme\Hello\Http;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use Simtabi\Laranail\Package\Tools\Http\Controllers\ApiController;
 
 final class WidgetApiController extends ApiController
@@ -24,7 +24,7 @@ final class WidgetApiController extends ApiController
     /** @var array<string, array{id: int, name: string}> */
     private array $widgets = [
         'alpha' => ['id' => 1, 'name' => 'alpha'],
-        'beta' => ['id' => 2, 'name' => 'beta'],
+        'beta'  => ['id' => 2, 'name' => 'beta'],
     ];
 
     // respondWithArray: arbitrary payload at the current status (200 by default).

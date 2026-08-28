@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Testing;
 
-use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Assert;
+use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
@@ -46,7 +46,7 @@ trait AssertsPublishedConfigOverrides
         string $configKey,
         array $override,
         string $assertKey,
-        mixed $expected
+        mixed $expected,
     ): void {
         $published = config_path(str_replace('.', '/', $configKey) . '.php');
 

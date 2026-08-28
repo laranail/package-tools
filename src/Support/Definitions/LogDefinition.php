@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
 use BackedEnum;
-use Illuminate\Contracts\Support\Arrayable;
+use JsonSerializable;
 use Illuminate\Contracts\Support\Jsonable;
 
 use function Illuminate\Support\enum_value;
 
-use JsonSerializable;
+use Illuminate\Contracts\Support\Arrayable;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
 
 /**
@@ -212,16 +212,16 @@ final class LogDefinition implements Arrayable, Jsonable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'enabled' => $this->enabled,
-            'path' => $this->path,
-            'directory' => $this->directory,
-            'driver' => $this->driver,
-            'days' => $this->days,
-            'level' => $this->level,
-            'channel' => $this->channel,
-            'format' => $this->format,
+            'enabled'    => $this->enabled,
+            'path'       => $this->path,
+            'directory'  => $this->directory,
+            'driver'     => $this->driver,
+            'days'       => $this->days,
+            'level'      => $this->level,
+            'channel'    => $this->channel,
+            'format'     => $this->format,
             'permission' => $this->permission,
-            'gate' => $this->gate?->toArray(),
+            'gate'       => $this->gate?->toArray(),
         ];
     }
 

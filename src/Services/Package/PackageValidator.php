@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Package;
 
-use Illuminate\Contracts\Validation\Validator as LaravelValidator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Simtabi\Laranail\Package\Tools\Contracts\ValidatorInterface;
+use Illuminate\Contracts\Validation\Validator as LaravelValidator;
 
 /**
  * Validates package structure, naming, and configuration.
@@ -23,6 +23,7 @@ class PackageValidator implements ValidatorInterface
      * Validate input and return array of errors (empty array if valid)
      *
      * @param mixed $input Value to validate (can be array with package data, or string path)
+     *
      * @return array<string> Array of validation errors
      */
     public function validate(mixed $input): array
@@ -53,17 +54,56 @@ class PackageValidator implements ValidatorInterface
     }
 
     /**
+     * Validate package directory structure
+     *
+     * @param string $path Package path
+     *
+     * @return bool True if valid, false otherwise
+     */
+    public function validateStructure(string $path): bool
+    {
+        $errors = $this->validateStructureInternal($path);
+
+        return $errors === [];
+    }
+
+    /**
+     * Validate package name format
+     *
+     * @param string $name Package name (vendor/package)
+     *
+     * @return bool True if valid, false otherwise
+     */
+    public function validateName(string $name): bool
+    {
+        return (bool) preg_match('/^[a-z0-9\-]+\/[a-z0-9\-]+$/', $name);
+    }
+
+    /**
+     * Validate PSR-4 namespace
+     *
+     * @param string $namespace Namespace to validate
+     *
+     * @return bool True if valid, false otherwise
+     */
+    public function validateNamespace(string $namespace): bool
+    {
+        return (bool) preg_match('/^[A-Z][a-zA-Z0-9]*(\\\\[A-Z][a-zA-Z0-9]*)*$/', $namespace);
+    }
+
+    /**
      * Validate package data array
      *
      * @param array<string, mixed> $data Package data to validate
      * @param array<string, mixed> $rules Additional validation rules
+     *
      * @return array<string> Array of validation errors
      */
     protected function validatePackageData(array $data, array $rules = []): array
     {
         $defaultRules = [
-            'name' => ['required', 'string', 'regex:/^[a-z0-9\-]+\/[a-z0-9\-]+$/'],
-            'path' => ['required', 'string'],
+            'name'      => ['required', 'string', 'regex:/^[a-z0-9\-]+\/[a-z0-9\-]+$/'],
+            'path'      => ['required', 'string'],
             'namespace' => ['required', 'string'],
         ];
 
@@ -87,6 +127,7 @@ class PackageValidator implements ValidatorInterface
      * Validate path string
      *
      * @param string $path Path to validate
+     *
      * @return array<string> Array of validation errors
      */
     protected function validatePathString(string $path): array
@@ -107,6 +148,7 @@ class PackageValidator implements ValidatorInterface
      * Validate package directory structure (internal method)
      *
      * @param string $path Package path
+     *
      * @return array<string> Array of validation errors
      */
     protected function validateStructureInternal(string $path): array
@@ -128,40 +170,5 @@ class PackageValidator implements ValidatorInterface
         }
 
         return $errors;
-    }
-
-    /**
-     * Validate package directory structure
-     *
-     * @param string $path Package path
-     * @return bool True if valid, false otherwise
-     */
-    public function validateStructure(string $path): bool
-    {
-        $errors = $this->validateStructureInternal($path);
-
-        return $errors === [];
-    }
-
-    /**
-     * Validate package name format
-     *
-     * @param string $name Package name (vendor/package)
-     * @return bool True if valid, false otherwise
-     */
-    public function validateName(string $name): bool
-    {
-        return (bool) preg_match('/^[a-z0-9\-]+\/[a-z0-9\-]+$/', $name);
-    }
-
-    /**
-     * Validate PSR-4 namespace
-     *
-     * @param string $namespace Namespace to validate
-     * @return bool True if valid, false otherwise
-     */
-    public function validateNamespace(string $namespace): bool
-    {
-        return (bool) preg_match('/^[A-Z][a-zA-Z0-9]*(\\\\[A-Z][a-zA-Z0-9]*)*$/', $namespace);
     }
 }

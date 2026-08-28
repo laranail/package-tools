@@ -42,7 +42,7 @@ trait HasMigrations
         $flattened = collect($migrationFileNames)->flatten()->toArray();
         $this->migrationFileNames = array_merge(
             $this->migrationFileNames,
-            $flattened
+            $flattened,
         );
         $this->hasMigrations = true;
 

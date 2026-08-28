@@ -49,7 +49,7 @@ final class SystemServiceTest extends TestCase
         file_put_contents(
             $this->tmpRoot . '/composer.json',
             json_encode([
-                'name' => 'acme/sample',
+                'name'    => 'acme/sample',
                 'require' => ['php' => '^8.3'],
             ], JSON_THROW_ON_ERROR),
         );
@@ -67,7 +67,7 @@ final class SystemServiceTest extends TestCase
         file_put_contents(
             $this->tmpRoot . '/composer.json',
             json_encode([
-                'require' => ['vendor/a' => '^1.0'],
+                'require'     => ['vendor/a' => '^1.0'],
                 'require-dev' => ['vendor/b' => '^2.0'],
             ], JSON_THROW_ON_ERROR),
         );

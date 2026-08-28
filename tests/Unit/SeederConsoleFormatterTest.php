@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
-use Illuminate\Console\OutputStyle;
-use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\Console\Tools\Support\Capabilities;
-use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
+use PHPUnit\Framework\TestCase;
+use Illuminate\Console\OutputStyle;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Simtabi\Laranail\Console\Tools\Support\Capabilities;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 
 final class SeederConsoleFormatterTest extends TestCase
 {
@@ -19,21 +19,6 @@ final class SeederConsoleFormatterTest extends TestCase
     {
         Capabilities::clearFake();
         parent::tearDown();
-    }
-
-    private function render(SeederConsoleFormatter $formatter, BufferedOutput $buffer): string
-    {
-        $formatter->setOutput(new OutputStyle(new ArrayInput([]), $buffer));
-        $formatter->initializeSession();
-
-        $formatter->displayGroupHeader('Acme\\Blog', 2);
-        $formatter->displaySeederSuccess('Acme\\Blog\\PostSeeder', 0.012);
-        $formatter->displaySeederError('Acme\\Blog\\TagSeeder', new RuntimeException('boom'), 0.003);
-        $formatter->displaySeederSkipped('Acme\\Blog\\UserSeeder', 'already seeded');
-        $formatter->writeInfo('informational message');
-        $formatter->displaySummary();
-
-        return $buffer->fetch();
     }
 
     public function test_it_implements_the_contract(): void
@@ -119,5 +104,20 @@ final class SeederConsoleFormatterTest extends TestCase
         // Content still present.
         $this->assertStringContainsString('Post', $output);
         $this->assertStringContainsString('DONE', $output);
+    }
+
+    private function render(SeederConsoleFormatter $formatter, BufferedOutput $buffer): string
+    {
+        $formatter->setOutput(new OutputStyle(new ArrayInput([]), $buffer));
+        $formatter->initializeSession();
+
+        $formatter->displayGroupHeader('Acme\\Blog', 2);
+        $formatter->displaySeederSuccess('Acme\\Blog\\PostSeeder', 0.012);
+        $formatter->displaySeederError('Acme\\Blog\\TagSeeder', new RuntimeException('boom'), 0.003);
+        $formatter->displaySeederSkipped('Acme\\Blog\\UserSeeder', 'already seeded');
+        $formatter->writeInfo('informational message');
+        $formatter->displaySummary();
+
+        return $buffer->fetch();
     }
 }

@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
 use Illuminate\Support\Facades\Gate;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasPolicies;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasPolicies;
 
 /**
  * declarative policy registration: storage shapes, fluency, and the boot
@@ -32,7 +32,7 @@ final class HasPoliciesTest extends TestCase
     public function it_registers_a_policy_map(): void
     {
         $this->registerPolicies([
-            PolicyStubPost::class => PolicyStubPostPolicy::class,
+            PolicyStubPost::class    => PolicyStubPostPolicy::class,
             PolicyStubComment::class => PolicyStubCommentPolicy::class,
         ]);
 

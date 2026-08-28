@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
 
 final class InstallCommandDefinitionTest extends TestCase
 {

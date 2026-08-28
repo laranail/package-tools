@@ -286,7 +286,7 @@ trait HasEnhancedValidation
             $errorList = implode("\n  - ", $this->validationErrors);
 
             throw new InvalidPath(
-                "{$message}:\n  - {$errorList}"
+                "{$message}:\n  - {$errorList}",
             );
         }
 

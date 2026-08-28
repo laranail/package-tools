@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Simtabi\Laranail\Package\Tools\Support\Path\PathDirection;
 use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
+use Simtabi\Laranail\Package\Tools\Support\Path\PathDirection;
 
 /**
  * Calls PathResolver from THIS file, whose directory is the fixture root -- so an Inner resolution

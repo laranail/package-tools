@@ -43,12 +43,12 @@ final readonly class OrphanReport implements Arrayable
     public function toArray(): array
     {
         return [
-            'entries' => array_map(static fn (OrphanEntry $e): array => $e->toArray(), $this->entries),
+            'entries'       => array_map(static fn (OrphanEntry $e): array => $e->toArray(), $this->entries),
             'roots_scanned' => $this->rootsScanned,
-            'truncated' => $this->truncated,
-            'count' => $this->count(),
-            'file_count' => $this->fileCount,
-            'bytes' => $this->bytes,
+            'truncated'     => $this->truncated,
+            'count'         => $this->count(),
+            'file_count'    => $this->fileCount,
+            'bytes'         => $this->bytes,
         ];
     }
 }

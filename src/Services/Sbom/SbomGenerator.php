@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Sbom;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use RuntimeException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 
 /**
@@ -37,15 +37,15 @@ final readonly class SbomGenerator
         $rootVersion = $composerJson['version'] ?? ($composerLock['version'] ?? 'dev');
 
         return [
-            'bomFormat' => 'CycloneDX',
-            'specVersion' => '1.5',
-            'version' => 1,
+            'bomFormat'    => 'CycloneDX',
+            'specVersion'  => '1.5',
+            'version'      => 1,
             'serialNumber' => 'urn:uuid:' . $this->uuid(),
-            'metadata' => [
+            'metadata'     => [
                 'timestamp' => gmdate('Y-m-d\TH:i:s\Z'),
-                'tools' => [[
-                    'vendor' => 'simtabi',
-                    'name' => 'laranail/package-tools',
+                'tools'     => [[
+                    'vendor'  => 'simtabi',
+                    'name'    => 'laranail/package-tools',
                     'version' => $this->toolVersion(),
                 ]],
                 'component' => $this->buildComponent($rootName, $rootVersion, 'application', $composerJson['description'] ?? null),
@@ -93,7 +93,7 @@ final readonly class SbomGenerator
 
         if (! Path::isWithin($rootNormalised, $normalised)) {
             throw new RuntimeException(
-                "SBOM output path is outside project root: {$outputPath}"
+                "SBOM output path is outside project root: {$outputPath}",
             );
         }
 
@@ -180,6 +180,7 @@ final readonly class SbomGenerator
 
     /**
      * @param array<string, mixed> $lock
+     *
      * @return list<array<string, mixed>>
      */
     private function buildPackageComponents(array $lock): array
@@ -201,6 +202,7 @@ final readonly class SbomGenerator
 
     /**
      * @param array<string, mixed> $pkg
+     *
      * @return array<string, mixed>
      */
     private function buildComponentFromLockEntry(array $pkg): array
@@ -223,6 +225,7 @@ final readonly class SbomGenerator
 
     /**
      * @param list<string> $licenses
+     *
      * @return array<string, mixed>
      */
     private function buildComponent(
@@ -234,11 +237,11 @@ final readonly class SbomGenerator
         array $licenses = [],
     ): array {
         $component = [
-            'type' => $type,
+            'type'    => $type,
             'bom-ref' => "pkg:composer/{$name}@{$version}",
-            'name' => $name,
+            'name'    => $name,
             'version' => $version,
-            'purl' => "pkg:composer/{$name}@{$version}",
+            'purl'    => "pkg:composer/{$name}@{$version}",
         ];
 
         if ($description !== null && $description !== '') {
@@ -248,7 +251,7 @@ final readonly class SbomGenerator
         if ($homepage !== null && $homepage !== '') {
             $component['externalReferences'] = [[
                 'type' => 'website',
-                'url' => $homepage,
+                'url'  => $homepage,
             ]];
         }
 

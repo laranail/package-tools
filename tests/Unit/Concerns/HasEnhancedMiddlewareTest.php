@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use Illuminate\Container\Container;
-use Illuminate\Events\Dispatcher;
 use Illuminate\Routing\Router;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Illuminate\Events\Dispatcher;
+use Illuminate\Container\Container;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
 
 /**
@@ -31,13 +31,13 @@ class HasEnhancedMiddlewareTest extends TestCase
     public function register_route_middlewares_stores_a_batch_of_aliases(): void
     {
         $result = $this->package->registerRouteMiddlewares([
-            'auth.blog' => 'App\\Http\\Middleware\\BlogAuth',
+            'auth.blog'  => 'App\\Http\\Middleware\\BlogAuth',
             'admin.blog' => 'App\\Http\\Middleware\\BlogAdmin',
         ]);
 
         $this->assertSame($this->package, $result, 'Should support fluent chaining');
         $this->assertSame([
-            'auth.blog' => 'App\\Http\\Middleware\\BlogAuth',
+            'auth.blog'  => 'App\\Http\\Middleware\\BlogAuth',
             'admin.blog' => 'App\\Http\\Middleware\\BlogAdmin',
         ], $this->package->getRouteMiddleware());
     }
@@ -85,12 +85,12 @@ class HasEnhancedMiddlewareTest extends TestCase
     public function register_middleware_groups_stores_multiple_groups(): void
     {
         $this->package->registerMiddlewareGroups([
-            'blog' => ['App\\A'],
+            'blog'  => ['App\\A'],
             'admin' => ['App\\B', 'App\\C'],
         ]);
 
         $this->assertSame([
-            'blog' => ['App\\A'],
+            'blog'  => ['App\\A'],
             'admin' => ['App\\B', 'App\\C'],
         ], $this->package->getMiddlewareGroups());
     }

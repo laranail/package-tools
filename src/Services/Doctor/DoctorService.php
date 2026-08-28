@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Doctor;
 
-use InvalidArgumentException;
 use Throwable;
+use InvalidArgumentException;
 
 /**
  * Runs DoctorCheck instances and produces a structured report.
@@ -86,6 +86,7 @@ final class DoctorService
 
     /**
      * @param list<array{check: DoctorCheck, result: DoctorResult, group: string|null}> $report
+     *
      * @return array{pass: int, warn: int, fail: int, skip: int}
      */
     public function summarise(array $report): array

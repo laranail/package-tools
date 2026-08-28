@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
-use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Illuminate\Database\Seeder;
 use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
 
 /**
@@ -186,7 +186,7 @@ final class SeederBuilder
     {
         return [
             'disable_foreign_key_checks' => $this->disableForeignKeyChecks,
-            'fire_events' => $this->fireEvents,
+            'fire_events'                => $this->fireEvents,
         ];
     }
 

@@ -6,9 +6,9 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
-use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
+use Illuminate\Filesystem\Filesystem;
 use Simtabi\Laranail\Package\Tools\Package;
 
 trait ProcessMigrations
@@ -38,7 +38,7 @@ trait ProcessMigrations
 
                 $this->publishes(
                     [$vendorMigration => $appMigration],
-                    $publishTag
+                    $publishTag,
                 );
             }
 
@@ -73,7 +73,7 @@ trait ProcessMigrations
 
                 $this->publishes(
                     [$filePath => $appMigration],
-                    $publishTag
+                    $publishTag,
                 );
             }
 

@@ -4,28 +4,28 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
-use Illuminate\Contracts\Cache\Lock;
-use Illuminate\Contracts\Foundation\Application;
+use Throwable;
+use ReflectionClass;
 use Illuminate\Database\Seeder;
+use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use ReflectionClass;
+use Illuminate\Contracts\Foundation\Application;
+use Simtabi\Laranail\Package\Tools\Events\SeederFailed;
+use Simtabi\Laranail\Package\Tools\Events\SeederExecuted;
+use Simtabi\Laranail\Package\Tools\Events\SeedingStarted;
+use Simtabi\Laranail\Package\Tools\Events\SeederExecuting;
+use Simtabi\Laranail\Package\Tools\Events\SeedingFinished;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
-use Simtabi\Laranail\Package\Tools\Events\PackageSeedingCompleted;
+use Simtabi\Laranail\Package\Tools\Exceptions\SeederException;
 use Simtabi\Laranail\Package\Tools\Events\PackageSeedingFailed;
 use Simtabi\Laranail\Package\Tools\Events\PackageSeedingStarted;
-use Simtabi\Laranail\Package\Tools\Events\SeederExecuted;
-use Simtabi\Laranail\Package\Tools\Events\SeederExecuting;
-use Simtabi\Laranail\Package\Tools\Events\SeederFailed;
-use Simtabi\Laranail\Package\Tools\Events\SeedingFinished;
-use Simtabi\Laranail\Package\Tools\Events\SeedingStarted;
-use Simtabi\Laranail\Package\Tools\Exceptions\SeederException;
-use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
-use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
 use Simtabi\Laranail\Package\Tools\Support\ForeignKeyCheckGuard;
+use Simtabi\Laranail\Package\Tools\Events\PackageSeedingCompleted;
 use Simtabi\Laranail\Package\Tools\ValueObjects\SeederExecutionStats;
-use Throwable;
+use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
 
 /**
  * Executes the bundles held in a `SeederRegistry` in priority order (lower
@@ -226,10 +226,10 @@ final readonly class SeederExecutor
 
                 $wrapped = $e instanceof SeederException ? $e : SeederException::executionFailed($class, $e);
                 $errors[] = [
-                    'class' => $class,
-                    'message' => $e->getMessage(),
+                    'class'     => $class,
+                    'message'   => $e->getMessage(),
                     'exception' => $e::class,
-                    'package' => $group,
+                    'package'   => $group,
                 ];
 
                 if ($fireEvents) {

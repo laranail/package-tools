@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use Illuminate\Filesystem\Filesystem;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Path\Path;
-use Simtabi\Laranail\Package\Tools\Support\Path\PathDirection;
 use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
+use Simtabi\Laranail\Package\Tools\Support\Path\PathDirection;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 require_once __DIR__ . '/../../fixtures/pathresolver/RootedCaller.php';
 require_once __DIR__ . '/../../fixtures/pathresolver/a/b/c/Caller.php';

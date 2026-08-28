@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Closure;
-use Illuminate\Foundation\Application;
 use Mockery;
+use Illuminate\Foundation\Application;
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
  * Full package bootstrap integration test
@@ -72,7 +72,7 @@ class FullPackageBootstrapTest extends TestCase
             },
             function () use (&$callOrder): void {
                 $callOrder[] = 'booted';
-            }
+            },
         );
 
         $provider->register();
@@ -80,7 +80,7 @@ class FullPackageBootstrapTest extends TestCase
 
         $this->assertSame(
             ['registering', 'configure', 'registered', 'booting', 'booted'],
-            $callOrder
+            $callOrder,
         );
     }
 
@@ -105,7 +105,7 @@ class FullPackageBootstrapTest extends TestCase
         ?Closure $registeringCallback = null,
         ?Closure $registeredCallback = null,
         ?Closure $bootingCallback = null,
-        ?Closure $bootedCallback = null
+        ?Closure $bootedCallback = null,
     ): PackageServiceProvider {
         $app = $this->app;
         if (! $app) {
@@ -121,7 +121,7 @@ class FullPackageBootstrapTest extends TestCase
                 private readonly ?Closure $registeringCallback = null,
                 private readonly ?Closure $registeredCallback = null,
                 private readonly ?Closure $bootingCallback = null,
-                private readonly ?Closure $bootedCallback = null
+                private readonly ?Closure $bootedCallback = null,
             ) {
                 parent::__construct($app);
             }

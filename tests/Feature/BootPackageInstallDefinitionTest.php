@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
+use Override;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Override;
-use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class InstallDefinitionTestPackageProvider extends PackageServiceProvider
 {
@@ -44,12 +44,6 @@ final class InstallDefinitionTestPackageProvider extends PackageServiceProvider
 
 final class BootPackageInstallDefinitionTest extends TestCase
 {
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [InstallDefinitionTestPackageProvider::class];
-    }
-
     public function test_the_derived_install_command_runs_steps_in_order(): void
     {
         $this->artisan('acme::install-def.install')
@@ -82,5 +76,11 @@ final class BootPackageInstallDefinitionTest extends TestCase
 
         $this->assertCount(1, $package->consoleCommands);
         $this->assertInstanceOf(Command::class, $package->consoleCommands[0]);
+    }
+
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [InstallDefinitionTestPackageProvider::class];
     }
 }

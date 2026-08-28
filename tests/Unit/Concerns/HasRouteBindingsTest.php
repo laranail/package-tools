@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use Illuminate\Foundation\Auth\User;
+use RuntimeException;
 use Illuminate\Routing\Router;
 use Orchestra\Testbench\TestCase;
-use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
+use Illuminate\Foundation\Auth\User;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
 
 /**
  * HasRouteBindings: declarative Route::model / Route::bind, mirroring

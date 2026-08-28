@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Asset;
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishRoot;
 
@@ -27,6 +27,18 @@ final class PublishRootTest extends TestCase
         exec('rm -rf ' . escapeshellarg($this->base));
 
         parent::tearDown();
+    }
+
+    /** @return array<string, array{0: string}> */
+    public static function deniedRoots(): array
+    {
+        $cases = [];
+
+        foreach (PublishRoot::DENY as $denied) {
+            $cases[$denied] = [$denied];
+        }
+
+        return $cases;
     }
 
     #[Test]
@@ -109,18 +121,6 @@ final class PublishRootTest extends TestCase
         $this->expectException(UnsafeAssetPath::class);
 
         PublishRoot::make($root, $this->base);
-    }
-
-    /** @return array<string, array{0: string}> */
-    public static function deniedRoots(): array
-    {
-        $cases = [];
-
-        foreach (PublishRoot::DENY as $denied) {
-            $cases[$denied] = [$denied];
-        }
-
-        return $cases;
     }
 
     #[Test]

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
-use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Seeder;
+use Illuminate\Contracts\Support\Arrayable;
 
 /**
  * one package's registered seeder bundle: typed fields and fluent setters
@@ -260,21 +260,21 @@ final class SeederBundle implements Arrayable
     public function toArray(): array
     {
         return [
-            'key' => $this->key,
-            'seeders' => $this->seeders,
-            'namespace' => $this->namespace,
-            'priority' => $this->priority,
+            'key'                        => $this->key,
+            'seeders'                    => $this->seeders,
+            'namespace'                  => $this->namespace,
+            'priority'                   => $this->priority,
             'disable_foreign_key_checks' => $this->disableForeignKeyChecks,
-            'fire_events' => $this->fireEvents,
-            'parameters' => $this->parameters,
-            'autorun' => $this->autorun,
-            'stop_on_failure' => $this->stopOnFailure,
-            'autorun_environments' => $this->autorunEnvironments,
-            'background' => $this->background,
-            'queue' => $this->queue,
-            'connection' => $this->connection,
-            'notify' => $this->notify,
-            'without_overlapping' => $this->withoutOverlapping,
+            'fire_events'                => $this->fireEvents,
+            'parameters'                 => $this->parameters,
+            'autorun'                    => $this->autorun,
+            'stop_on_failure'            => $this->stopOnFailure,
+            'autorun_environments'       => $this->autorunEnvironments,
+            'background'                 => $this->background,
+            'queue'                      => $this->queue,
+            'connection'                 => $this->connection,
+            'notify'                     => $this->notify,
+            'without_overlapping'        => $this->withoutOverlapping,
         ];
     }
 }

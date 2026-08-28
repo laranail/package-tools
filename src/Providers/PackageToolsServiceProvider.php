@@ -4,54 +4,54 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Providers;
 
-use Illuminate\Contracts\Config\Repository as ConfigRepository;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Database\ConnectionResolverInterface;
-use Illuminate\Database\Events\MigrationsEnded;
-use Illuminate\Database\Migrations\Migrator;
+use Override;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use Override;
-use Simtabi\Laranail\Console\Tools\Formatting\ConsoleUIFormatter;
-use Simtabi\Laranail\Package\Tools\Commands\PackageAssetsPruneCommand;
-use Simtabi\Laranail\Package\Tools\Commands\PackageAuditCommand;
-use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
-use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
-use Simtabi\Laranail\Package\Tools\Commands\PackagePublishCommand;
-use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Database\Events\MigrationsEnded;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\ConnectionResolverInterface;
+use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 use Simtabi\Laranail\Package\Tools\Commands\PackagesCommand;
-use Simtabi\Laranail\Package\Tools\Commands\PackageSeedCommand;
-use Simtabi\Laranail\Package\Tools\Contracts\ConfigManagerInterface;
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
+use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use Simtabi\Laranail\Package\Tools\Commands\PackageSbomCommand;
+use Simtabi\Laranail\Package\Tools\Commands\PackageSeedCommand;
+use Simtabi\Laranail\Package\Tools\Commands\PackageAuditCommand;
+use Simtabi\Laranail\Console\Tools\Formatting\ConsoleUIFormatter;
+use Simtabi\Laranail\Package\Tools\Commands\PackageDoctorCommand;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigManager;
-use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
-use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
-use Simtabi\Laranail\Package\Tools\Services\Database\MigrationFailureDetector;
-use Simtabi\Laranail\Package\Tools\Services\Database\PlainSeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Services\System\SystemService;
+use Simtabi\Laranail\Package\Tools\Commands\PackagePublishCommand;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederBuilder;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
+use Simtabi\Laranail\Package\Tools\Commands\PackageIdeHelperCommand;
+use Simtabi\Laranail\Package\Tools\Contracts\ConfigManagerInterface;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederResolverHook;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\BootHealthCheck;
-use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
-use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
-use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
-use Simtabi\Laranail\Package\Tools\Services\Http\HttpConfigurationService;
-use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
-use Simtabi\Laranail\Package\Tools\Services\System\SystemService;
-use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
-use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
-use Simtabi\Laranail\Package\Tools\Support\Path\Path;
-use Simtabi\Laranail\Package\Tools\Support\Path\PathResolver;
 use Simtabi\Laranail\Package\Tools\Support\Registry\PackageRegistry;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
+use Simtabi\Laranail\Package\Tools\Commands\PackageAssetsPruneCommand;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederResolverHook;
+use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
+use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
+use Simtabi\Laranail\Package\Tools\Services\Doctor\Checks\BootHealthCheck;
+use Simtabi\Laranail\Package\Tools\Services\Http\HttpConfigurationService;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\ErrorStorageService;
+use Simtabi\Laranail\Package\Tools\Services\Database\MigrationFailureDetector;
+use Simtabi\Laranail\Package\Tools\Services\Database\PlainSeederConsoleFormatter;
+use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\Database\Contracts\SeederConsoleFormatterInterface;
+use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
 
 /**
  * Auto-registers the four library-level Artisan commands plus the three
@@ -226,7 +226,7 @@ final class PackageToolsServiceProvider extends ServiceProvider
             if ($migrator::class !== Migrator::class) {
                 FailurePolicy::warn('migrator already decorated', [
                     'expected' => Migrator::class,
-                    'actual' => $migrator::class,
+                    'actual'   => $migrator::class,
                     'decision' => 'used event-detector fallback',
                 ]);
                 $app->make(MigrationFailureDetector::class)->register($app->make(Dispatcher::class), $app);

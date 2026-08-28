@@ -30,7 +30,7 @@ trait HasAdditionalNamespaceFormats
 
         return Str::snake(
             str_replace('-', '_', $this->configVendor) . '_' .
-            str_replace('-', '_', $this->name)
+            str_replace('-', '_', $this->name),
         );
     }
 
@@ -148,18 +148,18 @@ trait HasAdditionalNamespaceFormats
     public function getAllNamespaceFormats(): array
     {
         return [
-            'dotted' => $this->getDottedNamespace(),
-            'dashed' => $this->getDashedNamespace(),
-            'doubleColon' => $this->getDoubleColonNamespace(),
-            'slash' => $this->getSlashNamespace(),
-            'underscore' => $this->getUnderscoreNamespace(),
-            'camelCase' => $this->getCamelCaseNamespace(),
-            'pascalCase' => $this->getPascalCaseNamespace(),
-            'kebabCase' => $this->getKebabCaseNamespace(),
-            'snakeCase' => $this->getSnakeCaseNamespace(),
+            'dotted'         => $this->getDottedNamespace(),
+            'dashed'         => $this->getDashedNamespace(),
+            'doubleColon'    => $this->getDoubleColonNamespace(),
+            'slash'          => $this->getSlashNamespace(),
+            'underscore'     => $this->getUnderscoreNamespace(),
+            'camelCase'      => $this->getCamelCaseNamespace(),
+            'pascalCase'     => $this->getPascalCaseNamespace(),
+            'kebabCase'      => $this->getKebabCaseNamespace(),
+            'snakeCase'      => $this->getSnakeCaseNamespace(),
             'screamingSnake' => $this->getScreamingSnakeCaseNamespace(),
-            'spaced' => $this->getSpacedNamespace(),
-            'titleCase' => $this->getTitleCaseNamespace(),
+            'spaced'         => $this->getSpacedNamespace(),
+            'titleCase'      => $this->getTitleCaseNamespace(),
         ];
     }
 
@@ -175,27 +175,27 @@ trait HasAdditionalNamespaceFormats
     public function getNamespaceFormat(string $format): string
     {
         $formats = [
-            'dotted' => fn () => $this->getDottedNamespace(),
-            'dashed' => fn () => $this->getDashedNamespace(),
-            'kebab' => fn () => $this->getKebabCaseNamespace(),
-            'kebab-case' => fn () => $this->getKebabCaseNamespace(),
-            'doubleColon' => fn () => $this->getDoubleColonNamespace(),
-            'double-colon' => fn () => $this->getDoubleColonNamespace(),
-            'slash' => fn () => $this->getSlashNamespace(),
-            'underscore' => fn () => $this->getUnderscoreNamespace(),
-            'snake' => fn () => $this->getSnakeCaseNamespace(),
-            'snake_case' => fn () => $this->getSnakeCaseNamespace(),
-            'camel' => fn () => $this->getCamelCaseNamespace(),
-            'camelCase' => fn () => $this->getCamelCaseNamespace(),
-            'pascal' => fn () => $this->getPascalCaseNamespace(),
-            'PascalCase' => fn () => $this->getPascalCaseNamespace(),
-            'studly' => fn () => $this->getStudlyCaseNamespace(),
-            'StudlyCase' => fn () => $this->getStudlyCaseNamespace(),
-            'screaming' => fn () => $this->getScreamingSnakeCaseNamespace(),
+            'dotted'          => fn () => $this->getDottedNamespace(),
+            'dashed'          => fn () => $this->getDashedNamespace(),
+            'kebab'           => fn () => $this->getKebabCaseNamespace(),
+            'kebab-case'      => fn () => $this->getKebabCaseNamespace(),
+            'doubleColon'     => fn () => $this->getDoubleColonNamespace(),
+            'double-colon'    => fn () => $this->getDoubleColonNamespace(),
+            'slash'           => fn () => $this->getSlashNamespace(),
+            'underscore'      => fn () => $this->getUnderscoreNamespace(),
+            'snake'           => fn () => $this->getSnakeCaseNamespace(),
+            'snake_case'      => fn () => $this->getSnakeCaseNamespace(),
+            'camel'           => fn () => $this->getCamelCaseNamespace(),
+            'camelCase'       => fn () => $this->getCamelCaseNamespace(),
+            'pascal'          => fn () => $this->getPascalCaseNamespace(),
+            'PascalCase'      => fn () => $this->getPascalCaseNamespace(),
+            'studly'          => fn () => $this->getStudlyCaseNamespace(),
+            'StudlyCase'      => fn () => $this->getStudlyCaseNamespace(),
+            'screaming'       => fn () => $this->getScreamingSnakeCaseNamespace(),
             'SCREAMING_SNAKE' => fn () => $this->getScreamingSnakeCaseNamespace(),
-            'spaced' => fn () => $this->getSpacedNamespace(),
-            'title' => fn () => $this->getTitleCaseNamespace(),
-            'titleCase' => fn () => $this->getTitleCaseNamespace(),
+            'spaced'          => fn () => $this->getSpacedNamespace(),
+            'title'           => fn () => $this->getTitleCaseNamespace(),
+            'titleCase'       => fn () => $this->getTitleCaseNamespace(),
         ];
 
         $normalizedFormat = Str::lower(trim($format));
@@ -203,7 +203,7 @@ trait HasAdditionalNamespaceFormats
         if (! isset($formats[$normalizedFormat])) {
             throw new InvalidArgumentException(
                 "Unsupported namespace format: '{$format}'. " .
-                'Supported formats: ' . implode(', ', array_keys($formats))
+                'Supported formats: ' . implode(', ', array_keys($formats)),
             );
         }
 

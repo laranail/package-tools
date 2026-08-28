@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Database\Events\MigrationEnded;
-use Illuminate\Database\Events\MigrationStarted;
 use RuntimeException;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\Events\MigrationEnded;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\Events\MigrationStarted;
 use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
 
 /**

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
-use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Support\PathResolver;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 /**
  * PathResolverIntegrationTest - Integration tests for PathResolver

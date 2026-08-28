@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
+use Override;
 use Livewire\Livewire;
 use Orchestra\Testbench\TestCase;
-use Override;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
@@ -21,11 +21,6 @@ use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
  */
 final class BootPackageLivewireGateTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [LivewireGateTestPackageProvider::class];
-    }
-
     public function test_declaring_livewire_components_without_livewire_installed_boots_cleanly(): void
     {
         if (class_exists(Livewire::class)) {
@@ -75,6 +70,11 @@ final class BootPackageLivewireGateTest extends TestCase
         // would boot the package before binding 'livewire', then bind it and
         // assert the components registered afterwards
         $this->fail('implement the reactive-registration assertion once livewire joins require-dev');
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [LivewireGateTestPackageProvider::class];
     }
 }
 

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Event;
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Illuminate\Database\Seeder;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Event;
 use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
-use Simtabi\Laranail\Package\Tools\Events\PackageSeedingCompleted;
 use Simtabi\Laranail\Package\Tools\Events\PackageSeedingFailed;
 use Simtabi\Laranail\Package\Tools\Events\PackageSeedingStarted;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
+use Simtabi\Laranail\Package\Tools\Events\PackageSeedingCompleted;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * PackageSeeding* events: the host's "notify when done" hook. Fired for
@@ -23,11 +23,6 @@ use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
  */
 final class SeederEventsTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
     public function test_started_and_completed_fire_for_inline_runs_by_default(): void
     {
         Event::fake([PackageSeedingStarted::class, PackageSeedingCompleted::class]);
@@ -104,6 +99,11 @@ final class SeederEventsTest extends TestCase
             PackageSeedingCompleted::class,
             static fn (PackageSeedingCompleted $event): bool => $event->mode === SeederExecutionMode::Scheduled,
         );
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }
 

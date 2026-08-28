@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Commands;
 
-use Simtabi\Laranail\Package\Tools\Services\Audit\OsvAuditService;
 use Throwable;
+use Simtabi\Laranail\Package\Tools\Services\Audit\OsvAuditService;
 
 /**
  * `php artisan laranail::package-tools.audit` queries OSV.dev for known vulnerabilities in

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Testing\AssertsPublishedConfigOverrides;
-use Simtabi\Laranail\Package\Tools\Tests\Fixtures\WidgetServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Tests\Fixtures\WidgetServiceProvider;
+use Simtabi\Laranail\Package\Tools\Testing\AssertsPublishedConfigOverrides;
 
 /**
  * The reusable testing trait must reliably round-trip a published override —

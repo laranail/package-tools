@@ -13,18 +13,6 @@ use Simtabi\Laranail\Package\Tools\Services\Database\SeederResolverHook;
 
 final class SeederResolverHookTest extends TestCase
 {
-    private function makeHook(SeederRegistry $registry, ?SeederAutorun $autorun = null): SeederResolverHook
-    {
-        $executor = new SeederExecutor($this->app);
-
-        return new SeederResolverHook(
-            $this->app,
-            $registry,
-            $executor,
-            $autorun ?? new SeederAutorun($this->app, $registry, $executor),
-        );
-    }
-
     public function test_resolving_root_seeder_runs_registered_seeders(): void
     {
         HookStubCounter::reset();
@@ -136,6 +124,18 @@ final class SeederResolverHookTest extends TestCase
         $this->app->make(RootDatabaseSeeder::class);
 
         $this->assertSame(['A', 'B'], HookStubCounter::$ran);
+    }
+
+    private function makeHook(SeederRegistry $registry, ?SeederAutorun $autorun = null): SeederResolverHook
+    {
+        $executor = new SeederExecutor($this->app);
+
+        return new SeederResolverHook(
+            $this->app,
+            $registry,
+            $executor,
+            $autorun ?? new SeederAutorun($this->app, $registry, $executor),
+        );
     }
 }
 

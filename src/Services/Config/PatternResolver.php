@@ -31,7 +31,7 @@ class PatternResolver implements ResolverInterface
     ];
 
     public function __construct(
-        protected ConfigService $config
+        protected ConfigService $config,
     ) {}
 
     /**
@@ -39,6 +39,7 @@ class PatternResolver implements ResolverInterface
      *
      * @param string $pattern Pattern string with {variable} placeholders
      * @param array<string, mixed> $variables Key-value pairs of variable replacements
+     *
      * @return string Resolved pattern
      */
     public function resolve(string $pattern, array $variables = []): string
@@ -74,6 +75,7 @@ class PatternResolver implements ResolverInterface
      * Validate that a pattern only uses available variables
      *
      * @param string $pattern Pattern to validate
+     *
      * @return bool True if valid, false if contains unknown variables
      */
     public function validatePattern(string $pattern): bool
@@ -89,6 +91,7 @@ class PatternResolver implements ResolverInterface
      * Extract variables used in a pattern
      *
      * @param string $pattern Pattern string
+     *
      * @return array<string> List of variable names
      */
     public function extractVariables(string $pattern): array

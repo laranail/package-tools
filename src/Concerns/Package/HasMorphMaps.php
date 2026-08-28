@@ -45,7 +45,7 @@ trait HasMorphMaps
         ?string $userAlias = 'user',
     ): static {
         $this->morphMapConfigSpecs[] = [
-            'map' => $mapConfigKey,
+            'map'        => $mapConfigKey,
             'user_model' => $userModelConfigKey,
             'user_alias' => $userAlias,
         ];

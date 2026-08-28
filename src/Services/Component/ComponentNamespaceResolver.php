@@ -17,7 +17,7 @@ class ComponentNamespaceResolver implements ResolverInterface
 {
     public function __construct(
         protected ConfigService $config,
-        protected PatternResolver $patternResolver
+        protected PatternResolver $patternResolver,
     ) {}
 
     /**
@@ -25,13 +25,14 @@ class ComponentNamespaceResolver implements ResolverInterface
      *
      * @param string $namespace Namespace to resolve (e.g., 'modules/theme')
      * @param array<string, mixed> $data Additional data for resolution
+     *
      * @return string Resolved namespace (e.g., 'App\Theme\View\Components')
      */
     public function resolve(string $namespace, array $data = []): string
     {
         $pattern = $this->config->get(
             'packager.patterns.component_namespace',
-            '{project}\\{module}\\{component_ns}'
+            '{project}\\{module}\\{component_ns}',
         );
 
         $projectNs = $this->config->get('packager.project.namespace', 'App');
@@ -41,8 +42,8 @@ class ComponentNamespaceResolver implements ResolverInterface
         $moduleName = Str::studly(end($parts));
 
         return $this->patternResolver->resolve($pattern, [
-            'project' => $projectNs,
-            'module' => $moduleName,
+            'project'      => $projectNs,
+            'module'       => $moduleName,
             'component_ns' => $componentNs,
         ]);
     }
@@ -52,6 +53,7 @@ class ComponentNamespaceResolver implements ResolverInterface
      * hyphens for Blade syntax.
      *
      * @param string $prefix Prefix to normalize
+     *
      * @return string Normalized prefix
      */
     public function normalize(string $prefix): string
@@ -63,21 +65,22 @@ class ComponentNamespaceResolver implements ResolverInterface
      * Build a component namespace from module name
      *
      * @param string $module Module name
+     *
      * @return string Component namespace
      */
     public function buildNamespace(string $module): string
     {
         $pattern = $this->config->get(
             'packager.patterns.component_namespace',
-            '{project}\\{module}\\{component_ns}'
+            '{project}\\{module}\\{component_ns}',
         );
 
         $projectNs = $this->config->get('packager.project.namespace', 'App');
         $componentNs = $this->config->get('packager.namespaces.view_components', 'View\\Components');
 
         return $this->patternResolver->resolve($pattern, [
-            'project' => $projectNs,
-            'module' => Str::studly($module),
+            'project'      => $projectNs,
+            'module'       => Str::studly($module),
             'component_ns' => $componentNs,
         ]);
     }
@@ -86,6 +89,7 @@ class ComponentNamespaceResolver implements ResolverInterface
      * Extract the prefix part from a full namespace.
      *
      * @param string $namespace Full namespace
+     *
      * @return string Prefix
      */
     public function getPrefix(string $namespace): string

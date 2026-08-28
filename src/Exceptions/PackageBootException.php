@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Exceptions;
 
+use Throwable;
 use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
-use Throwable;
 
 /**
  * Wraps a failure in a package's boot-time WIRING with the name of the
@@ -51,9 +51,9 @@ final class PackageBootException extends RuntimeException
         $previous = $this->getPrevious();
 
         return [
-            'builder' => $this->builder,
+            'builder'     => $this->builder,
             'criticality' => $this->criticality->name,
-            'decision' => $this->criticality === BootCriticality::Critical
+            'decision'    => $this->criticality === BootCriticality::Critical
                 ? 'crashed'
                 : 'degraded-and-continued',
             'cause_type' => $previous instanceof Throwable ? $previous::class : null,

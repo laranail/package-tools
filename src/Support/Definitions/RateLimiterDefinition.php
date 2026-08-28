@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
 use Closure;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
+use Illuminate\Cache\RateLimiting\Limit;
 
 /**
  * Fluent, extensible definition of a named rate limiter — the reusable shape
@@ -216,9 +216,9 @@ final class RateLimiterDefinition
     {
         $this->specs[] = [
             'attempts' => $attempts,
-            'kind' => $kind,
-            'decay' => $decay,
-            'key' => null,
+            'kind'     => $kind,
+            'decay'    => $decay,
+            'key'      => null,
             'response' => null,
         ];
 
@@ -245,12 +245,12 @@ final class RateLimiterDefinition
         $max = $attempts instanceof Closure ? (int) $attempts($request) : $attempts;
 
         $limit = match ($spec['kind']) {
-            'none' => Limit::none(),
-            'second' => Limit::perSecond($max),
+            'none'    => Limit::none(),
+            'second'  => Limit::perSecond($max),
             'minutes' => Limit::perMinutes($spec['decay'], $max),
-            'hour' => Limit::perHour($max),
-            'day' => Limit::perDay($max),
-            default => Limit::perMinute($max),
+            'hour'    => Limit::perHour($max),
+            'day'     => Limit::perDay($max),
+            default   => Limit::perMinute($max),
         };
 
         if ($spec['key'] instanceof Closure) {

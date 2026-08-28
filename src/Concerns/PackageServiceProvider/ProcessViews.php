@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
-use Illuminate\Support\Facades\View;
 use Illuminate\View\FileViewFinder;
+use Illuminate\Support\Facades\View;
 
 trait ProcessViews
 {

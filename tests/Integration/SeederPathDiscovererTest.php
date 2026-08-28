@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\File;
 use InvalidArgumentException;
+use Illuminate\Database\Seeder;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederPathDiscoverer;
 
 final class SeederPathDiscovererTest extends TestCase

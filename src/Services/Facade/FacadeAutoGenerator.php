@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Facade;
 
-use Illuminate\Support\Facades\File;
-use ReflectionClass;
-use ReflectionIntersectionType;
-use ReflectionMethod;
-use ReflectionNamedType;
 use ReflectionType;
-use ReflectionUnionType;
+use ReflectionClass;
+use ReflectionMethod;
 use RuntimeException;
+use ReflectionNamedType;
+use ReflectionUnionType;
+use ReflectionIntersectionType;
+use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Attributes\AsFacade;
 use Simtabi\Laranail\Package\Tools\Services\Discovery\AttributeDiscoverer;
 
@@ -75,9 +75,9 @@ final readonly class FacadeAutoGenerator
 
                 $generated[] = [
                     'contract' => $rc->getName(),
-                    'facade' => $facadeFqcn,
-                    'alias' => $attr->alias,
-                    'file' => $facadeFile,
+                    'facade'   => $facadeFqcn,
+                    'alias'    => $attr->alias,
+                    'file'     => $facadeFile,
                 ];
             }
         }
@@ -216,12 +216,12 @@ PHP;
     private function renderDefault(mixed $value): string
     {
         return match (true) {
-            $value === null => 'null',
-            is_bool($value) => $value ? 'true' : 'false',
+            $value === null                  => 'null',
+            is_bool($value)                  => $value ? 'true' : 'false',
             is_int($value), is_float($value) => (string) $value,
-            is_string($value) => "'" . addcslashes($value, "'\\") . "'",
-            is_array($value) => '[]',
-            default => 'null',
+            is_string($value)                => "'" . addcslashes($value, "'\\") . "'",
+            is_array($value)                 => '[]',
+            default                          => 'null',
         };
     }
 

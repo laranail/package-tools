@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Illuminate\Support\Str;
 use RuntimeException;
+use Illuminate\Support\Str;
 
 /**
  * Auto-namespaces config files by vendor/package so keys like
@@ -42,20 +42,6 @@ trait HasConfigNamespace
         $this->configNamespacing = false;
 
         return $this;
-    }
-
-    /**
-     * Get or compute a cached namespace.
-     *
-     * The generator runs only on a cache miss; because `??=` assigns its
-     * result, a generator that throws (e.g. on a null vendor) never caches.
-     *
-     * @param string $key Cache key
-     * @param callable(): string $generator Function to generate value if not cached
-     */
-    private function getCachedNamespace(string $key, callable $generator): string
-    {
-        return $this->namespaceCache[$key] ??= $generator();
     }
 
     /**
@@ -101,7 +87,7 @@ trait HasConfigNamespace
             if ($this->configVendor === null) {
                 throw new RuntimeException(
                     'Dotted namespace requires vendor/package format. ' .
-                    'Please use $package->setName("vendor/package") instead of just "package".'
+                    'Please use $package->setName("vendor/package") instead of just "package".',
                 );
             }
 
@@ -123,7 +109,7 @@ trait HasConfigNamespace
             if ($this->configVendor === null) {
                 throw new RuntimeException(
                     'Dashed namespace requires vendor/package format. ' .
-                    'Please use $package->setName("vendor/package") instead of just "package".'
+                    'Please use $package->setName("vendor/package") instead of just "package".',
                 );
             }
 
@@ -145,7 +131,7 @@ trait HasConfigNamespace
             if ($this->configVendor === null) {
                 throw new RuntimeException(
                     'Double-colon namespace requires vendor/package format. ' .
-                    'Please use $package->setName("vendor/package") instead of just "package".'
+                    'Please use $package->setName("vendor/package") instead of just "package".',
                 );
             }
 
@@ -167,7 +153,7 @@ trait HasConfigNamespace
             if ($this->configVendor === null) {
                 throw new RuntimeException(
                     'Slash namespace requires vendor/package format. ' .
-                    'Please use $package->setName("vendor/package") instead of just "package".'
+                    'Please use $package->setName("vendor/package") instead of just "package".',
                 );
             }
 
@@ -192,7 +178,7 @@ trait HasConfigNamespace
         if ($this->configVendor === null) {
             throw new RuntimeException(
                 'Custom namespace requires vendor/package format. ' .
-                'Please use $package->setName("vendor/package") instead of just "package".'
+                'Please use $package->setName("vendor/package") instead of just "package".',
             );
         }
 
@@ -250,5 +236,19 @@ trait HasConfigNamespace
         $this->getSlashNamespace();
 
         return $this;
+    }
+
+    /**
+     * Get or compute a cached namespace.
+     *
+     * The generator runs only on a cache miss; because `??=` assigns its
+     * result, a generator that throws (e.g. on a null vendor) never caches.
+     *
+     * @param string $key Cache key
+     * @param callable(): string $generator Function to generate value if not cached
+     */
+    private function getCachedNamespace(string $key, callable $generator): string
+    {
+        return $this->namespaceCache[$key] ??= $generator();
     }
 }

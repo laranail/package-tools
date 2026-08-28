@@ -8,6 +8,6 @@ declare(strict_types=1);
 // must be null.
 return [
     '__namespace' => 'acme.custom',
-    'enabled' => true,
-    'driver' => 'redis',
+    'enabled'     => true,
+    'driver'      => 'redis',
 ];

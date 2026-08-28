@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Database;
 
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederBundle;
 
 /**
@@ -65,9 +65,9 @@ final class SeederBundleTest extends TestCase
     {
         $bundle = SeederBundle::fromOptions('acme/blog', ['A\\Seeder'], 'Acme\\Blog', [
             'disable_foreign_key_checks' => false,
-            'fire_events' => true,
-            'parameters' => ['tenant' => 'acme'],
-            'priority' => 3,
+            'fire_events'                => true,
+            'parameters'                 => ['tenant' => 'acme'],
+            'priority'                   => 3,
         ]);
 
         $this->assertSame('Acme\\Blog', $bundle->namespace());
@@ -106,21 +106,21 @@ final class SeederBundleTest extends TestCase
             ->parameters(['tenant' => 'acme']);
 
         $this->assertSame([
-            'key' => 'acme/blog',
-            'seeders' => ['A\\Seeder'],
-            'namespace' => 'Acme\\Blog',
-            'priority' => 2,
+            'key'                        => 'acme/blog',
+            'seeders'                    => ['A\\Seeder'],
+            'namespace'                  => 'Acme\\Blog',
+            'priority'                   => 2,
             'disable_foreign_key_checks' => true,
-            'fire_events' => true,
-            'parameters' => ['tenant' => 'acme'],
-            'autorun' => false,
-            'stop_on_failure' => false,
-            'autorun_environments' => [],
-            'background' => false,
-            'queue' => null,
-            'connection' => null,
-            'notify' => true,
-            'without_overlapping' => null,
+            'fire_events'                => true,
+            'parameters'                 => ['tenant' => 'acme'],
+            'autorun'                    => false,
+            'stop_on_failure'            => false,
+            'autorun_environments'       => [],
+            'background'                 => false,
+            'queue'                      => null,
+            'connection'                 => null,
+            'notify'                     => true,
+            'without_overlapping'        => null,
         ], $bundle->toArray());
     }
 }

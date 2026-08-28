@@ -12,12 +12,12 @@ final class SeederExecutionStatsTest extends TestCase
     public function test_from_array_round_trips(): void
     {
         $stats = SeederExecutionStats::fromArray([
-            'total' => 3,
-            'success' => 2,
-            'failed' => 1,
+            'total'     => 3,
+            'success'   => 2,
+            'failed'    => 1,
             'totalTime' => 1500.0,
-            'errors' => [['class' => 'X', 'message' => 'boom']],
-            'group' => 'core',
+            'errors'    => [['class' => 'X', 'message' => 'boom']],
+            'group'     => 'core',
         ]);
 
         $this->assertSame(3, $stats->total);

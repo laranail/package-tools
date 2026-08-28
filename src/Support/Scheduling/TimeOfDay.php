@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Scheduling;
 
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
-use InvalidArgumentException;
 use JsonSerializable;
+use InvalidArgumentException;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
 
 /**
  * a fluent time-of-day value: 24h and 12h notation in, minute-level

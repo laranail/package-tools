@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
+use SplFileInfo;
 use FilesystemIterator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
-use SplFileInfo;
 
 /**
  * Finds published files that nothing publishes any more.
@@ -108,6 +108,7 @@ final class OrphanScanner
      * "package uninstalled, files left behind" case.
      *
      * @param list<string>|null $tags
+     *
      * @return array<string, true>
      */
     private function expectedPaths(?array $tags): array
@@ -313,6 +314,7 @@ final class OrphanScanner
      *
      * @param list<string> $unexpected
      * @param array<string, true> $expected
+     *
      * @return list<OrphanEntry>
      */
     private function collapse(array $unexpected, array $expected, PublishRoot $root): array

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support;
 
+use Laravel\Telescope\Telescope;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\Debugbar\Facades\Debugbar;
 use Clockwork\Support\Laravel\ClockworkServiceProvider;
-use Illuminate\Support\Facades\Log;
-use Laravel\Telescope\Telescope;
 
 /**
  * Chainable API for adjusting PHP runtime settings during heavy
@@ -33,9 +33,9 @@ final class RuntimeConfigurator
     /** @var array<string, bool> Debugging tools to disable */
     private array $disableTools = [
         'telescope' => false,
-        'xdebug' => false,
+        'xdebug'    => false,
         'clockwork' => false,
-        'debugbar' => false,
+        'debugbar'  => false,
     ];
 
     /** @var bool Whether to log configuration changes */
@@ -99,6 +99,69 @@ final class RuntimeConfigurator
             ->memory('1G')
             ->timeoutMinutes(15)
             ->disableTelescope();
+    }
+
+    // Static helpers.
+
+    public static function setMemory(string $limit): void
+    {
+        self::make()->memory($limit)->apply();
+    }
+
+    public static function setTimeout(int $seconds): void
+    {
+        self::make()->timeout($seconds)->apply();
+    }
+
+    public static function isCli(): bool
+    {
+        return PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg';
+    }
+
+    public static function hasTelescopeInstalled(): bool
+    {
+        return class_exists(Telescope::class);
+    }
+
+    public static function hasXdebugLoaded(): bool
+    {
+        return extension_loaded('xdebug');
+    }
+
+    public static function hasDebugbarInstalled(): bool
+    {
+        return class_exists(Debugbar::class);
+    }
+
+    public static function hasClockworkInstalled(): bool
+    {
+        return class_exists(ClockworkServiceProvider::class);
+    }
+
+    public static function getMemoryUsage(): string
+    {
+        return self::formatBytes(memory_get_usage(true));
+    }
+
+    public static function getPeakMemoryUsage(): string
+    {
+        return self::formatBytes(memory_get_peak_usage(true));
+    }
+
+    public static function getMemoryLimit(): string
+    {
+        return ini_get('memory_limit') ?: '-1';
+    }
+
+    public static function formatBytes(int $bytes, int $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = (int) floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= 1024 ** $pow;
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 
     // Memory.
@@ -430,69 +493,6 @@ final class RuntimeConfigurator
         return ini_get($key);
     }
 
-    // Static helpers.
-
-    public static function setMemory(string $limit): void
-    {
-        self::make()->memory($limit)->apply();
-    }
-
-    public static function setTimeout(int $seconds): void
-    {
-        self::make()->timeout($seconds)->apply();
-    }
-
-    public static function isCli(): bool
-    {
-        return PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg';
-    }
-
-    public static function hasTelescopeInstalled(): bool
-    {
-        return class_exists(Telescope::class);
-    }
-
-    public static function hasXdebugLoaded(): bool
-    {
-        return extension_loaded('xdebug');
-    }
-
-    public static function hasDebugbarInstalled(): bool
-    {
-        return class_exists(Debugbar::class);
-    }
-
-    public static function hasClockworkInstalled(): bool
-    {
-        return class_exists(ClockworkServiceProvider::class);
-    }
-
-    public static function getMemoryUsage(): string
-    {
-        return self::formatBytes(memory_get_usage(true));
-    }
-
-    public static function getPeakMemoryUsage(): string
-    {
-        return self::formatBytes(memory_get_peak_usage(true));
-    }
-
-    public static function getMemoryLimit(): string
-    {
-        return ini_get('memory_limit') ?: '-1';
-    }
-
-    public static function formatBytes(int $bytes, int $precision = 2): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $bytes = max($bytes, 0);
-        $pow = (int) floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-        $bytes /= 1024 ** $pow;
-
-        return round($bytes, $precision) . ' ' . $units[$pow];
-    }
-
     // Internal.
 
     private function captureOriginalValues(): void
@@ -567,9 +567,9 @@ final class RuntimeConfigurator
     private function logChanges(string $message): void
     {
         $context = [
-            'pending' => $this->pending,
+            'pending'        => $this->pending,
             'disabled_tools' => array_filter($this->disableTools),
-            'memory_usage' => self::getMemoryUsage(),
+            'memory_usage'   => self::getMemoryUsage(),
         ];
 
         if ($this->logChannel) {

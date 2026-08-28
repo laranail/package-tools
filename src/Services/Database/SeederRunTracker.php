@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
+use Throwable;
 use Illuminate\Support\Facades\Cache;
 use Simtabi\Laranail\Package\Tools\Enums\SeederRunStatus;
-use Throwable;
 
 /**
  * Cache-backed status store for seeder-bundle runs — the poll surface
@@ -30,12 +30,12 @@ final class SeederRunTracker
     public function start(string $key, int $total): void
     {
         $this->put($key, [
-            'status' => SeederRunStatus::Processing->value,
-            'total' => $total,
-            'processed' => 0,
-            'failed' => 0,
-            'message' => null,
-            'started_at' => now()->toIso8601String(),
+            'status'      => SeederRunStatus::Processing->value,
+            'total'       => $total,
+            'processed'   => 0,
+            'failed'      => 0,
+            'message'     => null,
+            'started_at'  => now()->toIso8601String(),
             'finished_at' => null,
         ], self::PROCESSING_TTL);
     }
@@ -91,12 +91,12 @@ final class SeederRunTracker
         }
 
         return [
-            'status' => SeederRunStatus::tryFrom((string) ($state['status'] ?? '')) ?? SeederRunStatus::Pending,
-            'total' => (int) ($state['total'] ?? 0),
-            'processed' => (int) ($state['processed'] ?? 0),
-            'failed' => (int) ($state['failed'] ?? 0),
-            'message' => isset($state['message']) ? (string) $state['message'] : null,
-            'started_at' => isset($state['started_at']) ? (string) $state['started_at'] : null,
+            'status'      => SeederRunStatus::tryFrom((string) ($state['status'] ?? '')) ?? SeederRunStatus::Pending,
+            'total'       => (int) ($state['total'] ?? 0),
+            'processed'   => (int) ($state['processed'] ?? 0),
+            'failed'      => (int) ($state['failed'] ?? 0),
+            'message'     => isset($state['message']) ? (string) $state['message'] : null,
+            'started_at'  => isset($state['started_at']) ? (string) $state['started_at'] : null,
             'finished_at' => isset($state['finished_at']) ? (string) $state['finished_at'] : null,
         ];
     }

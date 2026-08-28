@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigFileResolver;
 
 /**
@@ -112,6 +112,7 @@ trait HasNestedConfigFiles
      *
      * @param string $folder Subdirectory within config/ ('' = the whole tree)
      * @param bool $recursive Descend into sub-folders (true) or top level only (false)
+     *
      * @return array<string, array<string, mixed>> Map of dotted key => config array
      *
      * @throws InvalidPath If a matched file is unreadable or not an array
@@ -120,6 +121,10 @@ trait HasNestedConfigFiles
     {
         return $this->getConfigFileResolver()->loadAll($folder, $recursive);
     }
+
+    abstract public function hasConfigFile($configFileName = null): static;
+
+    abstract public function registerNamespacedConfig(string $path, string $key, string $relative): static;
 
     /**
      * Get or create config file resolver instance
@@ -139,8 +144,4 @@ trait HasNestedConfigFiles
      * @param string $path Optional path to append
      */
     abstract protected function packageBasePath(string $path = ''): string;
-
-    abstract public function hasConfigFile($configFileName = null): static;
-
-    abstract public function registerNamespacedConfig(string $path, string $key, string $relative): static;
 }

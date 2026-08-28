@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
 
 /**
@@ -27,7 +27,7 @@ class HasLivewireComponentsTest extends TestCase
     {
         $components = [
             'icon-browser' => 'App\\Components\\IconBrowser',
-            'file-upload' => 'App\\Components\\FileUpload',
+            'file-upload'  => 'App\\Components\\FileUpload',
         ];
 
         $result = $this->package->hasLivewireComponents($components);
@@ -75,9 +75,9 @@ class HasLivewireComponentsTest extends TestCase
 
         $this->assertNotNull($this->package->livewireGate);
         $this->assertSame([
-            'key' => 'test-package.livewire.enabled',
+            'key'     => 'test-package.livewire.enabled',
             'default' => true,
-            'mode' => 'truthy',
+            'mode'    => 'truthy',
         ], $this->package->livewireGate->toArray());
     }
 

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasFactoriesAndSeeders;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasFactoriesAndSeeders;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 
 /**
  * HasFactoriesAndSeedersTest - Test factory & seeder management
@@ -22,15 +22,6 @@ class HasFactoriesAndSeedersTest extends TestCase
     use HasFactoriesAndSeeders;
 
     protected string $basePath = '/var/www/test-package';
-
-    private function makePackage(): Package
-    {
-        $package = new Package;
-        $package->name('acme/blog');
-        $package->basePath = '/var/www/test-package';
-
-        return $package;
-    }
 
     #[Test]
     public function it_loads_factories_from_path(): void
@@ -187,5 +178,14 @@ class HasFactoriesAndSeedersTest extends TestCase
         $paths = $this->getFactoryPaths();
 
         $this->assertCount(2, $paths);
+    }
+
+    private function makePackage(): Package
+    {
+        $package = new Package;
+        $package->name('acme/blog');
+        $package->basePath = '/var/www/test-package';
+
+        return $package;
     }
 }

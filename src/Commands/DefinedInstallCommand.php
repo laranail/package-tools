@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Commands;
 
 use Override;
-use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
-use Simtabi\Laranail\Package\Tools\Facades\PackageActions;
-use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
 use Throwable;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Facades\PackageActions;
+use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\InstallCommandDefinition;
 
 /**
  * The install command built from an InstallCommandDefinition: steps run in

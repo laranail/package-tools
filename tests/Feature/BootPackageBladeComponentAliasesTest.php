@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Support\Facades\Blade;
 use Illuminate\View\Component;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Blade;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
@@ -18,13 +18,6 @@ use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
  */
 final class BootPackageBladeComponentAliasesTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        // PackageToolsServiceProvider supplies the ComponentNamespaceResolver
-        // dependencies used by the legacy hasComponentNamespace() path
-        return [PackageToolsServiceProvider::class, BladeComponentsTestPackageProvider::class];
-    }
-
     public function test_component_alias_registers_with_the_blade_compiler(): void
     {
         $aliases = Blade::getClassComponentAliases();
@@ -57,6 +50,13 @@ final class BootPackageBladeComponentAliasesTest extends TestCase
 
         $this->assertArrayHasKey('legacy-admin', $namespaces);
         $this->assertSame('App\\Admin\\View\\Components', $namespaces['legacy-admin']);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        // PackageToolsServiceProvider supplies the ComponentNamespaceResolver
+        // dependencies used by the legacy hasComponentNamespace() path
+        return [PackageToolsServiceProvider::class, BladeComponentsTestPackageProvider::class];
     }
 }
 

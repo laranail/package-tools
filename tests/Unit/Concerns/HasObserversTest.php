@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasObservers;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasObservers;
 
 /**
  * declarative observer registration: string and array shapes, per-model
@@ -54,12 +54,12 @@ final class HasObserversTest extends TestCase
     public function batch_registration_accepts_mixed_string_and_array_values(): void
     {
         $this->registerObservers([
-            'Acme\\Post' => 'Acme\\PostObserver',
+            'Acme\\Post'    => 'Acme\\PostObserver',
             'Acme\\Comment' => ['Acme\\CommentObserver', 'Acme\\SpamObserver'],
         ]);
 
         $this->assertSame([
-            'Acme\\Post' => ['Acme\\PostObserver'],
+            'Acme\\Post'    => ['Acme\\PostObserver'],
             'Acme\\Comment' => ['Acme\\CommentObserver', 'Acme\\SpamObserver'],
         ], $this->getObservers());
     }

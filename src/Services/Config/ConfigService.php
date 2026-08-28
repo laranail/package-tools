@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
+use Illuminate\Support\Arr;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Support\Arr;
-use Simtabi\Laranail\Package\Tools\Contracts\ServiceInterface;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Simtabi\Laranail\Package\Tools\Contracts\ServiceInterface;
 
 /**
  * Merges, sets, gets, and forgets configuration values.
@@ -19,14 +19,6 @@ class ConfigService implements ServiceInterface
     protected array $mergedConfigs = [];
 
     public function __construct(protected Application $app) {}
-
-    /**
-     * Resolve the framework config repository as a typed contract.
-     */
-    protected function config(): Repository
-    {
-        return $this->app->make(Repository::class);
-    }
 
     /**
      * Merge configuration from a file into a key
@@ -98,6 +90,7 @@ class ConfigService implements ServiceInterface
      * @param string $baseDir Package root directory (containing a config/ folder)
      * @param string $folder Subdirectory within config/ ('' = the whole tree)
      * @param bool $recursive Descend into sub-folders (true) or top level only (false)
+     *
      * @return array<string, array<string, mixed>> Map of dotted key => config array
      *
      * @throws InvalidPath If a matched file is unreadable or not an array
@@ -181,5 +174,13 @@ class ConfigService implements ServiceInterface
     public function getName(): string
     {
         return 'config';
+    }
+
+    /**
+     * Resolve the framework config repository as a typed contract.
+     */
+    protected function config(): Repository
+    {
+        return $this->app->make(Repository::class);
     }
 }

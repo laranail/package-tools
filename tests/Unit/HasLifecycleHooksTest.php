@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use Exception;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasLifecycleHooks;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasLifecycleHooks;
 
 /**
  * HasLifecycleHooksTest - Test lifecycle hook registration and execution

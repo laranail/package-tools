@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
-use Illuminate\Contracts\Config\Repository;
-use Illuminate\Contracts\Foundation\CachesConfiguration;
 use Illuminate\Support\Facades\File;
+use Illuminate\Contracts\Config\Repository;
 use Simtabi\Laranail\Package\Tools\Package;
+use Illuminate\Contracts\Foundation\CachesConfiguration;
 
 trait ProcessConfigs
 {
@@ -166,7 +166,7 @@ trait ProcessConfigs
 
             $this->publishes(
                 [$vendorConfig => config_path("{$publishRelativePath}.php")],
-                $publishTag
+                $publishTag,
             );
         }
 

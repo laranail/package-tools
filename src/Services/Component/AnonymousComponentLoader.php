@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Component;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
 use Illuminate\View\Compilers\BladeCompiler;
+use Illuminate\Contracts\Foundation\Application;
 use Simtabi\Laranail\Package\Tools\Contracts\LoaderInterface;
 
 /**
@@ -45,6 +45,7 @@ class AnonymousComponentLoader implements LoaderInterface
      * Discover all component files in a directory
      *
      * @param string $directory Directory to scan
+     *
      * @return array<string> Array of component file paths
      */
     public function discover(string $directory): array

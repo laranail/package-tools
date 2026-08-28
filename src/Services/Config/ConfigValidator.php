@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
+use Throwable;
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Contracts\ValidatorInterface;
-use Throwable;
 
 /**
  * Validates configuration files and values.
@@ -17,6 +17,7 @@ class ConfigValidator implements ValidatorInterface
      * Validate a configuration file or array
      *
      * @param mixed $input Path to config file or config array
+     *
      * @return array<string> Array of validation errors
      */
     public function validate(mixed $input): array
@@ -56,9 +57,18 @@ class ConfigValidator implements ValidatorInterface
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function isValid(mixed $input): bool
+    {
+        return $this->validate($input) === [];
+    }
+
+    /**
      * Validate configuration array structure
      *
      * @param array<int|string, mixed> $config Configuration array
+     *
      * @return array<string> Validation errors
      */
     protected function validateStructure(array $config): array
@@ -76,13 +86,5 @@ class ConfigValidator implements ValidatorInterface
         }
 
         return $errors;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isValid(mixed $input): bool
-    {
-        return $this->validate($input) === [];
     }
 }

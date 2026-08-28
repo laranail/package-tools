@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Utility;
 
-use Symfony\Component\Console\Helper\ProgressBar as SymfonyProgressBar;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Helper\ProgressBar as SymfonyProgressBar;
 
 /**
  * Progress bars and indicators for CLI operations.

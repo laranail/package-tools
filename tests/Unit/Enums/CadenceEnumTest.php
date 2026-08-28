@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Enums;
 
-use Illuminate\Console\Scheduling\Event;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+use Illuminate\Console\Scheduling\Event;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
 
 /**

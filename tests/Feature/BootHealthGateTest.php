@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Support\Facades\Artisan;
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Artisan;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
 
 final class DegradedBootTestProvider extends PackageServiceProvider
 {
@@ -34,11 +34,6 @@ final class DegradedBootTestProvider extends PackageServiceProvider
  */
 final class BootHealthGateTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class, DegradedBootTestProvider::class];
-    }
-
     public function test_a_degradable_boot_failure_is_recorded_not_crashed(): void
     {
         // Boot happened during setUp without throwing (degradable), but the
@@ -57,5 +52,10 @@ final class BootHealthGateTest extends TestCase
         $this->assertSame(1, $exit);
         $this->assertStringContainsString('boot:health', $output);
         $this->assertStringContainsString('setLocale', $output);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class, DegradedBootTestProvider::class];
     }
 }

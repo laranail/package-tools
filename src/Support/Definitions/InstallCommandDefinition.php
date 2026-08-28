@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
 use Closure;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
 use Simtabi\Laranail\Package\Tools\Commands\InstallCommand;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederManager;
 
@@ -183,8 +183,8 @@ final class InstallCommandDefinition implements Arrayable, Jsonable, JsonSeriali
     {
         return [
             'signature' => $this->signature,
-            'hidden' => $this->hidden,
-            'steps' => array_map(static fn (array $step): string => $step['label'], $this->steps),
+            'hidden'    => $this->hidden,
+            'steps'     => array_map(static fn (array $step): string => $step['label'], $this->steps),
         ];
     }
 

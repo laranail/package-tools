@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\Test;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\HasEventManagement;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Events\UserRegistered;
-use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Listeners\InvokableListener;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Listeners\SendWelcome;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Tests\Fixtures\Listeners\InvokableListener;
 
 /**
  * HasEventManagementTest - Test event listener & subscriber management.

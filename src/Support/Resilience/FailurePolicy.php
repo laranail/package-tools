@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Support\Resilience;
 
 use Closure;
-use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
-use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
-use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
 use Throwable;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
+use Simtabi\Laranail\Package\Tools\Services\Boot\BootReport;
+use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
 
 /**
  * The failure-handling runner. One shape for every failure it handles —
@@ -34,6 +34,7 @@ final class FailurePolicy
      * @template T
      *
      * @param Closure(): T $work
+     *
      * @return T|null
      */
     public static function run(Closure $work, string $name, BootCriticality $criticality = BootCriticality::Critical): mixed

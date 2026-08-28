@@ -141,9 +141,9 @@ final class HttpConfigurationService implements HttpConfigurationServiceInterfac
     public function toGuzzleConfig(): array
     {
         $config = [
-            'persist' => $this->persistConnection,
-            'timeout' => $this->requestTimeout,
-            'retry' => ['max' => $this->maxRetries],
+            'persist'   => $this->persistConnection,
+            'timeout'   => $this->requestTimeout,
+            'retry'     => ['max' => $this->maxRetries],
             'cache_ttl' => $this->cacheTtl,
         ];
 

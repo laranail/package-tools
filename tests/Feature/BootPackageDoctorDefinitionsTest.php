@@ -6,12 +6,12 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Override;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class DoctorDefinitionsTestPackageProvider extends PackageServiceProvider
 {
@@ -29,12 +29,6 @@ final class DoctorDefinitionsTestPackageProvider extends PackageServiceProvider
 
 final class BootPackageDoctorDefinitionsTest extends TestCase
 {
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class, DoctorDefinitionsTestPackageProvider::class];
-    }
-
     public function test_definitions_register_with_package_attribution(): void
     {
         $report = $this->app->make(DoctorService::class)->run();
@@ -54,5 +48,11 @@ final class BootPackageDoctorDefinitionsTest extends TestCase
         $names = array_map(static fn (array $row): string => $row['check']->name(), $report);
 
         $this->assertNotContains('gated:off', $names);
+    }
+
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class, DoctorDefinitionsTestPackageProvider::class];
     }
 }

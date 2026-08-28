@@ -64,7 +64,7 @@ trait HasTranslations
         if ($this->configVendor === null) {
             throw new RuntimeException(
                 'Translation namespace requires vendor/package format. ' .
-                'Please use $package->setName("vendor/package") instead of just "package".'
+                'Please use $package->setName("vendor/package") instead of just "package".',
             );
         }
 

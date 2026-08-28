@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasMorphMaps;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasMorphMaps;
 
 /**
  * declarative morph-map registration: spec storage only — boot behavior
@@ -56,7 +56,7 @@ final class HasMorphMapsTest extends TestCase
         $this->registerMorphMapFromConfig('acme.morph_map');
 
         $this->assertSame([[
-            'map' => 'acme.morph_map',
+            'map'        => 'acme.morph_map',
             'user_model' => null,
             'user_alias' => 'user',
         ]], $this->morphMapConfigSpecs);
@@ -68,7 +68,7 @@ final class HasMorphMapsTest extends TestCase
         $this->registerMorphMapFromConfig('acme.morph_map', 'acme.user_model', 'account');
 
         $this->assertSame([[
-            'map' => 'acme.morph_map',
+            'map'        => 'acme.morph_map',
             'user_model' => 'acme.user_model',
             'user_alias' => 'account',
         ]], $this->morphMapConfigSpecs);

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
-use Illuminate\Console\Scheduling\Schedule;
-use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
 use Throwable;
+use Illuminate\Console\Scheduling\Schedule;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
+use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
 
 trait ProcessScheduledSeeders
 {
@@ -54,7 +54,7 @@ trait ProcessScheduledSeeders
                     }
 
                     $event = $schedule->command('laranail::package-tools.seed', [
-                        '--key' => [$definition->key()],
+                        '--key'       => [$definition->key()],
                         '--scheduled' => true,
                     ]);
 

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Support\Definitions;
 
-use BackedEnum;
 use Closure;
-use DateTimeInterface;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Contracts\Support\Jsonable;
+use UnitEnum;
+use Throwable;
+use BackedEnum;
+use Stringable;
 use JsonSerializable;
+use DateTimeInterface;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
 use Simtabi\Laranail\Package\Tools\Support\ConfigGate;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
-use Stringable;
-use Throwable;
-use UnitEnum;
 
 /**
  * a fluent `php artisan about` section. a field value may be ANY type —
@@ -145,9 +145,9 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
                 // a broken whole-array source drops out entirely — its field
                 // names aren't known, so there is nothing to placeholder.
                 FailurePolicy::warn('about section source dropped', [
-                    'section' => $this->label,
+                    'section'  => $this->label,
                     'expected' => 'an array of field rows',
-                    'actual' => 'threw ' . $e::class,
+                    'actual'   => 'threw ' . $e::class,
                     'decision' => 'dropped source, tolerated',
                 ]);
 
@@ -166,48 +166,16 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
         return $resolved;
     }
 
-    private function resolveField(mixed $value): string
-    {
-        try {
-            return $this->stringify($value instanceof Closure ? $value() : $value);
-        } catch (Throwable $e) {
-            FailurePolicy::warn('about field used fallback', [
-                'section' => $this->label,
-                'expected' => 'a resolvable field value',
-                'actual' => 'threw ' . $e::class,
-                'decision' => 'used fallback, tolerated',
-            ]);
-
-            return $this->fallback;
-        }
-    }
-
-    private function safeStringify(mixed $value): string
-    {
-        try {
-            return $this->stringify($value);
-        } catch (Throwable $e) {
-            FailurePolicy::warn('about field used fallback', [
-                'section' => $this->label,
-                'expected' => 'a stringifiable value',
-                'actual' => 'threw ' . $e::class,
-                'decision' => 'used fallback, tolerated',
-            ]);
-
-            return $this->fallback;
-        }
-    }
-
     /**
      * @return array<string, mixed>
      */
     public function toArray(): array
     {
         return [
-            'label' => $this->label,
+            'label'  => $this->label,
             'fields' => array_map(
                 fn (mixed $value): mixed => match (true) {
-                    $value instanceof Closure => 'closure',
+                    $value instanceof Closure          => 'closure',
                     $value === null, is_scalar($value) => $value,
                     // enums/dates/objects/arrays render to their display
                     // string so the serialized form stays JSON-clean.
@@ -216,8 +184,8 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
                 $this->fields,
             ),
             'bulk_sources' => count($this->bulkSources),
-            'fallback' => $this->fallback,
-            'gate' => $this->gate?->toArray(),
+            'fallback'     => $this->fallback,
+            'gate'         => $this->gate?->toArray(),
         ];
     }
 
@@ -234,22 +202,54 @@ final class AboutSectionDefinition implements Arrayable, Jsonable, JsonSerializa
         return $this->toArray();
     }
 
+    private function resolveField(mixed $value): string
+    {
+        try {
+            return $this->stringify($value instanceof Closure ? $value() : $value);
+        } catch (Throwable $e) {
+            FailurePolicy::warn('about field used fallback', [
+                'section'  => $this->label,
+                'expected' => 'a resolvable field value',
+                'actual'   => 'threw ' . $e::class,
+                'decision' => 'used fallback, tolerated',
+            ]);
+
+            return $this->fallback;
+        }
+    }
+
+    private function safeStringify(mixed $value): string
+    {
+        try {
+            return $this->stringify($value);
+        } catch (Throwable $e) {
+            FailurePolicy::warn('about field used fallback', [
+                'section'  => $this->label,
+                'expected' => 'a stringifiable value',
+                'actual'   => 'threw ' . $e::class,
+                'decision' => 'used fallback, tolerated',
+            ]);
+
+            return $this->fallback;
+        }
+    }
+
     /**
      * render any value to its `php artisan about` display string.
      */
     private function stringify(mixed $value): string
     {
         return match (true) {
-            $value === null => 'null',
-            is_bool($value) => $value ? 'true' : 'false',
-            $value instanceof BackedEnum => (string) $value->value,
-            $value instanceof UnitEnum => $value->name,
-            $value instanceof DateTimeInterface => $value->format(DateTimeInterface::ATOM),
-            $value instanceof Arrayable => $this->encode($value->toArray()),
-            $value instanceof Stringable => (string) $value,
+            $value === null                                          => 'null',
+            is_bool($value)                                          => $value ? 'true' : 'false',
+            $value instanceof BackedEnum                             => (string) $value->value,
+            $value instanceof UnitEnum                               => $value->name,
+            $value instanceof DateTimeInterface                      => $value->format(DateTimeInterface::ATOM),
+            $value instanceof Arrayable                              => $this->encode($value->toArray()),
+            $value instanceof Stringable                             => (string) $value,
             is_object($value) && method_exists($value, '__toString') => (string) $value,
-            is_scalar($value) => (string) $value,
-            default => $this->encode($value),
+            is_scalar($value)                                        => (string) $value,
+            default                                                  => $this->encode($value),
         };
     }
 

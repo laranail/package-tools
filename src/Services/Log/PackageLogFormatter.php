@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Log;
 
-use DateTimeInterface;
-use Monolog\Formatter\LineFormatter;
-use Monolog\LogRecord;
 use Override;
+use DateTimeInterface;
+use Monolog\LogRecord;
+use Monolog\Formatter\LineFormatter;
 
 /**
  * The per-package log line: a fixed, human-scannable bracket prefix

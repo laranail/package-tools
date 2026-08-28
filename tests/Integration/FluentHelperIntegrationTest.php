@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
-use Illuminate\Contracts\View\View;
 use InvalidArgumentException;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Contracts\View\View;
 use Simtabi\Laranail\Package\Tools\Support\FluentPackageHelper;
 
 /**
@@ -28,7 +28,7 @@ class FluentHelperIntegrationTest extends TestCase
             configNamespace: 'test-package',
             viewNamespace: 'test-vendor/test-package',
             translationNamespace: 'test-vendor/test-package',
-            routePrefix: 'packages.test-package'
+            routePrefix: 'packages.test-package',
         );
 
         // Set up test config
@@ -153,7 +153,7 @@ class FluentHelperIntegrationTest extends TestCase
             configNamespace: 'test-vendor.test-package',
             viewNamespace: 'test-vendor/test-package',
             translationNamespace: 'test-vendor/test-package',
-            routePrefix: 'packages.test-package'
+            routePrefix: 'packages.test-package',
         );
 
         config(['test-vendor.test-package.key' => 'value']);
@@ -181,7 +181,7 @@ class FluentHelperIntegrationTest extends TestCase
             configNamespace: 'package1',
             viewNamespace: 'vendor1/package1',
             translationNamespace: 'vendor1/package1',
-            routePrefix: 'packages.package1'
+            routePrefix: 'packages.package1',
         );
 
         $helper2 = new FluentPackageHelper(
@@ -190,7 +190,7 @@ class FluentHelperIntegrationTest extends TestCase
             configNamespace: 'package2',
             viewNamespace: 'vendor2/package2',
             translationNamespace: 'vendor2/package2',
-            routePrefix: 'packages.package2'
+            routePrefix: 'packages.package2',
         );
 
         $this->assertEquals('vendor1', $helper1->vendor());

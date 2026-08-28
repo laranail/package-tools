@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Closure;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Contracts\Http\Kernel as HttpKernel;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\RateLimiter;
-use Orchestra\Testbench\TestCase;
 use Override;
 use ReflectionClass;
+use Illuminate\Routing\Router;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Simtabi\Laranail\Package\Tools\Package;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
 
@@ -29,11 +29,6 @@ use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
  */
 final class BootPackageDeferredHooksTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [TestPackageProvider::class];
-    }
-
     public function test_middleware_aliases_register_at_boot(): void
     {
         $router = $this->app->make(Router::class);
@@ -127,6 +122,11 @@ final class BootPackageDeferredHooksTest extends TestCase
 
         $this->assertInstanceOf(Closure::class, $limiter);
         $this->assertSame(3, $limiter()->maxAttempts);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [TestPackageProvider::class];
     }
 
     /** @return list<string> */

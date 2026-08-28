@@ -13,6 +13,7 @@ interface ValidatorInterface
      * Validate input and return array of errors (empty array if valid)
      *
      * @param mixed $input Value to validate
+     *
      * @return array<string> Array of validation errors
      */
     public function validate(mixed $input): array;

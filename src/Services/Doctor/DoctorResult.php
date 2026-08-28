@@ -65,9 +65,9 @@ final readonly class DoctorResult implements Arrayable
     public function toArray(): array
     {
         return [
-            'status' => $this->status->value,
+            'status'  => $this->status->value,
             'message' => $this->message,
-            'detail' => $this->detail,
+            'detail'  => $this->detail,
         ];
     }
 }

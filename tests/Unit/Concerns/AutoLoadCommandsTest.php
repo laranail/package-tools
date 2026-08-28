@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use Illuminate\Console\Command;
 use RuntimeException;
+use Illuminate\Console\Command;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Simtabi\Laranail\Package\Tools\Services\Discovery\AttributeDiscoverer;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoLoad\Commands\FixtureFooCommand;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\AutoLoad\Commands\FixtureNotACommand;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * Covers HasBatchResourceLoading::autoLoadCommands() and the underlying
@@ -19,32 +19,6 @@ use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 final class AutoLoadCommandsTest extends TestCase
 {
     private const string FIXTURE_NAMESPACE = 'Simtabi\\Laranail\\Package\\Tools\\Tests\\Fixtures\\AutoLoad';
-
-    private function fixtureCommandsDir(): string
-    {
-        // Lowercase 'fixtures' — the filesystem path is case-sensitive on Linux CI
-        // (the class namespace stays capitalised; it resolves via the classmap).
-        return __DIR__ . '/../../fixtures/AutoLoad/Commands';
-    }
-
-    private function makePackage(): Package
-    {
-        // Anonymous Package subclass that exposes a root namespace (default
-        // Package has no getNamespace()) and makes the protected loader
-        // callable from the test.
-        return new class extends Package
-        {
-            public function getNamespace(): string
-            {
-                return 'Simtabi\\Laranail\\Package\\Tools\\Tests\\Fixtures\\AutoLoad';
-            }
-
-            public function callAutoLoadCommands(?string $dir = null): static
-            {
-                return $this->autoLoadCommands($dir);
-            }
-        };
-    }
 
     public function test_auto_load_commands_registers_only_command_subclasses(): void
     {
@@ -94,7 +68,7 @@ final class AutoLoadCommandsTest extends TestCase
                 $this->fixtureCommandsDir(),
                 self::FIXTURE_NAMESPACE . '\\Commands',
                 Command::class,
-            )
+            ),
         );
 
         $this->assertContains(FixtureFooCommand::class, $found);
@@ -116,7 +90,33 @@ final class AutoLoadCommandsTest extends TestCase
                 $this->fixtureCommandsDir() . '/nope',
                 self::FIXTURE_NAMESPACE . '\\Commands',
                 Command::class,
-            )
+            ),
         );
+    }
+
+    private function fixtureCommandsDir(): string
+    {
+        // Lowercase 'fixtures' — the filesystem path is case-sensitive on Linux CI
+        // (the class namespace stays capitalised; it resolves via the classmap).
+        return __DIR__ . '/../../fixtures/AutoLoad/Commands';
+    }
+
+    private function makePackage(): Package
+    {
+        // Anonymous Package subclass that exposes a root namespace (default
+        // Package has no getNamespace()) and makes the protected loader
+        // callable from the test.
+        return new class extends Package
+        {
+            public function getNamespace(): string
+            {
+                return 'Simtabi\\Laranail\\Package\\Tools\\Tests\\Fixtures\\AutoLoad';
+            }
+
+            public function callAutoLoadCommands(?string $dir = null): static
+            {
+                return $this->autoLoadCommands($dir);
+            }
+        };
     }
 }

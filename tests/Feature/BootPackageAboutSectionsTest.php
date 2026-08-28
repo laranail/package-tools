@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Foundation\Console\AboutCommand;
 use Override;
 use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Package;
+use Illuminate\Foundation\Console\AboutCommand;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class AboutSectionsTestPackageProvider extends PackageServiceProvider
 {
@@ -43,12 +43,6 @@ final class AboutSectionsTestPackageProvider extends PackageServiceProvider
 
 final class BootPackageAboutSectionsTest extends TestCase
 {
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [AboutSectionsTestPackageProvider::class];
-    }
-
     public function test_fluent_and_legacy_sections_render_in_about(): void
     {
         $this->artisan('about')
@@ -83,5 +77,11 @@ final class BootPackageAboutSectionsTest extends TestCase
         // AboutCommand; the fluent + legacy ones did (asserted above via
         // artisan output — this guards the class-level state too)
         $this->assertTrue(class_exists(AboutCommand::class));
+    }
+
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [AboutSectionsTestPackageProvider::class];
     }
 }

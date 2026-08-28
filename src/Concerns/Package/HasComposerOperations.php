@@ -17,6 +17,7 @@ trait HasComposerOperations
      * Run composer install
      *
      * @param bool $dev Include dev dependencies
+     *
      * @return array{success: bool, output: string}
      */
     public function composerInstall(bool $dev = true): array
@@ -32,6 +33,7 @@ trait HasComposerOperations
      * Run composer update
      *
      * @param string|null $package Specific package to update
+     *
      * @return array{success: bool, output: string}
      */
     public function composerUpdate(?string $package = null): array
@@ -48,6 +50,7 @@ trait HasComposerOperations
      *
      * @param string $package Package name
      * @param bool $dev Add to require-dev
+     *
      * @return array{success: bool, output: string}
      */
     public function composerRequire(string $package, bool $dev = false): array
@@ -63,6 +66,7 @@ trait HasComposerOperations
      * Remove a package
      *
      * @param string $package Package name
+     *
      * @return array{success: bool, output: string}
      */
     public function composerRemove(string $package): array
@@ -78,6 +82,7 @@ trait HasComposerOperations
      * Run composer dump-autoload
      *
      * @param bool $optimize Run with --optimize flag
+     *
      * @return array{success: bool, output: string}
      */
     public function composerDumpAutoload(bool $optimize = false): array

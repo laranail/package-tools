@@ -34,9 +34,18 @@ class ComponentValidator implements ValidatorInterface
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function isValid(mixed $input): bool
+    {
+        return $this->validate($input) === [];
+    }
+
+    /**
      * Validate a component class name
      *
      * @param string $className Class name to validate
+     *
      * @return array<string> Validation errors
      */
     protected function validateClassName(string $className): array
@@ -73,6 +82,7 @@ class ComponentValidator implements ValidatorInterface
      * Validate a component array
      *
      * @param array<int|string, mixed> $components Component array
+     *
      * @return array<string> Validation errors
      */
     protected function validateComponentArray(array $components): array
@@ -99,13 +109,5 @@ class ComponentValidator implements ValidatorInterface
         }
 
         return $errors;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isValid(mixed $input): bool
-    {
-        return $this->validate($input) === [];
     }
 }

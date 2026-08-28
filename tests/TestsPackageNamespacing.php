@@ -28,28 +28,28 @@ trait TestsPackageNamespacing
         $this->assertEquals(
             "{$expectedVendor}.{$expectedPackage}",
             $package->getDottedNamespace(),
-            'Dotted namespace format mismatch'
+            'Dotted namespace format mismatch',
         );
 
         // Dashed format
         $this->assertEquals(
             "{$expectedVendor}-{$expectedPackage}",
             $package->getDashedNamespace(),
-            'Dashed namespace format mismatch'
+            'Dashed namespace format mismatch',
         );
 
         // Double-colon format
         $this->assertEquals(
             "{$expectedVendor}::{$expectedPackage}",
             $package->getDoubleColonNamespace(),
-            'Double-colon namespace format mismatch'
+            'Double-colon namespace format mismatch',
         );
 
         // Slash format
         $this->assertEquals(
             "{$expectedVendor}/{$expectedPackage}",
             $package->getSlashNamespace(),
-            'Slash namespace format mismatch'
+            'Slash namespace format mismatch',
         );
     }
 
@@ -65,7 +65,7 @@ trait TestsPackageNamespacing
         $this->assertEquals(
             $expected,
             $package->getUnderscoreNamespace(),
-            'Underscore namespace format mismatch'
+            'Underscore namespace format mismatch',
         );
     }
 
@@ -81,7 +81,7 @@ trait TestsPackageNamespacing
         $this->assertEquals(
             $expected,
             $package->getCamelCaseNamespace(),
-            'CamelCase namespace format mismatch'
+            'CamelCase namespace format mismatch',
         );
     }
 
@@ -97,7 +97,7 @@ trait TestsPackageNamespacing
         $this->assertEquals(
             $expected,
             $package->getPascalCaseNamespace(),
-            'PascalCase namespace format mismatch'
+            'PascalCase namespace format mismatch',
         );
     }
 
@@ -113,14 +113,14 @@ trait TestsPackageNamespacing
 
         $this->assertTrue(
             config()->has($namespacedKey),
-            "Config with namespaced key '{$namespacedKey}' is not registered"
+            "Config with namespaced key '{$namespacedKey}' is not registered",
         );
 
         // Ensure non-namespaced key is NOT registered (to prevent collisions)
         if ($package->hasConfigNamespacing()) {
             $this->assertFalse(
                 config()->has($configFileName),
-                "Config is registered with non-namespaced key '{$configFileName}' when namespacing is enabled"
+                "Config is registered with non-namespaced key '{$configFileName}' when namespacing is enabled",
             );
         }
     }
@@ -169,7 +169,7 @@ trait TestsPackageNamespacing
             $this->assertEquals(
                 $expected,
                 $actual,
-                "Namespace format '{$format}' mismatch. Expected '{$expected}', got '{$actual}'"
+                "Namespace format '{$format}' mismatch. Expected '{$expected}', got '{$actual}'",
             );
         }
     }
@@ -183,12 +183,12 @@ trait TestsPackageNamespacing
 
         $this->assertTrue(
             $package->hasConfigNamespacing(),
-            'Package does not use config namespacing'
+            'Package does not use config namespacing',
         );
 
         $this->assertNotNull(
             $package->getConfigVendor(),
-            'Config vendor is null when namespacing should be enabled'
+            'Config vendor is null when namespacing should be enabled',
         );
     }
 
@@ -201,12 +201,12 @@ trait TestsPackageNamespacing
 
         $this->assertFalse(
             $package->hasConfigNamespacing(),
-            'Package uses config namespacing when it should not'
+            'Package uses config namespacing when it should not',
         );
 
         $this->assertNull(
             $package->getConfigVendor(),
-            'Config vendor is not null when namespacing should be disabled'
+            'Config vendor is not null when namespacing should be disabled',
         );
     }
 }

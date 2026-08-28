@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Support\Facades\Event;
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Contracts\Events\Dispatcher;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
 
 /**
  * EventConfigurator: the fluent event() sub-builder. It adds only the

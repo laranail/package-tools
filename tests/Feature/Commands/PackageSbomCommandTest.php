@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Artisan;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackageSbomCommandTest extends TestCase
@@ -29,11 +29,6 @@ final class PackageSbomCommandTest extends TestCase
     {
         parent::tearDown();
         File::deleteDirectory($this->sandbox);
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
     }
 
     public function test_print_emits_cyclonedx_json_to_stdout(): void
@@ -66,5 +61,10 @@ final class PackageSbomCommandTest extends TestCase
 
         $this->assertSame(1, $exit);
         $this->assertStringContainsString('SBOM generation failed', $output);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }

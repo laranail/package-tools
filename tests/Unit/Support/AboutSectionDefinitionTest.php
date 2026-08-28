@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
-use DateTimeImmutable;
-use Illuminate\Contracts\Support\Arrayable;
-use InvalidArgumentException;
-use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
-use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Stringable;
+use RuntimeException;
+use DateTimeImmutable;
+use InvalidArgumentException;
+use Illuminate\Contracts\Support\Arrayable;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
 
 final class AboutSectionDefinitionTest extends TestCase
 {
@@ -50,13 +50,13 @@ final class AboutSectionDefinitionTest extends TestCase
             });
 
         $this->assertSame([
-            'Null' => 'null',
-            'BackedEnum' => 'queued',
-            'PureEnum' => 'Beta',
-            'Date' => '2026-07-09T08:30:00+00:00',
-            'Array' => '{"a":1,"b":2}',
-            'Arrayable' => '{"x":"y"}',
-            'Stringable' => 'str',
+            'Null'               => 'null',
+            'BackedEnum'         => 'queued',
+            'PureEnum'           => 'Beta',
+            'Date'               => '2026-07-09T08:30:00+00:00',
+            'Array'              => '{"a":1,"b":2}',
+            'Arrayable'          => '{"x":"y"}',
+            'Stringable'         => 'str',
             'ObjectWithToString' => 'obj',
         ], $section->resolve());
     }

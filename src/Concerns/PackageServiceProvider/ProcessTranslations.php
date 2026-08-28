@@ -35,7 +35,7 @@ trait ProcessTranslations
 
             $this->publishes(
                 [$vendorTranslations => $appTranslations],
-                $publishTag
+                $publishTag,
             );
         }
 

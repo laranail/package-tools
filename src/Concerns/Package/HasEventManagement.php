@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\File;
 use ReflectionClass;
 use ReflectionNamedType;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Contracts\Events\Dispatcher;
 use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
-use Simtabi\Laranail\Package\Tools\Support\Configurators\EventConfigurator;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
+use Simtabi\Laranail\Package\Tools\Support\Configurators\EventConfigurator;
 
 /**
  * Registers event listeners and subscribers for a package on a deferred-array

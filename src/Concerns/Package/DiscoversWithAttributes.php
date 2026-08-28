@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
 use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
 use Simtabi\Laranail\Package\Tools\Attributes\AsViewComposer;
+use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
 use Simtabi\Laranail\Package\Tools\Services\Discovery\AttributeDiscoverer;
 
 /**
@@ -118,6 +118,22 @@ trait DiscoversWithAttributes
     }
 
     /**
+     * @return array<int, array{controller: string, method: string, uri: string, name: ?string, middleware: array<int, string>}>
+     */
+    public function getDiscoveredRoutes(): array
+    {
+        return $this->discoveredRoutes;
+    }
+
+    /**
+     * @return array<int, array{composer: string, views: array<int, string>}>
+     */
+    public function getDiscoveredViewComposers(): array
+    {
+        return $this->discoveredViewComposers;
+    }
+
+    /**
      * Default to packageBasePath('src') when the consumer didn't override.
      */
     protected function resolveDefaultDiscoveryDirectory(): string
@@ -160,9 +176,9 @@ trait DiscoversWithAttributes
     {
         $this->discoveredRoutes[] = [
             'controller' => $controllerClass,
-            'method' => $route->method,
-            'uri' => $route->uri,
-            'name' => $route->name,
+            'method'     => $route->method,
+            'uri'        => $route->uri,
+            'name'       => $route->name,
             'middleware' => $route->middleware,
         ];
     }
@@ -179,21 +195,5 @@ trait DiscoversWithAttributes
         foreach ((array) $views as $view) {
             $this->hasViewComposer($view, $composerClass);
         }
-    }
-
-    /**
-     * @return array<int, array{controller: string, method: string, uri: string, name: ?string, middleware: array<int, string>}>
-     */
-    public function getDiscoveredRoutes(): array
-    {
-        return $this->discoveredRoutes;
-    }
-
-    /**
-     * @return array<int, array{composer: string, views: array<int, string>}>
-     */
-    public function getDiscoveredViewComposers(): array
-    {
-        return $this->discoveredViewComposers;
     }
 }

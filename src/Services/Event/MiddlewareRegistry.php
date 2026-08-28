@@ -83,8 +83,8 @@ class MiddlewareRegistry implements RegistryInterface
     {
         return [
             'middleware' => $this->middleware,
-            'groups' => $this->middlewareGroups,
-            'aliases' => $this->aliases,
+            'groups'     => $this->middlewareGroups,
+            'aliases'    => $this->aliases,
         ];
     }
 

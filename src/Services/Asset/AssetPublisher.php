@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
 use Closure;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 use Simtabi\Laranail\Package\Tools\Contracts\PublisherInterface;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigService;
 use Simtabi\Laranail\Package\Tools\Services\Config\PatternResolver;
-use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 
 /**
  * Publishes assets from package to application, using configured
@@ -80,10 +80,10 @@ class AssetPublisher implements PublisherInterface
     public function publishModuleAssets(?array $types, string $basePath, string $moduleName): void
     {
         $standardTypes = [
-            'all' => ['source' => '', 'target' => ''],
-            'js' => ['source' => 'assets/js', 'target' => 'assets/js'],
-            'css' => ['source' => 'assets/css', 'target' => 'assets/css'],
-            'media' => ['source' => 'assets/media', 'target' => 'assets/media'],
+            'all'     => ['source' => '', 'target' => ''],
+            'js'      => ['source' => 'assets/js', 'target' => 'assets/js'],
+            'css'     => ['source' => 'assets/css', 'target' => 'assets/css'],
+            'media'   => ['source' => 'assets/media', 'target' => 'assets/media'],
             'vendors' => ['source' => 'assets/vendors', 'target' => 'assets/vendors'],
         ];
 
@@ -100,30 +100,6 @@ class AssetPublisher implements PublisherInterface
                 $this->publish($source, $target, $tag);
             }
         }
-    }
-
-    /**
-     * Resolve publish tag using configured pattern
-     *
-     * @param string $module Module name
-     * @param string $type Asset type
-     * @return string Resolved tag
-     */
-    protected function resolveTag(string $module, string $type): string
-    {
-        $pattern = $this->config->get(
-            'packager.patterns.publish_tag',
-            '{prefix}-{module_kebab}-{type}'
-        );
-
-        $prefix = $this->config->get('packager.project.tag_prefix', 'app');
-
-        return $this->patternResolver->resolve($pattern, [
-            'prefix' => $prefix,
-            'module' => $module,
-            'module_kebab' => Str::kebab($module),
-            'type' => $type,
-        ]);
     }
 
     /**
@@ -151,5 +127,30 @@ class AssetPublisher implements PublisherInterface
     public function getPublished(): array
     {
         return $this->published;
+    }
+
+    /**
+     * Resolve publish tag using configured pattern
+     *
+     * @param string $module Module name
+     * @param string $type Asset type
+     *
+     * @return string Resolved tag
+     */
+    protected function resolveTag(string $module, string $type): string
+    {
+        $pattern = $this->config->get(
+            'packager.patterns.publish_tag',
+            '{prefix}-{module_kebab}-{type}',
+        );
+
+        $prefix = $this->config->get('packager.project.tag_prefix', 'app');
+
+        return $this->patternResolver->resolve($pattern, [
+            'prefix'       => $prefix,
+            'module'       => $module,
+            'module_kebab' => Str::kebab($module),
+            'type'         => $type,
+        ]);
     }
 }

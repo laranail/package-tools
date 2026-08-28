@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Contracts\Validation\ValidationRule;
 
 trait ProcessValidationRules
 {

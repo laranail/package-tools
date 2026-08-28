@@ -4,29 +4,29 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools;
 
+use RuntimeException;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresAssets;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresAuthorization;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresCommands;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComponents;
+use Simtabi\Laranail\Package\Tools\Support\PathResolver;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresViews;
 // Domain aggregators. Package only `use`s these; each aggregator composes
 // its leaf traits (Has*) from src/Package/Concerns/Package/.
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComposer;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresAssets;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresConfig;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresDatabase;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresEvents;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresHelpers;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresLifecycle;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresMiddleware;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresRoutes;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresServiceProviders;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresHelpers;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresCommands;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComposer;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresDatabase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresLifecycle;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComponents;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresMiddleware;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresTranslations;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresViews;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPackage;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
-use Simtabi\Laranail\Package\Tools\Support\PathResolver;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresAuthorization;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresServiceProviders;
 
 class Package
 {
@@ -248,7 +248,7 @@ class Package
             if (! class_exists(PathResolver::class)) {
                 throw new RuntimeException(
                     'PathResolver class not found. ' .
-                    'Please ensure the Packager package is properly installed and autoloaded.'
+                    'Please ensure the Packager package is properly installed and autoloaded.',
                 );
             }
 
@@ -258,67 +258,6 @@ class Package
         }
 
         return $this;
-    }
-
-    /**
-     * Determine whether the source is a path string or a file reference.
-     *
-     * @return bool True for a path string, false for a file reference
-     */
-    private function isPathString(string|object $source): bool
-    {
-        // Objects are always file references (service provider instances).
-        if (is_object($source)) {
-            return false;
-        }
-
-        $string = Str::trim($source);
-
-        // Empty string: treat as a path so validation can reject it.
-        if (empty($string)) {
-            return true;
-        }
-
-        // Absolute Unix/Linux/macOS paths.
-        if (Str::startsWith($string, '/')) {
-            return true;
-        }
-
-        // Absolute Windows paths (C:\, D:\, ...).
-        if (preg_match('/^[A-Z]:[\\\\\/]/i', $string)) {
-            return true;
-        }
-
-        // Relative path patterns.
-        if (Str::contains($string, '..') || Str::contains($string, './') || Str::contains($string, '.\\')) {
-            return true;
-        }
-
-        // Path-like constants or functions.
-        if (preg_match('/^(__DIR__|__FILE__|base_path|public_path|storage_path|app_path|resource_path)/', $string)) {
-            return true;
-        }
-
-        // Forward slashes mean a path, not a class.
-        if (Str::contains($string, '/')) {
-            return true;
-        }
-
-        // Backslashes could be a Windows path or a namespaced class.
-        // A forward slash would already have returned true above, so only
-        // the Windows-path vs. namespaced-class distinction remains here.
-        if (Str::contains($string, '\\')) {
-            // Drive letters or a leading \\ mark a Windows path.
-            if (preg_match('/^[A-Z]:|^\\\\/', $string)) {
-                return true; // Windows path
-            }
-
-            // Otherwise assume a namespaced class name.
-            return false;
-        }
-
-        // A trailing dot suggests a relative path like "./config".
-        return Str::contains($string, '.');
     }
 
     // Publish tag system.
@@ -353,6 +292,7 @@ class Package
      *
      * @param string $name Tag name (e.g., 'config', 'blog-assets')
      * @param string $separator Separator between base and name (default: '::')
+     *
      * @return string Built and validated publish tag
      *
      * @throws RuntimeException If validation fails
@@ -378,94 +318,6 @@ class Package
     }
 
     /**
-     * Ensure the separator is one of the allowed values.
-     *
-     * @param string $separator Separator to validate
-     *
-     * @throws RuntimeException If separator is invalid
-     */
-    protected function validatePublishTagSeparator(string $separator): void
-    {
-        $separator = Str::trim($separator);
-
-        if (empty($separator)) {
-            throw new RuntimeException('Publish tag separator cannot be empty');
-        }
-
-        if (! in_array($separator, $this->allowedSeparators, true)) {
-            throw new RuntimeException(
-                "Invalid publish tag separator '{$separator}'. " .
-                'Allowed separators are: ' . implode(', ', $this->allowedSeparators)
-            );
-        }
-    }
-
-    /**
-     * Ensure the name contains only allowed characters.
-     *
-     * @param string $name Tag name to validate
-     *
-     * @throws RuntimeException If name is invalid
-     */
-    protected function validatePublishTagName(string $name): void
-    {
-        if ($name === '' || $name === '0') {
-            throw new RuntimeException('Publish tag name cannot be empty after cleaning');
-        }
-
-        // Alphanumerics, dashes, and colons (for nested tags).
-        if (! preg_match('/^[a-zA-Z0-9\-:]+$/', $name)) {
-            throw new RuntimeException(
-                "Invalid publish tag name '{$name}'. " .
-                'Only alphanumeric characters, dashes (-), and colons (:) are allowed'
-            );
-        }
-    }
-
-    /**
-     * Trim whitespace and strip non-alphanumeric characters from the start
-     * and end of the name, leaving its internal structure intact.
-     *
-     * @param string $name Name to normalize
-     * @return string Normalized name
-     */
-    protected function normalizePublishTagName(string $name): string
-    {
-        $name = Str::trim($name);
-
-        // Strip leading and trailing non-alphanumerics, keep internal structure.
-        // preg_replace() returns null only on engine error; fall back to the
-        // trimmed name so the return stays a string.
-        return preg_replace('/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/', '', $name) ?? $name;
-    }
-
-    /**
-     * Get the base publish tag from the explicit publishTagId, falling back
-     * to config (laranail.package.publishing_tag_name).
-     *
-     * @return string Base publish tag
-     *
-     * @throws RuntimeException If no base tag is configured
-     */
-    protected function getBasePublishTag(): string
-    {
-        if (! in_array($this->publishTagId, [null, '', '0'], true)) {
-            return $this->publishTagId;
-        }
-
-        $baseTag = config('laranail.package.publishing_tag_name');
-
-        if (! empty($baseTag)) {
-            return $baseTag;
-        }
-
-        throw new RuntimeException(
-            'You must set a publish tag ID via setPublishTagId() ' .
-            'or configure laranail.package.publishing_tag_name in your config'
-        );
-    }
-
-    /**
      * Get the cache of all tags built during this request.
      *
      * @return array<string>
@@ -483,57 +335,6 @@ class Package
         $this->builtPublishTags = [];
 
         return $this;
-    }
-
-    // Abstract method implementations required by the Configures* concerns.
-
-    protected function getViewNamespace(): string
-    {
-        return $this->viewNamespace();
-    }
-
-    protected function getConfigNamespace(): string
-    {
-        return $this->getDottedNamespace();
-    }
-
-    protected function getPackageKebabName(): string
-    {
-        return Str::kebab($this->name);
-    }
-
-    /**
-     * Get the package base path with an optional subdirectory.
-     *
-     * @param string $path Optional subdirectory path
-     */
-    protected function packageBasePath(string $path = ''): string
-    {
-        return $this->basePath($path);
-    }
-
-    /**
-     * Register asset paths for the service provider to publish during boot.
-     *
-     * @param array<string, string> $paths Array of paths to publish [source => destination]
-     * @param string $tag Publish tag
-     */
-    protected function publishAssetPaths(array $paths, string $tag): void
-    {
-        $this->assetPaths[$tag] = $paths;
-    }
-
-    /**
-     * Internal multi-path publish primitive. Registers paths into
-     * $this->publishPaths[$tag] for the service provider's boot pass to
-     * publish.
-     *
-     * @param array<string, string> $paths Array of paths to publish [source => destination]
-     * @param string $tag Publish tag
-     */
-    protected function publishes(array $paths, string $tag): void
-    {
-        $this->publishPaths[$tag] = $paths;
     }
 
     /**
@@ -605,17 +406,6 @@ class Package
     }
 
     /**
-     * Register a component namespace for boot-time registration.
-     *
-     * @param string $namespace Component namespace
-     * @param string $prefix Component prefix
-     */
-    protected function registerComponentNamespace(string $namespace, string $prefix): void
-    {
-        $this->componentNamespaces[$namespace] = $prefix;
-    }
-
-    /**
      * Get all registered component namespaces.
      *
      * @return array<string, string> [class namespace => tag prefix]
@@ -643,5 +433,217 @@ class Package
     public function getPublishPathsToClean(): array
     {
         return $this->publishPathsToClean;
+    }
+
+    /**
+     * Ensure the separator is one of the allowed values.
+     *
+     * @param string $separator Separator to validate
+     *
+     * @throws RuntimeException If separator is invalid
+     */
+    protected function validatePublishTagSeparator(string $separator): void
+    {
+        $separator = Str::trim($separator);
+
+        if (empty($separator)) {
+            throw new RuntimeException('Publish tag separator cannot be empty');
+        }
+
+        if (! in_array($separator, $this->allowedSeparators, true)) {
+            throw new RuntimeException(
+                "Invalid publish tag separator '{$separator}'. " .
+                'Allowed separators are: ' . implode(', ', $this->allowedSeparators),
+            );
+        }
+    }
+
+    /**
+     * Ensure the name contains only allowed characters.
+     *
+     * @param string $name Tag name to validate
+     *
+     * @throws RuntimeException If name is invalid
+     */
+    protected function validatePublishTagName(string $name): void
+    {
+        if ($name === '' || $name === '0') {
+            throw new RuntimeException('Publish tag name cannot be empty after cleaning');
+        }
+
+        // Alphanumerics, dashes, and colons (for nested tags).
+        if (! preg_match('/^[a-zA-Z0-9\-:]+$/', $name)) {
+            throw new RuntimeException(
+                "Invalid publish tag name '{$name}'. " .
+                'Only alphanumeric characters, dashes (-), and colons (:) are allowed',
+            );
+        }
+    }
+
+    /**
+     * Trim whitespace and strip non-alphanumeric characters from the start
+     * and end of the name, leaving its internal structure intact.
+     *
+     * @param string $name Name to normalize
+     *
+     * @return string Normalized name
+     */
+    protected function normalizePublishTagName(string $name): string
+    {
+        $name = Str::trim($name);
+
+        // Strip leading and trailing non-alphanumerics, keep internal structure.
+        // preg_replace() returns null only on engine error; fall back to the
+        // trimmed name so the return stays a string.
+        return preg_replace('/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/', '', $name) ?? $name;
+    }
+
+    /**
+     * Get the base publish tag from the explicit publishTagId, falling back
+     * to config (laranail.package.publishing_tag_name).
+     *
+     * @return string Base publish tag
+     *
+     * @throws RuntimeException If no base tag is configured
+     */
+    protected function getBasePublishTag(): string
+    {
+        if (! in_array($this->publishTagId, [null, '', '0'], true)) {
+            return $this->publishTagId;
+        }
+
+        $baseTag = config('laranail.package.publishing_tag_name');
+
+        if (! empty($baseTag)) {
+            return $baseTag;
+        }
+
+        throw new RuntimeException(
+            'You must set a publish tag ID via setPublishTagId() ' .
+            'or configure laranail.package.publishing_tag_name in your config',
+        );
+    }
+
+    // Abstract method implementations required by the Configures* concerns.
+
+    protected function getViewNamespace(): string
+    {
+        return $this->viewNamespace();
+    }
+
+    protected function getConfigNamespace(): string
+    {
+        return $this->getDottedNamespace();
+    }
+
+    protected function getPackageKebabName(): string
+    {
+        return Str::kebab($this->name);
+    }
+
+    /**
+     * Get the package base path with an optional subdirectory.
+     *
+     * @param string $path Optional subdirectory path
+     */
+    protected function packageBasePath(string $path = ''): string
+    {
+        return $this->basePath($path);
+    }
+
+    /**
+     * Register asset paths for the service provider to publish during boot.
+     *
+     * @param array<string, string> $paths Array of paths to publish [source => destination]
+     * @param string $tag Publish tag
+     */
+    protected function publishAssetPaths(array $paths, string $tag): void
+    {
+        $this->assetPaths[$tag] = $paths;
+    }
+
+    /**
+     * Internal multi-path publish primitive. Registers paths into
+     * $this->publishPaths[$tag] for the service provider's boot pass to
+     * publish.
+     *
+     * @param array<string, string> $paths Array of paths to publish [source => destination]
+     * @param string $tag Publish tag
+     */
+    protected function publishes(array $paths, string $tag): void
+    {
+        $this->publishPaths[$tag] = $paths;
+    }
+
+    /**
+     * Register a component namespace for boot-time registration.
+     *
+     * @param string $namespace Component namespace
+     * @param string $prefix Component prefix
+     */
+    protected function registerComponentNamespace(string $namespace, string $prefix): void
+    {
+        $this->componentNamespaces[$namespace] = $prefix;
+    }
+
+    /**
+     * Determine whether the source is a path string or a file reference.
+     *
+     * @return bool True for a path string, false for a file reference
+     */
+    private function isPathString(string|object $source): bool
+    {
+        // Objects are always file references (service provider instances).
+        if (is_object($source)) {
+            return false;
+        }
+
+        $string = Str::trim($source);
+
+        // Empty string: treat as a path so validation can reject it.
+        if (empty($string)) {
+            return true;
+        }
+
+        // Absolute Unix/Linux/macOS paths.
+        if (Str::startsWith($string, '/')) {
+            return true;
+        }
+
+        // Absolute Windows paths (C:\, D:\, ...).
+        if (preg_match('/^[A-Z]:[\\\\\/]/i', $string)) {
+            return true;
+        }
+
+        // Relative path patterns.
+        if (Str::contains($string, '..') || Str::contains($string, './') || Str::contains($string, '.\\')) {
+            return true;
+        }
+
+        // Path-like constants or functions.
+        if (preg_match('/^(__DIR__|__FILE__|base_path|public_path|storage_path|app_path|resource_path)/', $string)) {
+            return true;
+        }
+
+        // Forward slashes mean a path, not a class.
+        if (Str::contains($string, '/')) {
+            return true;
+        }
+
+        // Backslashes could be a Windows path or a namespaced class.
+        // A forward slash would already have returned true above, so only
+        // the Windows-path vs. namespaced-class distinction remains here.
+        if (Str::contains($string, '\\')) {
+            // Drive letters or a leading \\ mark a Windows path.
+            if (preg_match('/^[A-Z]:|^\\\\/', $string)) {
+                return true; // Windows path
+            }
+
+            // Otherwise assume a namespaced class name.
+            return false;
+        }
+
+        // A trailing dot suggests a relative path like "./config".
+        return Str::contains($string, '.');
     }
 }

@@ -98,13 +98,13 @@ final class PackageDoctorCommand extends Command
     {
         $payload = [
             'summary' => $counts,
-            'checks' => array_map(fn (array $row): array => [
-                'name' => $row['check']->name(),
-                'group' => $row['group'] ?? null,
+            'checks'  => array_map(fn (array $row): array => [
+                'name'        => $row['check']->name(),
+                'group'       => $row['group'] ?? null,
                 'description' => $row['check']->description(),
-                'status' => $row['result']->status->value,
-                'message' => $row['result']->message,
-                'detail' => $row['result']->detail,
+                'status'      => $row['result']->status->value,
+                'message'     => $row['result']->message,
+                'detail'      => $row['result']->detail,
             ], $report),
         ];
 

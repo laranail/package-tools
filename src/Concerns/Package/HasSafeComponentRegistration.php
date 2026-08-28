@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
+use Throwable;
 use Livewire\Livewire;
 use Simtabi\Laranail\Package\Tools\Services\Component\ComponentRegistry;
-use Throwable;
 
 /**
  * Component registration that catches and records errors instead of throwing.
@@ -105,6 +105,19 @@ trait HasSafeComponentRegistration
     }
 
     /**
+     * @return array<string>
+     */
+    public function getComponentErrors(): array
+    {
+        return $this->componentErrors;
+    }
+
+    public function hasComponentErrors(): bool
+    {
+        return ! empty($this->componentErrors);
+    }
+
+    /**
      * @param string $name Component name
      * @param string $class Component class
      * @param string $type Component type
@@ -130,19 +143,6 @@ trait HasSafeComponentRegistration
         }
 
         return true;
-    }
-
-    /**
-     * @return array<string>
-     */
-    public function getComponentErrors(): array
-    {
-        return $this->componentErrors;
-    }
-
-    public function hasComponentErrors(): bool
-    {
-        return ! empty($this->componentErrors);
     }
 
     protected function getSafeComponentRegistry(): ComponentRegistry

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
-use Illuminate\Support\Facades\File;
 use Override;
+use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 /**
  * Booting a package must never delete anything.
@@ -42,15 +42,6 @@ final class BootDoesNotDeletePublishedAssetsTest extends TestCase
         File::deleteDirectory($this->sandbox);
 
         parent::tearDown();
-    }
-
-    /**
-     * @return array<int, class-string>
-     */
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
     }
 
     #[Test]
@@ -107,6 +98,15 @@ final class BootDoesNotDeletePublishedAssetsTest extends TestCase
             $this->app->make(PublishTagRegistry::class),
             $this->app->make(PublishTagRegistry::class),
         );
+    }
+
+    /**
+     * @return array<int, class-string>
+     */
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 
     private function bootPackageWithCleanablePublish(bool $clean = true): void

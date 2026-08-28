@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorStatus;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\DoctorCheckDefinition;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class DoctorCheckDefinitionTest extends TestCase
 {

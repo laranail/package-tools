@@ -27,12 +27,24 @@ abstract class TestCase extends Orchestra
     }
 
     /**
+     * Clean up the testing environment before the next test
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        // Clean up any test artifacts
+        $this->cleanupTestArtifacts();
+    }
+
+    /**
      * Get package providers
      *
      * Package runtime doesn't have its own service provider to register.
      * Individual packages using the Package class will have their own providers.
      *
      * @param Application $app
+     *
      * @return array<int, class-string>
      */
     protected function getPackageProviders($app): array
@@ -50,26 +62,15 @@ abstract class TestCase extends Orchestra
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
-            'driver' => 'sqlite',
+            'driver'   => 'sqlite',
             'database' => ':memory:',
-            'prefix' => '',
+            'prefix'   => '',
         ]);
 
         // Setup packager configuration
         $app['config']->set('packager.packages_path', sys_get_temp_dir() . '/packager-test-packages');
         $app['config']->set('packager.naming.config_namespace_style', 'simple');
         $app['config']->set('packager.naming.enforce_vendor_prefix', true);
-    }
-
-    /**
-     * Clean up the testing environment before the next test
-     */
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        // Clean up any test artifacts
-        $this->cleanupTestArtifacts();
     }
 
     /**

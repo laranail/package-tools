@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Commands;
 
+use Throwable;
 use Illuminate\Support\Str;
 use Simtabi\Laranail\Package\Tools\Services\Facade\FacadeAutoGenerator;
-use Throwable;
 
 /**
  * `php artisan laranail::package-tools.ide-helper` generates Facade classes from

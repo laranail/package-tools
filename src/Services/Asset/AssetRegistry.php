@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
 use Illuminate\Support\Facades\File;
-use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
 use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
+use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
 
 /**
  * Tracks published assets and manages cleanup.
@@ -45,6 +45,7 @@ class AssetRegistry implements RegistryInterface
      * Get registered assets for a specific tag
      *
      * @param string $tag Publish tag
+     *
      * @return array<string>
      */
     public function getByTag(string $tag): array
@@ -120,23 +121,6 @@ class AssetRegistry implements RegistryInterface
     }
 
     /**
-     * A guard with no usable roots refuses everything, which is the right
-     * outcome for a misconfigured root: cleaning nothing beats cleaning the
-     * wrong thing.
-     */
-    private function guard(): PublishPathGuard
-    {
-        try {
-            return PublishPathGuard::fromConfig(
-                app('config'),
-                app()->basePath(),
-            );
-        } catch (UnsafeAssetPath) {
-            return new PublishPathGuard;
-        }
-    }
-
-    /**
      * Check if a tag should be cleaned up
      *
      * @param string $tag Publish tag
@@ -154,5 +138,22 @@ class AssetRegistry implements RegistryInterface
     public function getCleanupTargets(): array
     {
         return $this->cleanupTargets;
+    }
+
+    /**
+     * A guard with no usable roots refuses everything, which is the right
+     * outcome for a misconfigured root: cleaning nothing beats cleaning the
+     * wrong thing.
+     */
+    private function guard(): PublishPathGuard
+    {
+        try {
+            return PublishPathGuard::fromConfig(
+                app('config'),
+                app()->basePath(),
+            );
+        } catch (UnsafeAssetPath) {
+            return new PublishPathGuard;
+        }
     }
 }

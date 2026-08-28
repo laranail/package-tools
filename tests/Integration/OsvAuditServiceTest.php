@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
-use Illuminate\Support\Facades\Http;
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Http;
 use Simtabi\Laranail\Package\Tools\Services\Audit\OsvAuditService;
 
 final class OsvAuditServiceTest extends TestCase
@@ -45,8 +45,8 @@ final class OsvAuditServiceTest extends TestCase
                 'results' => [
                     [
                         'vulns' => [[
-                            'id' => 'GHSA-aaaa-bbbb-cccc',
-                            'summary' => 'Sample advisory',
+                            'id'       => 'GHSA-aaaa-bbbb-cccc',
+                            'summary'  => 'Sample advisory',
                             'severity' => [['type' => 'CVSS_V3', 'score' => '7.5']],
                         ]],
                     ],

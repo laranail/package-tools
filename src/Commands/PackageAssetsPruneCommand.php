@@ -95,7 +95,7 @@ final class PackageAssetsPruneCommand extends Command
         if ($ceiling > 0 && $report->count() > $ceiling) {
             $this->error(
                 "Refusing to delete {$report->count()} entries, over the {$ceiling} limit. "
-                . 'Raise package-tools.assets.prune.max_deletions if this is expected.'
+                . 'Raise package-tools.assets.prune.max_deletions if this is expected.',
             );
 
             return self::FAILURE;
@@ -170,7 +170,7 @@ final class PackageAssetsPruneCommand extends Command
 
         $this->line(
             "{$report->count()} orphaned entr(y|ies), {$report->fileCount} file(s), "
-            . $this->humanBytes($report->bytes) . '.'
+            . $this->humanBytes($report->bytes) . '.',
         );
 
         if ($report->truncated) {

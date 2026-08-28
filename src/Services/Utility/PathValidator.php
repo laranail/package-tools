@@ -18,6 +18,7 @@ class PathValidator implements ValidatorInterface
      * Validate input and return array of errors (empty array if valid)
      *
      * @param mixed $input Value to validate (can be string path or array with 'path' key)
+     *
      * @return array<string> Array of validation errors
      */
     public function validate(mixed $input): array
@@ -54,36 +55,10 @@ class PathValidator implements ValidatorInterface
     }
 
     /**
-     * Validate a single path string
-     *
-     * @param string $path Path to validate
-     * @return array<string> Array of validation errors
-     */
-    protected function validatePathString(string $path): array
-    {
-        $this->errors = [];
-
-        if ($path === '' || $path === '0') {
-            $this->errors[] = 'Path cannot be empty';
-
-            return $this->errors;
-        }
-
-        if ($this->hasDirectoryTraversal($path)) {
-            $this->errors[] = 'Path contains directory traversal sequences';
-        }
-
-        if (str_contains($path, "\0")) {
-            $this->errors[] = 'Path contains null bytes';
-        }
-
-        return $this->errors;
-    }
-
-    /**
      * Validate a single path
      *
      * @param string $path Path to validate
+     *
      * @return bool True if valid, false otherwise
      */
     public function validatePath(string $path): bool
@@ -97,6 +72,7 @@ class PathValidator implements ValidatorInterface
      * Validate cross-platform path
      *
      * @param string $path Path to validate
+     *
      * @return array<string, mixed> Validation results with warnings
      */
     public function validateCrossPlatform(string $path): array
@@ -124,10 +100,55 @@ class PathValidator implements ValidatorInterface
         }
 
         return [
-            'valid' => $issues === [],
-            'issues' => $issues,
+            'valid'    => $issues === [],
+            'issues'   => $issues,
             'warnings' => $warnings,
         ];
+    }
+
+    /**
+     * Sanitize path for safe usage
+     *
+     * @param string $path Path to sanitize
+     *
+     * @return string Sanitized path
+     */
+    public function sanitize(string $path): string
+    {
+        $path = str_replace("\0", '', $path);
+        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+
+        // Collapse duplicate separators. preg_replace() returns null only on
+        // engine error; fall back to the pre-collapse path so we return a string.
+        return preg_replace('#' . preg_quote(DIRECTORY_SEPARATOR, '#') . '+#', DIRECTORY_SEPARATOR, $path) ?? $path;
+    }
+
+    /**
+     * Validate a single path string
+     *
+     * @param string $path Path to validate
+     *
+     * @return array<string> Array of validation errors
+     */
+    protected function validatePathString(string $path): array
+    {
+        $this->errors = [];
+
+        if ($path === '' || $path === '0') {
+            $this->errors[] = 'Path cannot be empty';
+
+            return $this->errors;
+        }
+
+        if ($this->hasDirectoryTraversal($path)) {
+            $this->errors[] = 'Path contains directory traversal sequences';
+        }
+
+        if (str_contains($path, "\0")) {
+            $this->errors[] = 'Path contains null bytes';
+        }
+
+        return $this->errors;
     }
 
     /**
@@ -144,21 +165,5 @@ class PathValidator implements ValidatorInterface
         }
 
         return str_starts_with($normalized, '/..') || str_starts_with($normalized, '..');
-    }
-
-    /**
-     * Sanitize path for safe usage
-     *
-     * @param string $path Path to sanitize
-     * @return string Sanitized path
-     */
-    public function sanitize(string $path): string
-    {
-        $path = str_replace("\0", '', $path);
-        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
-
-        // Collapse duplicate separators. preg_replace() returns null only on
-        // engine error; fall back to the pre-collapse path so we return a string.
-        return preg_replace('#' . preg_quote(DIRECTORY_SEPARATOR, '#') . '+#', DIRECTORY_SEPARATOR, $path) ?? $path;
     }
 }

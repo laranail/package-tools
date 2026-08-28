@@ -79,7 +79,7 @@ class ViewComposerRegistry implements RegistryInterface
     {
         return [
             'composers' => $this->composers,
-            'shared' => $this->sharedData,
+            'shared'    => $this->sharedData,
         ];
     }
 

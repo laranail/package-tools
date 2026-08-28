@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
-use Illuminate\Support\Facades\Artisan;
+use Orchestra\Testbench\TestCase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
-use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Artisan;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackageAuditCommandTest extends TestCase
@@ -31,11 +31,6 @@ final class PackageAuditCommandTest extends TestCase
         File::deleteDirectory($this->sandbox);
     }
 
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
     public function test_returns_zero_when_no_advisories(): void
     {
         Http::fake([
@@ -57,7 +52,7 @@ final class PackageAuditCommandTest extends TestCase
             'api.osv.dev/*' => Http::response([
                 'results' => [
                     ['vulns' => [[
-                        'id' => 'GHSA-test-1',
+                        'id'      => 'GHSA-test-1',
                         'summary' => 'Test advisory',
                     ]]],
                     ['vulns' => []],
@@ -106,5 +101,10 @@ final class PackageAuditCommandTest extends TestCase
         $this->assertSame(0, $exit);
         $decoded = json_decode($output, true);
         $this->assertSame(2, $decoded['scanned']);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }

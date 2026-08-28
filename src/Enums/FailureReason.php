@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Enums;
 
-use Illuminate\Queue\MaxAttemptsExceededException;
-use Illuminate\Queue\TimeoutExceededException;
-use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
 use Throwable;
+use Illuminate\Queue\TimeoutExceededException;
+use Illuminate\Queue\MaxAttemptsExceededException;
+use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
 
 /**
  * Why a package action ended without success — the taxonomy carried by
@@ -38,7 +38,7 @@ enum FailureReason: string
         return match (true) {
             $e instanceof TimeoutExceededException,
             $e instanceof MaxAttemptsExceededException => self::TimedOut,
-            default => self::Failed,
+            default                                    => self::Failed,
         };
     }
 
@@ -48,11 +48,11 @@ enum FailureReason: string
     public function label(): string
     {
         return match ($this) {
-            self::Failed => 'Failed',
+            self::Failed      => 'Failed',
             self::Interrupted => 'Interrupted',
-            self::Cancelled => 'Cancelled',
-            self::TimedOut => 'Timed out',
-            self::Unknown => 'Unknown',
+            self::Cancelled   => 'Cancelled',
+            self::TimedOut    => 'Timed out',
+            self::Unknown     => 'Unknown',
         };
     }
 }

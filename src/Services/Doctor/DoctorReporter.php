@@ -30,14 +30,14 @@ final class DoctorReporter
 
         if ($json) {
             $cmd->getOutput()->writeln((string) json_encode([
-                'status' => $summary['fail'] > 0 ? 'degraded' : 'healthy',
+                'status'  => $summary['fail'] > 0 ? 'degraded' : 'healthy',
                 'summary' => $summary,
-                'checks' => array_map(static fn (array $row): array => [
-                    'name' => $row['check']->name(),
-                    'group' => $row['group'] ?? null,
-                    'status' => $row['result']->status->value,
+                'checks'  => array_map(static fn (array $row): array => [
+                    'name'    => $row['check']->name(),
+                    'group'   => $row['group'] ?? null,
+                    'status'  => $row['result']->status->value,
                     'message' => $row['result']->message,
-                    'detail' => $row['result']->detail,
+                    'detail'  => $row['result']->detail,
                 ], $report),
             ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 

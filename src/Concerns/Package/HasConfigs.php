@@ -61,8 +61,8 @@ trait HasConfigs
         }
 
         $this->namespacedConfigFiles[] = [
-            'path' => $path,
-            'key' => $key,
+            'path'     => $path,
+            'key'      => $key,
             'relative' => str_replace('\\', '/', $relative),
         ];
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Discovery;
 
-use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
+use PHPUnit\Framework\TestCase;
 use Simtabi\Laranail\Package\Tools\Attributes\AsRoute;
+use Simtabi\Laranail\Package\Tools\Attributes\AsArtisanCommand;
 use Simtabi\Laranail\Package\Tools\Services\Discovery\AttributeDiscoverer;
 
 final class AttributeDiscovererTest extends TestCase

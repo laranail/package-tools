@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Testing;
 
-use Illuminate\Contracts\Console\Kernel;
+use LogicException;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Schema;
-use LogicException;
+use Illuminate\Contracts\Console\Kernel;
 use Orchestra\Testbench\TestCase as Testbench;
 
 /**
@@ -37,10 +37,21 @@ abstract class IsolatedTestCase extends Testbench
     /** @var list<string> Tmp paths created by createTempPath(); removed at tearDown. */
     private array $tempPathsToCleanup = [];
 
+    protected function tearDown(): void
+    {
+        foreach ($this->tempPathsToCleanup as $path) {
+            $this->recursiveRemove($path);
+        }
+        $this->tempPathsToCleanup = [];
+
+        parent::tearDown();
+    }
+
     /**
      * Subclasses override to register their package's service provider(s).
      *
      * @param Application $app
+     *
      * @return list<class-string>
      */
     protected function getPackageProviders($app): array
@@ -57,23 +68,13 @@ abstract class IsolatedTestCase extends Testbench
         $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
-            'driver' => 'sqlite',
+            'driver'   => 'sqlite',
             'database' => ':memory:',
-            'prefix' => '',
+            'prefix'   => '',
         ]);
         $app['config']->set('cache.default', 'array');
         $app['config']->set('session.driver', 'array');
         $app['config']->set('queue.default', 'sync');
-    }
-
-    protected function tearDown(): void
-    {
-        foreach ($this->tempPathsToCleanup as $path) {
-            $this->recursiveRemove($path);
-        }
-        $this->tempPathsToCleanup = [];
-
-        parent::tearDown();
     }
 
     /**

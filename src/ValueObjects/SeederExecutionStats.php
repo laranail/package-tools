@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\ValueObjects;
 
-use Illuminate\Contracts\Support\Arrayable;
 use JsonSerializable;
+use Illuminate\Contracts\Support\Arrayable;
 
 /**
  * Immutable statistics describing a seeder execution run.
@@ -135,13 +135,13 @@ final readonly class SeederExecutionStats implements Arrayable, JsonSerializable
     public function toArray(): array
     {
         return [
-            'total' => $this->total,
-            'success' => $this->success,
-            'failed' => $this->failed,
-            'totalTime' => $this->totalTime,
-            'errors' => $this->errors,
-            'group' => $this->group,
-            'successRate' => $this->getSuccessRate(),
+            'total'        => $this->total,
+            'success'      => $this->success,
+            'failed'       => $this->failed,
+            'totalTime'    => $this->totalTime,
+            'errors'       => $this->errors,
+            'group'        => $this->group,
+            'successRate'  => $this->getSuccessRate(),
             'isSuccessful' => $this->isSuccessful(),
         ];
     }

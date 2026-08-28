@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Jobs;
 
+use Throwable;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
-use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
+use Simtabi\Laranail\Package\Tools\Support\RuntimeConfigurator;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederBundle;
+use Simtabi\Laranail\Package\Tools\Services\Database\SeederAutorun;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederExecutor;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRegistry;
 use Simtabi\Laranail\Package\Tools\Services\Event\PackageActionReporter;
-use Simtabi\Laranail\Package\Tools\Support\RuntimeConfigurator;
-use Throwable;
 
 /**
  * Executes ONE seeder bundle on a queue worker. The payload carries only
@@ -129,6 +129,7 @@ final class RunSeederBundleJob implements ShouldQueue
 
     /**
      * @param array<string, mixed> $extra
+     *
      * @return array<string, mixed>
      */
     private function jobContext(array $extra = []): array

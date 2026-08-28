@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\App;
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\App;
+use Illuminate\Pagination\Paginator;
+use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
-use Simtabi\Laranail\Package\Tools\Package;
 
 /**
  * HasRuntimeTweaks: useHttps / setLocale / paginator, all resolved and

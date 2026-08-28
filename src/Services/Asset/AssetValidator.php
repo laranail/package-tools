@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
+use Throwable;
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Contracts\ValidatorInterface;
-use Throwable;
 
 /**
  * Validates asset files and directories.
@@ -44,9 +44,18 @@ class AssetValidator implements ValidatorInterface
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function isValid(mixed $input): bool
+    {
+        return $this->validate($input) === [];
+    }
+
+    /**
      * Validate asset directory
      *
      * @param string $directory Directory path
+     *
      * @return array<string> Validation errors
      */
     protected function validateDirectory(string $directory): array
@@ -70,6 +79,7 @@ class AssetValidator implements ValidatorInterface
      * Validate asset file
      *
      * @param string $file File path
+     *
      * @return array<string> Validation errors
      */
     protected function validateFile(string $file): array
@@ -87,13 +97,5 @@ class AssetValidator implements ValidatorInterface
         }
 
         return $errors;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isValid(mixed $input): bool
-    {
-        return $this->validate($input) === [];
     }
 }

@@ -11,6 +11,7 @@ interface ResolverInterface
 {
     /**
      * @param string $input Value to resolve
+     *
      * @return string Resolved value
      */
     public function resolve(string $input): string;

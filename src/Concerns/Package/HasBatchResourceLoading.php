@@ -21,12 +21,12 @@ trait HasBatchResourceLoading
     public function loadAllResources(array $resources = []): static
     {
         $defaultResources = [
-            'configs' => fn () => $this->autoLoadConfigs(),
-            'views' => fn () => $this->autoLoadViews(),
+            'configs'      => fn () => $this->autoLoadConfigs(),
+            'views'        => fn () => $this->autoLoadViews(),
             'translations' => fn () => $this->autoLoadTranslations(),
-            'migrations' => fn () => $this->autoLoadMigrations(),
-            'routes' => fn () => $this->autoLoadRoutes(),
-            'commands' => fn () => $this->autoLoadCommands(),
+            'migrations'   => fn () => $this->autoLoadMigrations(),
+            'routes'       => fn () => $this->autoLoadRoutes(),
+            'commands'     => fn () => $this->autoLoadCommands(),
         ];
 
         $toLoad = $resources === [] ? $defaultResources : array_intersect_key($defaultResources, array_flip($resources));
@@ -37,6 +37,19 @@ trait HasBatchResourceLoading
 
         return $this;
     }
+
+    abstract public function hasConfigFile($configFileName = null): static;
+
+    abstract public function hasViews(?string $namespace = null): static;
+
+    abstract public function hasTranslations(): static;
+
+    abstract public function hasRoute(string $routeFileName): static;
+
+    /**
+     * @param string|array<int, string> ...$commandClassNames
+     */
+    abstract public function hasCommands(...$commandClassNames): static;
 
     /**
      * Auto-load all config files from config directory
@@ -145,7 +158,7 @@ trait HasBatchResourceLoading
         }
 
         $commands = iterator_to_array(
-            (new AttributeDiscoverer)->discoverSubclasses($dir, $namespace, Command::class)
+            (new AttributeDiscoverer)->discoverSubclasses($dir, $namespace, Command::class),
         );
 
         if ($commands !== []) {
@@ -161,17 +174,4 @@ trait HasBatchResourceLoading
      * @param string $path Optional path to append
      */
     abstract protected function packageBasePath(string $path = ''): string;
-
-    abstract public function hasConfigFile($configFileName = null): static;
-
-    abstract public function hasViews(?string $namespace = null): static;
-
-    abstract public function hasTranslations(): static;
-
-    abstract public function hasRoute(string $routeFileName): static;
-
-    /**
-     * @param string|array<int, string> ...$commandClassNames
-     */
-    abstract public function hasCommands(...$commandClassNames): static;
 }

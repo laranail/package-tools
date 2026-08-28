@@ -23,8 +23,8 @@ trait HasValidationRules
     public function hasValidationRule(string $name, string $ruleClass, ?string $message = null): static
     {
         $this->validationRules[] = [
-            'name' => $name,
-            'rule' => $ruleClass,
+            'name'    => $name,
+            'rule'    => $ruleClass,
             'message' => $message,
         ];
 

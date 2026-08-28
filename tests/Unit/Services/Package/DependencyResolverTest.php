@@ -42,8 +42,8 @@ final class DependencyResolverTest extends TestCase
     {
         file_put_contents($this->tmpRoot . '/composer.json', json_encode([
             'require' => [
-                'php' => '^8.3',
-                'ext-json' => '*',
+                'php'                => '^8.3',
+                'ext-json'           => '*',
                 'illuminate/support' => '^11.0',
             ],
             'require-dev' => [

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
+use Throwable;
+use RuntimeException;
+use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Events\MigrationEnded;
 use Illuminate\Database\Events\MigrationStarted;
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\Event;
-use Orchestra\Testbench\TestCase;
-use RuntimeException;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
@@ -19,7 +20,6 @@ use Simtabi\Laranail\Package\Tools\Events\PackageActionSucceeded;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Services\Database\FailureAwareMigrator;
 use Simtabi\Laranail\Package\Tools\Services\Database\MigrationFailureDetector;
-use Throwable;
 
 /**
  * Full-fidelity migration lifecycle. The decorated {@see FailureAwareMigrator}
@@ -30,33 +30,6 @@ use Throwable;
  */
 final class MigrationLifecycleTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
-    protected function defineEnvironment($app): void
-    {
-        $app['config']->set('database.default', 'lifecycle');
-        $app['config']->set('database.connections.lifecycle', [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-        ]);
-    }
-
-    private function migrate(string $path): void
-    {
-        try {
-            $this->app->make(Kernel::class)->call('migrate', [
-                '--path' => $path,
-                '--realpath' => true,
-            ]);
-        } catch (Throwable) {
-            // A throwing migration aborts migrate loudly; we assert on events.
-        }
-    }
-
     public function test_the_migrator_is_decorated_in_console(): void
     {
         $this->assertInstanceOf(FailureAwareMigrator::class, $this->app->make('migrator'));
@@ -150,5 +123,32 @@ final class MigrationLifecycleTest extends TestCase
 
         $this->assertCount(1, $captured);
         $this->assertSame('2024_01_01_000010_ok', $captured[0]->action);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
+    }
+
+    protected function defineEnvironment($app): void
+    {
+        $app['config']->set('database.default', 'lifecycle');
+        $app['config']->set('database.connections.lifecycle', [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix'   => '',
+        ]);
+    }
+
+    private function migrate(string $path): void
+    {
+        try {
+            $this->app->make(Kernel::class)->call('migrate', [
+                '--path'     => $path,
+                '--realpath' => true,
+            ]);
+        } catch (Throwable) {
+            // A throwing migration aborts migrate loudly; we assert on events.
+        }
     }
 }

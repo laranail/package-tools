@@ -21,10 +21,10 @@ declare(strict_types=1);
 namespace Acme\Hello\Jobs;
 
 use Illuminate\Support\Facades\Http;
-use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
-use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
 use Simtabi\Laranail\Package\Tools\Support\Concerns\HasErrorStorage;
 use Simtabi\Laranail\Package\Tools\Support\Concerns\HasGuzzleConfig;
+use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
+use Simtabi\Laranail\Package\Tools\Services\Http\Contracts\HttpConfigurationServiceInterface;
 use Simtabi\Laranail\Package\Tools\Support\ErrorStorage\Contracts\ErrorStorageServiceInterface;
 
 final class SyncGreetingsJob
@@ -72,7 +72,7 @@ final class SyncGreetingsJob
             logger()->warning('hello: sync finished with errors', [
                 'count' => $this->getErrorCount(),
                 'first' => $this->getFirstError(),
-                'all' => $this->getErrors(),
+                'all'   => $this->getErrors(),
             ]);
         }
     }

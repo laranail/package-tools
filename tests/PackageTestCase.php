@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests;
 
-use Illuminate\Contracts\Console\Kernel;
+use RuntimeException;
+use Orchestra\Testbench\TestCase;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
-use Orchestra\Testbench\TestCase;
-use RuntimeException;
+use Illuminate\Contracts\Console\Kernel;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
@@ -44,6 +44,7 @@ abstract class PackageTestCase extends TestCase
      * Get package providers
      *
      * @param Application $app
+     *
      * @return array<int, class-string>
      */
     protected function getPackageProviders($app): array
@@ -62,7 +63,7 @@ abstract class PackageTestCase extends TestCase
         $provider = new $providerClass($this->app);
 
         return $provider->package ?? throw new RuntimeException(
-            'Package instance not found. Ensure your service provider extends PackageServiceProvider.'
+            'Package instance not found. Ensure your service provider extends PackageServiceProvider.',
         );
     }
 
@@ -76,14 +77,14 @@ abstract class PackageTestCase extends TestCase
     {
         $this->assertTrue(
             config()->has($configKey),
-            "Config key '{$configKey}' is not registered."
+            "Config key '{$configKey}' is not registered.",
         );
 
         if ($defaultValue !== null) {
             $this->assertEquals(
                 $defaultValue,
                 config($configKey),
-                "Config key '{$configKey}' does not have expected default value."
+                "Config key '{$configKey}' does not have expected default value.",
             );
         }
     }
@@ -97,7 +98,7 @@ abstract class PackageTestCase extends TestCase
     {
         $this->assertTrue(
             view()->exists($view),
-            "View '{$view}' does not exist."
+            "View '{$view}' does not exist.",
         );
     }
 
@@ -113,7 +114,7 @@ abstract class PackageTestCase extends TestCase
 
         $this->assertTrue(
             view()->exists("components.{$fullName}"),
-            "Blade component '{$fullName}' is not registered."
+            "Blade component '{$fullName}' is not registered.",
         );
     }
 
@@ -129,7 +130,7 @@ abstract class PackageTestCase extends TestCase
         $this->assertContains(
             $commandName,
             $commands,
-            "Command '{$commandName}' is not registered."
+            "Command '{$commandName}' is not registered.",
         );
     }
 
@@ -153,7 +154,7 @@ abstract class PackageTestCase extends TestCase
 
         $this->assertTrue(
             $found,
-            "Route '{$method} {$uri}' is not registered."
+            "Route '{$method} {$uri}' is not registered.",
         );
     }
 
@@ -169,7 +170,7 @@ abstract class PackageTestCase extends TestCase
 
         $this->assertNotEmpty(
             $files,
-            "Migration '{$migrationName}' does not exist in '{$migrationPath}'."
+            "Migration '{$migrationName}' does not exist in '{$migrationPath}'.",
         );
     }
 
@@ -185,7 +186,7 @@ abstract class PackageTestCase extends TestCase
 
         $this->assertTrue(
             trans()->has($key, $locale),
-            "Translation key '{$key}' does not exist for locale '{$locale}'."
+            "Translation key '{$key}' does not exist for locale '{$locale}'.",
         );
     }
 
@@ -202,19 +203,19 @@ abstract class PackageTestCase extends TestCase
         $this->assertEquals(
             $expectedVendor,
             $package->getConfigVendor(),
-            'Package vendor does not match expected value.'
+            'Package vendor does not match expected value.',
         );
 
         $this->assertEquals(
             $expectedPackage,
             $package->shortName(),
-            'Package name does not match expected value.'
+            'Package name does not match expected value.',
         );
 
         $this->assertEquals(
             "{$expectedVendor}.{$expectedPackage}",
             $package->getDottedNamespace(),
-            'Package dotted namespace does not match expected value.'
+            'Package dotted namespace does not match expected value.',
         );
     }
 
@@ -227,7 +228,7 @@ abstract class PackageTestCase extends TestCase
     {
         $this->assertTrue(
             function_exists($functionName),
-            "Helper function '{$functionName}' does not exist."
+            "Helper function '{$functionName}' does not exist.",
         );
     }
 
@@ -250,7 +251,7 @@ abstract class PackageTestCase extends TestCase
 
         $this->assertTrue(
             $found,
-            "Publishable group '{$group}' is not registered."
+            "Publishable group '{$group}' is not registered.",
         );
     }
 
@@ -276,7 +277,7 @@ abstract class PackageTestCase extends TestCase
         $packageName = $package->shortName();
 
         $this->artisan('vendor:publish', [
-            '--tag' => "{$packageName}-migrations",
+            '--tag'   => "{$packageName}-migrations",
             '--force' => true,
         ]);
 

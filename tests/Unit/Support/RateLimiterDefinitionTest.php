@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Cache\RateLimiting\Unlimited;
 use Illuminate\Http\Request;
-use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Session\Store;
 use InvalidArgumentException;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Session\ArraySessionHandler;
+use Illuminate\Cache\RateLimiting\Unlimited;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\RateLimiterDefinition;
 
 /**
@@ -19,11 +19,6 @@ use Simtabi\Laranail\Package\Tools\Support\Definitions\RateLimiterDefinition;
  */
 final class RateLimiterDefinitionTest extends TestCase
 {
-    private function request(array $input = [], string $ip = '203.0.113.7'): Request
-    {
-        return Request::create('/login', 'POST', $input, [], [], ['REMOTE_ADDR' => $ip]);
-    }
-
     public function test_fixed_attempts_and_by_field_build_the_expected_limit(): void
     {
         $limit = RateLimiterDefinition::make('login')
@@ -139,5 +134,10 @@ final class RateLimiterDefinitionTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         RateLimiterDefinition::make('x')->byIp();
+    }
+
+    private function request(array $input = [], string $ip = '203.0.113.7'): Request
+    {
+        return Request::create('/login', 'POST', $input, [], [], ['REMOTE_ADDR' => $ip]);
     }
 }

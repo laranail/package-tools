@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Services\Event;
 
 use Closure;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Log;
+use Throwable;
 use Psr\Log\LogLevel;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Contracts\Foundation\Application;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
+use Simtabi\Laranail\Package\Tools\Facades\PackageActions;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
+use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionStarted;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionSucceeded;
-use Simtabi\Laranail\Package\Tools\Facades\PackageActions;
 use Simtabi\Laranail\Package\Tools\Services\Database\SeederRunTracker;
-use Simtabi\Laranail\Package\Tools\Services\Log\PackageLogger;
-use Throwable;
 
 /**
  * The single choke point for the package-action lifecycle. Every start /
@@ -226,6 +226,7 @@ final class PackageActionReporter
      *
      * @param Closure(): T $work
      * @param array<string, mixed> $context
+     *
      * @return T
      */
     public function track(

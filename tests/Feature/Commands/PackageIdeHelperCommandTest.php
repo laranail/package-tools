@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature\Commands;
 
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Artisan;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class PackageIdeHelperCommandTest extends TestCase
@@ -32,17 +32,12 @@ final class PackageIdeHelperCommandTest extends TestCase
         File::deleteDirectory($this->sandbox);
     }
 
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
-    }
-
     public function test_generates_facades_for_annotated_contracts(): void
     {
         $exit = Artisan::call('laranail::package-tools.ide-helper', [
-            '--source' => 'Contracts',
+            '--source'           => 'Contracts',
             '--source-namespace' => 'Simtabi\\Laranail\\Package\\Tools\\Tests\\Fixtures\\Facade',
-            '--output' => 'Facades',
+            '--output'           => 'Facades',
             '--facade-namespace' => 'App\\Facades',
         ]);
         $output = Artisan::output();
@@ -58,14 +53,19 @@ final class PackageIdeHelperCommandTest extends TestCase
         File::ensureDirectoryExists($this->sandbox . '/Empty');
 
         $exit = Artisan::call('laranail::package-tools.ide-helper', [
-            '--source' => 'Empty',
+            '--source'           => 'Empty',
             '--source-namespace' => 'App',
-            '--output' => 'Facades',
+            '--output'           => 'Facades',
             '--facade-namespace' => 'App\\Facades',
         ]);
         $output = Artisan::output();
 
         $this->assertSame(0, $exit);
         $this->assertStringContainsString('No #[AsFacade]', $output);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }

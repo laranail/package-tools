@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Integration;
 
 use Closure;
-use Illuminate\Support\ServiceProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Illuminate\Support\ServiceProvider;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
  * End-to-end Testbench coverage of folder-tree / namespaced config
@@ -141,13 +141,13 @@ class NestedConfigResolutionTest extends TestCase
         $matches = array_filter(
             $destinations,
             static fn (string $dest): bool => str_ends_with($dest, 'config/admin/panel.php')
-                || str_ends_with($dest, 'config/api/v1/limits.php')
+                || str_ends_with($dest, 'config/api/v1/limits.php'),
         );
 
         $this->assertCount(
             2,
             $matches,
-            'Nested config files should publish to config_path() preserving folders.'
+            'Nested config files should publish to config_path() preserving folders.',
         );
     }
 
@@ -173,12 +173,12 @@ class NestedConfigResolutionTest extends TestCase
         // merged key.
         $namespaced = array_filter(
             $destinations,
-            static fn (string $dest): bool => str_ends_with($dest, 'config/acme/widget.php')
+            static fn (string $dest): bool => str_ends_with($dest, 'config/acme/widget.php'),
         );
 
         $flat = array_filter(
             $destinations,
-            static fn (string $dest): bool => str_ends_with($dest, 'config/widget.php')
+            static fn (string $dest): bool => str_ends_with($dest, 'config/widget.php'),
         );
 
         $this->assertCount(1, $namespaced, 'Flat namespaced config should publish to config/<vendor>/<package>.php.');

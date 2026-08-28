@@ -29,12 +29,12 @@ final class HealthResponder
         $degraded = $summary['fail'] > 0;
 
         return new JsonResponse([
-            'status' => $degraded ? 'degraded' : 'healthy',
+            'status'  => $degraded ? 'degraded' : 'healthy',
             'summary' => $summary,
-            'checks' => array_map(static fn (array $row): array => [
-                'name' => $row['check']->name(),
-                'group' => $row['group'] ?? null,
-                'status' => $row['result']->status->value,
+            'checks'  => array_map(static fn (array $row): array => [
+                'name'    => $row['check']->name(),
+                'group'   => $row['group'] ?? null,
+                'status'  => $row['result']->status->value,
                 'message' => $row['result']->message,
             ], $report),
         ], $degraded ? 503 : 200);

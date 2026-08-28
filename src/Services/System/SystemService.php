@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\System;
 
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\File;
+use Illuminate\Contracts\Foundation\Application;
 use Simtabi\Laranail\Package\Tools\Services\System\Contracts\SystemServiceInterface;
 
 /**
@@ -55,12 +55,12 @@ final readonly class SystemService implements SystemServiceInterface
             if (isset($require[$package])) {
                 $result[$package] = [
                     'version' => (string) $require[$package],
-                    'type' => 'require',
+                    'type'    => 'require',
                 ];
             } elseif (isset($requireDev[$package])) {
                 $result[$package] = [
                     'version' => (string) $requireDev[$package],
-                    'type' => 'require-dev',
+                    'type'    => 'require-dev',
                 ];
             }
         }
@@ -71,20 +71,20 @@ final readonly class SystemService implements SystemServiceInterface
     public function getSystemEnv(): array
     {
         return [
-            'php_version' => PHP_VERSION,
-            'php_os' => PHP_OS,
-            'os_family' => $this->getOsFamily(),
+            'php_version'     => PHP_VERSION,
+            'php_os'          => PHP_OS,
+            'os_family'       => $this->getOsFamily(),
             'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
-            'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? ($this->app?->basePath() ?? ''),
-            'http_host' => $_SERVER['HTTP_HOST'] ?? 'localhost',
-            'server_name' => $_SERVER['SERVER_NAME'] ?? 'localhost',
-            'server_addr' => $_SERVER['SERVER_ADDR'] ?? '127.0.0.1',
-            'server_port' => $_SERVER['SERVER_PORT'] ?? '80',
+            'document_root'   => $_SERVER['DOCUMENT_ROOT'] ?? ($this->app?->basePath() ?? ''),
+            'http_host'       => $_SERVER['HTTP_HOST'] ?? 'localhost',
+            'server_name'     => $_SERVER['SERVER_NAME'] ?? 'localhost',
+            'server_addr'     => $_SERVER['SERVER_ADDR'] ?? '127.0.0.1',
+            'server_port'     => $_SERVER['SERVER_PORT'] ?? '80',
             'script_filename' => $_SERVER['SCRIPT_FILENAME'] ?? '',
-            'path_info' => $_SERVER['PATH_INFO'] ?? '',
-            'request_uri' => $_SERVER['REQUEST_URI'] ?? '/',
+            'path_info'       => $_SERVER['PATH_INFO'] ?? '',
+            'request_uri'     => $_SERVER['REQUEST_URI'] ?? '/',
             'laravel_version' => $this->app?->version() ?? 'unknown',
-            'environment' => $this->app?->environment() ?? 'unknown',
+            'environment'     => $this->app?->environment() ?? 'unknown',
         ];
     }
 
@@ -93,18 +93,18 @@ final readonly class SystemService implements SystemServiceInterface
         $basePath = $this->app?->basePath() ?? (getcwd() ?: '.');
 
         return [
-            'ssl_installed' => $this->isSslInstalled(),
-            'php_sapi' => PHP_SAPI,
-            'php_extensions' => get_loaded_extensions(),
-            'memory_limit' => ini_get('memory_limit'),
-            'max_execution_time' => ini_get('max_execution_time'),
+            'ssl_installed'       => $this->isSslInstalled(),
+            'php_sapi'            => PHP_SAPI,
+            'php_extensions'      => get_loaded_extensions(),
+            'memory_limit'        => ini_get('memory_limit'),
+            'max_execution_time'  => ini_get('max_execution_time'),
             'upload_max_filesize' => ini_get('upload_max_filesize'),
-            'post_max_size' => ini_get('post_max_size'),
-            'display_errors' => ini_get('display_errors'),
-            'error_reporting' => error_reporting(),
-            'timezone' => date_default_timezone_get(),
-            'disk_free_space' => @disk_free_space($basePath) ?: 0.0,
-            'disk_total_space' => @disk_total_space($basePath) ?: 0.0,
+            'post_max_size'       => ini_get('post_max_size'),
+            'display_errors'      => ini_get('display_errors'),
+            'error_reporting'     => error_reporting(),
+            'timezone'            => date_default_timezone_get(),
+            'disk_free_space'     => @disk_free_space($basePath) ?: 0.0,
+            'disk_total_space'    => @disk_total_space($basePath) ?: 0.0,
         ];
     }
 
@@ -112,10 +112,10 @@ final readonly class SystemService implements SystemServiceInterface
     {
         return match (true) {
             defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Windows' => 'windows',
-            defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Darwin' => 'macos',
-            defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Linux' => 'linux',
-            defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'BSD' => 'bsd',
-            default => 'unknown',
+            defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Darwin'  => 'macos',
+            defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'Linux'   => 'linux',
+            defined('PHP_OS_FAMILY') && PHP_OS_FAMILY === 'BSD'     => 'bsd',
+            default                                                 => 'unknown',
         };
     }
 

@@ -28,7 +28,7 @@ trait HasCommands
         $flattened = collect($commandClassNames)->flatten()->toArray();
         $this->commands = array_merge(
             $this->commands,
-            $flattened
+            $flattened,
         );
 
         return $this;
@@ -50,7 +50,7 @@ trait HasCommands
         $flattened = collect($commandClassNames)->flatten()->toArray();
         $this->consoleCommands = array_merge(
             $this->consoleCommands,
-            $flattened
+            $flattened,
         );
 
         return $this;

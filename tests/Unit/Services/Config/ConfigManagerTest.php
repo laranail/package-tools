@@ -6,11 +6,11 @@ namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Config;
 
 use Override;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Contracts\ConfigManagerInterface;
-use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
-use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
-use Simtabi\Laranail\Package\Tools\Services\Config\ConfigManager;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
+use Simtabi\Laranail\Package\Tools\Services\Config\ConfigManager;
+use Simtabi\Laranail\Package\Tools\Contracts\ConfigManagerInterface;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 
 final class ConfigManagerTest extends TestCase
 {
@@ -35,15 +35,6 @@ final class ConfigManagerTest extends TestCase
         }
 
         parent::tearDown();
-    }
-
-    /**
-     * @return array<int, class-string>
-     */
-    #[Override]
-    protected function getPackageProviders($app): array
-    {
-        return [PackageToolsServiceProvider::class];
     }
 
     // -----------------------------------------------------------------
@@ -309,5 +300,14 @@ final class ConfigManagerTest extends TestCase
         self::assertInstanceOf(ConfigManager::class, $a);
         // Stateful: a base path set by one caller must not leak to another.
         self::assertNotSame($a, $b);
+    }
+
+    /**
+     * @return array<int, class-string>
+     */
+    #[Override]
+    protected function getPackageProviders($app): array
+    {
+        return [PackageToolsServiceProvider::class];
     }
 }

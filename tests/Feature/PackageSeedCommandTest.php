@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Queue;
 use Orchestra\Testbench\TestCase;
-use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
-use Simtabi\Laranail\Package\Tools\Jobs\RunSeederBundleJob;
+use Illuminate\Support\Facades\Queue;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Jobs\RunSeederBundleJob;
+use Simtabi\Laranail\Package\Tools\Enums\SeederExecutionMode;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AutoSeederDefinition;
@@ -21,15 +21,6 @@ final class PackageSeedCommandTest extends TestCase
         SeedCommandLedger::reset();
 
         parent::setUp();
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            PackageToolsServiceProvider::class,
-            SeedCommandInlineProvider::class,
-            SeedCommandBackgroundProvider::class,
-        ];
     }
 
     public function test_key_filter_runs_only_that_bundle_inline(): void
@@ -47,11 +38,13 @@ final class PackageSeedCommandTest extends TestCase
         $this->artisan('laranail::package-tools.seed', ['--key' => ['t/background']])
             ->assertExitCode(0);
 
-        Queue::assertPushed(RunSeederBundleJob::class,
+        Queue::assertPushed(
+            RunSeederBundleJob::class,
             // The payload carries ONLY the key + mode enum — never the
             // definition (closures don't serialize).
             fn (RunSeederBundleJob $job): bool => $job->bundleKey === 't/background'
-            && $job->mode === SeederExecutionMode::Queued);
+            && $job->mode === SeederExecutionMode::Queued,
+        );
         $this->assertSame([], SeedCommandLedger::$ran);
     }
 
@@ -99,6 +92,15 @@ final class PackageSeedCommandTest extends TestCase
             ->assertExitCode(0);
 
         $this->assertSame([], SeedCommandLedger::$ran);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            PackageToolsServiceProvider::class,
+            SeedCommandInlineProvider::class,
+            SeedCommandBackgroundProvider::class,
+        ];
     }
 }
 

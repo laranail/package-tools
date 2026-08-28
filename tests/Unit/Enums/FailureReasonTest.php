@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Enums;
 
-use Illuminate\Queue\MaxAttemptsExceededException;
-use Illuminate\Queue\TimeoutExceededException;
-use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use PHPUnit\Framework\TestCase;
+use Illuminate\Queue\TimeoutExceededException;
+use Illuminate\Queue\MaxAttemptsExceededException;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
 
 /**

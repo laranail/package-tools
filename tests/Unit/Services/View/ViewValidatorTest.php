@@ -66,7 +66,7 @@ final class ViewValidatorTest extends TestCase
     public function test_view_data_array_happy_path(): void
     {
         $errors = $this->validator->validate([
-            'path' => $this->viewDir,
+            'path'      => $this->viewDir,
             'namespace' => 'pkg',
         ]);
 
@@ -85,7 +85,7 @@ final class ViewValidatorTest extends TestCase
     public function test_view_data_array_reports_invalid_namespace(): void
     {
         $errors = $this->validator->validate([
-            'path' => $this->viewDir,
+            'path'      => $this->viewDir,
             'namespace' => 'bad namespace',
         ]);
 

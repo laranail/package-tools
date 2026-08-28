@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use Illuminate\Support\Facades\RateLimiter;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
+use Illuminate\Support\Facades\RateLimiter;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\HasRateLimiters;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\RateLimiterDefinition;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 /**
  * declarative named rate limiters: storage shapes and the boot wiring

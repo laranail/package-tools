@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Asset;
 
-use Illuminate\Support\Str;
-use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
-use Simtabi\Laranail\Package\Tools\Support\Path\Path;
 use Stringable;
+use Illuminate\Support\Str;
+use Simtabi\Laranail\Package\Tools\Support\Path\Path;
+use Simtabi\Laranail\Package\Tools\Exceptions\UnsafeAssetPath;
 
 /**
  * A directory that published assets may be deleted from.
@@ -48,6 +48,11 @@ final readonly class PublishRoot implements Stringable
         private string $path,
         private string $basePath,
     ) {}
+
+    public function __toString(): string
+    {
+        return $this->path;
+    }
 
     /**
      * @throws UnsafeAssetPath
@@ -112,6 +117,40 @@ final readonly class PublishRoot implements Stringable
         return $root;
     }
 
+    /**
+     * Collapse `.` and `..` without touching the filesystem.
+     *
+     * Lexical on purpose: a publish root may not exist yet, and `realpath()`
+     * would return false rather than validating it. The filesystem check comes
+     * afterwards, separately, where it can be conditional.
+     */
+    public static function normalise(string $path): string
+    {
+        // Split the root prefix off first. It is not a segment: "\\\\server\\share" is a UNC root, and
+        // treating its host and share as ordinary segments collapsed it to "/server/share" -- a local
+        // absolute path -- so every containment check below then ran against the wrong path.
+        [$prefix, $rest] = Path::split($path);
+        $segments = [];
+
+        foreach (Path::segments($rest) as $segment) {
+            if ($segment === '') {
+                continue;
+            }
+            if ($segment === '.') {
+                continue;
+            }
+            if ($segment === '..') {
+                array_pop($segments);
+
+                continue;
+            }
+
+            $segments[] = $segment;
+        }
+
+        return $prefix . implode(Path::SEPARATOR, $segments);
+    }
+
     public function path(): string
     {
         return $this->path;
@@ -146,45 +185,6 @@ final readonly class PublishRoot implements Stringable
         $relative = Str::after($this->path, $this->basePath);
 
         return count(Path::segments($relative));
-    }
-
-    public function __toString(): string
-    {
-        return $this->path;
-    }
-
-    /**
-     * Collapse `.` and `..` without touching the filesystem.
-     *
-     * Lexical on purpose: a publish root may not exist yet, and `realpath()`
-     * would return false rather than validating it. The filesystem check comes
-     * afterwards, separately, where it can be conditional.
-     */
-    public static function normalise(string $path): string
-    {
-        // Split the root prefix off first. It is not a segment: "\\\\server\\share" is a UNC root, and
-        // treating its host and share as ordinary segments collapsed it to "/server/share" -- a local
-        // absolute path -- so every containment check below then ran against the wrong path.
-        [$prefix, $rest] = Path::split($path);
-        $segments = [];
-
-        foreach (Path::segments($rest) as $segment) {
-            if ($segment === '') {
-                continue;
-            }
-            if ($segment === '.') {
-                continue;
-            }
-            if ($segment === '..') {
-                array_pop($segments);
-
-                continue;
-            }
-
-            $segments[] = $segment;
-        }
-
-        return $prefix . implode(Path::SEPARATOR, $segments);
     }
 
     private static function isAbsolute(string $path): bool

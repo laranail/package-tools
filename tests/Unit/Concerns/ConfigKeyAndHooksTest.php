@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
 
 class ConfigKeyAndHooksTest extends TestCase
@@ -59,7 +59,7 @@ class ConfigKeyAndHooksTest extends TestCase
     public function has_validation_rules_batch_supports_class_and_class_message_forms(): void
     {
         $package = (new Package)->name('acme/widget')->hasValidationRules([
-            'bare' => Package::class,
+            'bare'         => Package::class,
             'with_message' => [Package::class, 'The :attribute failed.'],
         ]);
 

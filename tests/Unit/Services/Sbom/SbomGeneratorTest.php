@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Sbom;
 
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
 use Simtabi\Laranail\Package\Tools\Services\Sbom\SbomGenerator;
 
 final class SbomGeneratorTest extends TestCase

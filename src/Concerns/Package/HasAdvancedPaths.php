@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
-use Illuminate\Support\Facades\File;
 use ReflectionClass;
 use RuntimeException;
+use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 /**
@@ -20,6 +20,7 @@ trait HasAdvancedPaths
      *
      * @param string|null $path Optional subpath to append (relative path only)
      * @param string $basePath Base path prefix (default: 'platform')
+     *
      * @return string Full validated path
      *
      * @throws RuntimeException If path validation fails
@@ -46,6 +47,7 @@ trait HasAdvancedPaths
      * bytes; return the trimmed, normalized path.
      *
      * @param string $path Path to validate
+     *
      * @return string Validated path (trimmed and normalized)
      *
      * @throws RuntimeException If path fails security checks
@@ -81,7 +83,7 @@ trait HasAdvancedPaths
             $reason = implode(', ', $errors);
             throw new RuntimeException(
                 "Invalid path '{$originalPath}': Path {$reason}. " .
-                "Use relative paths within the package like 'config/file.php' or 'resources/views'."
+                "Use relative paths within the package like 'config/file.php' or 'resources/views'.",
             );
         }
 
@@ -93,6 +95,7 @@ trait HasAdvancedPaths
      * falling back to the namespace-based path.
      *
      * @param string $basePath Base path prefix
+     *
      * @return string Package base path
      */
     protected function buildBasePath(string $basePath = 'platform'): string
@@ -109,7 +112,7 @@ trait HasAdvancedPaths
                 // derivation — worth a warning before it becomes a failure.
                 FailurePolicy::warn('module path resolution fell back', [
                     'expected' => 'reflection-based module root from ' . $basePath,
-                    'actual' => 'threw ' . $e::class . ', using namespace-based path',
+                    'actual'   => 'threw ' . $e::class . ', using namespace-based path',
                     'decision' => 'tolerated fallback',
                 ]);
             }
@@ -124,6 +127,7 @@ trait HasAdvancedPaths
      *
      * @param string $classFile Full path to the class file
      * @param string $basePath Base path prefix
+     *
      * @return string Module root path
      *
      * @throws RuntimeException If 'src' directory not found
@@ -152,6 +156,7 @@ trait HasAdvancedPaths
      * directory structure.
      *
      * @param string $basePath Base path prefix
+     *
      * @return string Namespace-based path
      */
     protected function buildNamespaceBasedPath(string $basePath): string
@@ -234,6 +239,7 @@ trait HasAdvancedPaths
      * Resolve several paths in one call; invalid paths are skipped.
      *
      * @param array<string, string> $paths Map of key => path
+     *
      * @return array<string, string> Map of key => full path
      */
     protected function getPaths(array $paths): array

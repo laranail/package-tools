@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
-use Illuminate\Contracts\View\View as ViewContract;
-use Illuminate\Support\Facades\View;
 use Mockery;
-use PHPUnit\Framework\Attributes\Test;
 use ReflectionMethod;
+use Illuminate\Support\Facades\View;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
-use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Illuminate\Contracts\View\View as ViewContract;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
  * Regression guard: the enhanced view composer registry, global composers,
@@ -80,7 +80,7 @@ class ViewComposerWiringTest extends TestCase
         $package->registerViewComposerWithDependencies(
             'dashboard',
             ViewComposerWiringComposer::class,
-            autoPrefix: false
+            autoPrefix: false,
         );
 
         $this->bootViewComposers($package);

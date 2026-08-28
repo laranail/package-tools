@@ -97,7 +97,7 @@ class HasNestedConfigFilesTest extends TestCase
         // including the flat top-level file.
         $this->assertSame(
             ['admin.panel', 'api.v1.limits', 'custom.thing', 'widget'],
-            $keys
+            $keys,
         );
     }
 
@@ -111,7 +111,7 @@ class HasNestedConfigFilesTest extends TestCase
 
         $this->assertSame(
             ['acme.admin.panel', 'acme.api.v1.limits', 'acme.custom.thing', 'acme.widget'],
-            $keys
+            $keys,
         );
     }
 

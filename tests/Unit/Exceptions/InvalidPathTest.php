@@ -197,8 +197,11 @@ class InvalidPathTest extends TestCase
         foreach ($exceptions as $exception) {
             $this->assertIsString($exception->getMessage());
             $this->assertNotEmpty($exception->getMessage());
-            $this->assertGreaterThan(20, strlen($exception->getMessage()),
-                'Exception message should be descriptive');
+            $this->assertGreaterThan(
+                20,
+                strlen($exception->getMessage()),
+                'Exception message should be descriptive',
+            );
         }
     }
 
@@ -212,7 +215,7 @@ class InvalidPathTest extends TestCase
             str_contains($message, 'Call') ||
             str_contains($message, 'Please') ||
             str_contains($message, 'verify'),
-            'Exception should provide actionable guidance'
+            'Exception should provide actionable guidance',
         );
     }
 }

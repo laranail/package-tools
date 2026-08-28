@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
-use Illuminate\Console\Scheduling\CacheEventMutex;
-use Illuminate\Console\Scheduling\Event;
-use InvalidArgumentException;
 use Override;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
+use Illuminate\Console\Scheduling\Event;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
-use Simtabi\Laranail\Package\Tools\Support\Scheduling\CronBuilder;
+use Illuminate\Console\Scheduling\CacheEventMutex;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Support\Scheduling\CronBuilder;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
 
 /**
  * the scheduled-command definition: two-tier __call dispatch (cron-first,

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit;
 
-use Illuminate\Contracts\Foundation\Application;
 use Mockery;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
+use Illuminate\Contracts\Foundation\Application;
 use Simtabi\Laranail\Package\Tools\Tests\Fixtures\SamplePackage\Providers\SampleServiceProvider;
 
 final class PackageBaseDirResolutionTest extends TestCase
@@ -34,7 +34,7 @@ final class PackageBaseDirResolutionTest extends TestCase
         $this->assertStringEndsWith('sample-package', $baseDir);
         $this->assertFalse(
             str_ends_with($baseDir, DIRECTORY_SEPARATOR . 'src'),
-            'Base dir must resolve to the package root, not the src/ directory.'
+            'Base dir must resolve to the package root, not the src/ directory.',
         );
     }
 

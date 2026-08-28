@@ -24,7 +24,7 @@ final class BootReport
     {
         $this->degraded[$builder] = [
             'criticality' => $criticality,
-            'cause_type' => $causeType,
+            'cause_type'  => $causeType,
         ];
     }
 

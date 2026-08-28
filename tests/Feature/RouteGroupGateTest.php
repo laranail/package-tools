@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
-use Illuminate\Support\Facades\Route;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Support\Facades\Route;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\RouteGroupDefinition;
@@ -32,6 +32,11 @@ final class RouteGroupGateTestProvider extends PackageServiceProvider
  */
 final class RouteGroupGateTest extends TestCase
 {
+    public function test_a_gated_off_group_is_absent(): void
+    {
+        $this->assertNull(Route::getRoutes()->getByName('acme.ping'));
+    }
+
     protected function getPackageProviders($app): array
     {
         return [RouteGroupGateTestProvider::class];
@@ -40,10 +45,5 @@ final class RouteGroupGateTest extends TestCase
     protected function defineEnvironment($app): void
     {
         $app['config']->set('acme.features.api', false);
-    }
-
-    public function test_a_gated_off_group_is_absent(): void
-    {
-        $this->assertNull(Route::getRoutes()->getByName('acme.ping'));
     }
 }

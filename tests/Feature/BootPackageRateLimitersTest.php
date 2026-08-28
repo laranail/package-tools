@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Feature;
 
 use Closure;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use Orchestra\Testbench\TestCase;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\RateLimiterDefinition;
@@ -19,11 +19,6 @@ use Simtabi\Laranail\Package\Tools\Support\Definitions\RateLimiterDefinition;
  */
 final class BootPackageRateLimitersTest extends TestCase
 {
-    protected function getPackageProviders($app): array
-    {
-        return [RateLimiterTestPackageProvider::class];
-    }
-
     public function test_registered_limiter_is_available_by_name(): void
     {
         $limiter = RateLimiter::limiter('pkg-api');
@@ -51,6 +46,11 @@ final class BootPackageRateLimitersTest extends TestCase
         $this->assertInstanceOf(Limit::class, $limit);
         $this->assertSame(7, $limit->maxAttempts);
         $this->assertSame('a@b.com|198.51.100.9', $limit->key);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [RateLimiterTestPackageProvider::class];
     }
 }
 

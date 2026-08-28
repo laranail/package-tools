@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use Illuminate\Console\Scheduling\Schedule;
 use PHPUnit\Framework\Attributes\Test;
-use Simtabi\Laranail\Package\Tools\Concerns\Package\HasScheduledCommands;
+use Illuminate\Console\Scheduling\Schedule;
 use Simtabi\Laranail\Package\Tools\Enums\Cadence;
-use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\HasScheduledCommands;
+use Simtabi\Laranail\Package\Tools\Support\Definitions\ScheduledCommandDefinition;
 
 /**
  * declarative scheduler registration: shorthand wrapping into definitions

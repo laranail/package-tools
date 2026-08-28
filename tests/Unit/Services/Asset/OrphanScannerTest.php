@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Services\Asset;
 
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\ServiceProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Illuminate\Support\ServiceProvider;
+use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 use Simtabi\Laranail\Package\Tools\Services\Asset\OrphanEntry;
+use Simtabi\Laranail\Package\Tools\Services\Asset\PublishRoot;
 use Simtabi\Laranail\Package\Tools\Services\Asset\OrphanScanner;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishPathGuard;
-use Simtabi\Laranail\Package\Tools\Services\Asset\PublishRoot;
 use Simtabi\Laranail\Package\Tools\Services\Asset\PublishTagRegistry;
-use Simtabi\Laranail\Package\Tools\Tests\TestCase;
 
 final class OrphanScannerTest extends TestCase
 {
@@ -44,33 +44,6 @@ final class OrphanScannerTest extends TestCase
         File::deleteDirectory($this->sandbox);
 
         parent::tearDown();
-    }
-
-    private function guard(): PublishPathGuard
-    {
-        return new PublishPathGuard([
-            PublishRoot::make('public/vendor', $this->sandbox),
-        ]);
-    }
-
-    private function scanner(?PublishTagRegistry $registry = null, int $maxDepth = 12): OrphanScanner
-    {
-        return new OrphanScanner($this->guard(), $registry ?? new PublishTagRegistry, $maxDepth);
-    }
-
-    /** @return list<string> */
-    private function relativePaths(iterable $entries): array
-    {
-        $paths = [];
-
-        foreach ($entries as $entry) {
-            self::assertInstanceOf(OrphanEntry::class, $entry);
-            $paths[] = $entry->relativePath;
-        }
-
-        sort($paths);
-
-        return $paths;
     }
 
     // -----------------------------------------------------------------
@@ -308,5 +281,32 @@ final class OrphanScannerTest extends TestCase
 
         self::assertSame(['blog/stale'], $this->relativePaths($entries));
         self::assertSame('blog-assets', $entries[0]->attributedTag);
+    }
+
+    private function guard(): PublishPathGuard
+    {
+        return new PublishPathGuard([
+            PublishRoot::make('public/vendor', $this->sandbox),
+        ]);
+    }
+
+    private function scanner(?PublishTagRegistry $registry = null, int $maxDepth = 12): OrphanScanner
+    {
+        return new OrphanScanner($this->guard(), $registry ?? new PublishTagRegistry, $maxDepth);
+    }
+
+    /** @return list<string> */
+    private function relativePaths(iterable $entries): array
+    {
+        $paths = [];
+
+        foreach ($entries as $entry) {
+            self::assertInstanceOf(OrphanEntry::class, $entry);
+            $paths[] = $entry->relativePath;
+        }
+
+        sort($paths);
+
+        return $paths;
     }
 }

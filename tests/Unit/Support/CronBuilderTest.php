@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Support;
 
 use InvalidArgumentException;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
+use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Enums\Weekday;
-use Simtabi\Laranail\Package\Tools\Support\Scheduling\CronBuilder;
+use Simtabi\Laranail\Package\Tools\Contracts\CronExpressible;
 use Simtabi\Laranail\Package\Tools\Support\Scheduling\TimeOfDay;
+use Simtabi\Laranail\Package\Tools\Support\Scheduling\CronBuilder;
 
 /**
  * the fluent cron designer: field setters and validation, the frequency
@@ -336,12 +336,12 @@ final class CronBuilderTest extends TestCase
     {
         $builder = CronBuilder::make()->at('02:30')->dayOfWeek(Weekday::Monday);
         $expected = [
-            'minute' => '30',
-            'hour' => '2',
+            'minute'       => '30',
+            'hour'         => '2',
             'day_of_month' => '*',
-            'month' => '*',
-            'day_of_week' => '1',
-            'expression' => '30 2 * * 1',
+            'month'        => '*',
+            'day_of_week'  => '1',
+            'expression'   => '30 2 * * 1',
         ];
 
         $this->assertSame($expected, $builder->toArray());

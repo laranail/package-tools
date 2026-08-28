@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 
 use Illuminate\Support\Facades\Event;
-use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Enums\FailureReason;
+use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Enums\PackageActionType;
 use Simtabi\Laranail\Package\Tools\Events\PackageActionFailed;
-use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
+use Simtabi\Laranail\Package\Tools\Exceptions\ScheduleConfigurationException;
 
 /**
  * How a package's schedule-configuration failure (a bad cadence / unknown

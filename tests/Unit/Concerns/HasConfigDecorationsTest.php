@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Tests\Unit\Concerns;
 
-use Orchestra\Testbench\TestCase;
 use RuntimeException;
+use Orchestra\Testbench\TestCase;
+use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Exceptions\PackageBootException;
-use Simtabi\Laranail\Package\Tools\Package;
 
 /**
  * HasConfigDecorations: register-phase host-wins default merges and
@@ -16,13 +16,6 @@ use Simtabi\Laranail\Package\Tools\Package;
  */
 final class HasConfigDecorationsTest extends TestCase
 {
-    private function package(): Package
-    {
-        return (new Package)
-            ->name('acme/x')
-            ->setPathFrom(__DIR__ . '/../../fixtures/config-decorations');
-    }
-
     public function test_merges_config_defaults_lets_the_host_win(): void
     {
         config()->set('app.name', 'HostName');
@@ -96,5 +89,12 @@ final class HasConfigDecorationsTest extends TestCase
 
         $this->assertSame(1, config('acme.yes'));
         $this->assertNull(config('acme.no'));
+    }
+
+    private function package(): Package
+    {
+        return (new Package)
+            ->name('acme/x')
+            ->setPathFrom(__DIR__ . '/../../fixtures/config-decorations');
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Component;
 
-use Illuminate\Support\Facades\Blade;
 use Livewire\Livewire;
+use Illuminate\Support\Facades\Blade;
 use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
 
 /**
@@ -75,15 +75,16 @@ class ComponentRegistry implements RegistryInterface
      * Get registered components by type
      *
      * @param string $type Component type (blade, livewire, vue)
+     *
      * @return array<string, string>
      */
     public function getByType(string $type): array
     {
         return match ($type) {
-            'blade' => $this->bladeComponents,
+            'blade'    => $this->bladeComponents,
             'livewire' => $this->livewireComponents,
-            'vue' => $this->vueComponents,
-            default => [],
+            'vue'      => $this->vueComponents,
+            default    => [],
         };
     }
 
@@ -111,9 +112,9 @@ class ComponentRegistry implements RegistryInterface
     public function getRegistered(): array
     {
         return [
-            'blade' => $this->bladeComponents,
+            'blade'    => $this->bladeComponents,
             'livewire' => $this->livewireComponents,
-            'vue' => $this->vueComponents,
+            'vue'      => $this->vueComponents,
         ];
     }
 
@@ -146,7 +147,7 @@ class ComponentRegistry implements RegistryInterface
         unset(
             $this->bladeComponents[$key],
             $this->livewireComponents[$key],
-            $this->vueComponents[$key]
+            $this->vueComponents[$key],
         );
     }
 }

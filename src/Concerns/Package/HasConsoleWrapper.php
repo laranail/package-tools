@@ -19,6 +19,7 @@ trait HasConsoleWrapper
      * @param bool|callable $andWhen Additional condition to check (bool or callable that returns bool)
      * @param bool $expectReturn Whether to expect and return a value from callback
      * @param mixed $default Default value to return if conditions not met or on error
+     *
      * @return mixed Returns callback result if expectReturn=true, null otherwise
      *
      * @example
@@ -30,7 +31,7 @@ trait HasConsoleWrapper
         callable $callback,
         bool|callable $andWhen = true,
         bool $expectReturn = false,
-        mixed $default = null
+        mixed $default = null,
     ): mixed {
         if (! app()->runningInConsole()) {
             return $expectReturn ? $default : null;
@@ -70,13 +71,13 @@ trait HasConsoleWrapper
         callable $callback,
         string|array $environments,
         bool $expectReturn = false,
-        mixed $default = null
+        mixed $default = null,
     ): mixed {
         return $this->shouldRunInConsole(
             callback: $callback,
             andWhen: fn () => app()->environment($environments),
             expectReturn: $expectReturn,
-            default: $default
+            default: $default,
         );
     }
 
@@ -100,13 +101,13 @@ trait HasConsoleWrapper
         callable $callback,
         bool|callable $condition,
         bool $expectReturn = false,
-        mixed $default = null
+        mixed $default = null,
     ): mixed {
         return $this->shouldRunInConsole(
             callback: $callback,
             andWhen: $condition,
             expectReturn: $expectReturn,
-            default: $default
+            default: $default,
         );
     }
 
@@ -116,6 +117,7 @@ trait HasConsoleWrapper
      *
      * @param array<callable> $callbacks Array of callbacks to execute
      * @param bool|callable $andWhen Additional condition
+     *
      * @return bool True if all succeeded, false if any failed or conditions not met
      *
      * @example
@@ -128,7 +130,7 @@ trait HasConsoleWrapper
      */
     protected function shouldRunInConsoleMultiple(
         array $callbacks,
-        bool|callable $andWhen = true
+        bool|callable $andWhen = true,
     ): bool {
         if (! app()->runningInConsole()) {
             return false;

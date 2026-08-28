@@ -27,24 +27,6 @@ final class AssetValidatorTest extends TestCase
         parent::tearDown();
     }
 
-    private function deleteTree(string $dir): void
-    {
-        if (! is_dir($dir)) {
-            return;
-        }
-        foreach (scandir($dir) ?: [] as $entry) {
-            if ($entry === '.') {
-                continue;
-            }
-            if ($entry === '..') {
-                continue;
-            }
-            $path = $dir . '/' . $entry;
-            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
-        }
-        @rmdir($dir);
-    }
-
     public function test_rejects_non_string_input(): void
     {
         $this->assertContains('Asset path must be a string', $this->validator->validate(['x']));
@@ -94,5 +76,23 @@ final class AssetValidatorTest extends TestCase
         $errors = $this->validator->validate($dir);
 
         $this->assertContains("Asset directory is empty: {$dir}", $errors);
+    }
+
+    private function deleteTree(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+        foreach (scandir($dir) ?: [] as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+            if ($entry === '..') {
+                continue;
+            }
+            $path = $dir . '/' . $entry;
+            is_dir($path) ? $this->deleteTree($path) : @unlink($path);
+        }
+        @rmdir($dir);
     }
 }
