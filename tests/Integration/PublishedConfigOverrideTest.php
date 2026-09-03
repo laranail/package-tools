@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
 use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Package\Tools\Tests\TestCase;
+use Simtabi\Laranail\Package\Tools\Tests\ParallelSafe;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
@@ -22,12 +23,17 @@ class PublishedConfigOverrideTest extends TestCase
 
     private string $publishedPath;
 
+    private string $vendor;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->fixtureRoot = dirname(__DIR__) . '/fixtures/nested-config-package';
-        $this->publishedPath = config_path('acme/widget.php');
+        // Process-scoped: this test writes into the skeleton's shared config
+        // directory, which every parallel worker boots against. See ParallelSafe.
+        $this->vendor = ParallelSafe::vendor();
+        $this->publishedPath = config_path($this->vendor . '/widget.php');
     }
 
     protected function tearDown(): void
@@ -40,6 +46,16 @@ class PublishedConfigOverrideTest extends TestCase
         parent::tearDown();
     }
 
+    /**
+     * This test publishes into the application's config directory, and every
+     * parallel worker shares one skeleton - so it gets its own copy. See
+     * ParallelSafe::isolatedSkeleton().
+     */
+    public static function applicationBasePath(): string
+    {
+        return ParallelSafe::isolatedSkeleton();
+    }
+
     #[Test]
     public function a_published_namespaced_config_override_reaches_the_dotted_key(): void
     {
@@ -49,9 +65,9 @@ class PublishedConfigOverrideTest extends TestCase
         $this->makeProvider(static fn (Package $package): Package => $package->hasConfigFile('widget'))->register();
 
         // Vendor default is enabled=true; the published override wins…
-        $this->assertFalse(config('acme.widget.enabled'));
+        $this->assertFalse(config($this->vendor . '.widget.enabled'));
         // …and contributes its own keys.
-        $this->assertSame('published', config('acme.widget.extra'));
+        $this->assertSame('published', config($this->vendor . '.widget.extra'));
     }
 
     #[Test]
@@ -59,18 +75,19 @@ class PublishedConfigOverrideTest extends TestCase
     {
         $this->makeProvider(static fn (Package $package): Package => $package->hasConfigFile('widget'))->register();
 
-        $this->assertTrue(config('acme.widget.enabled'));
+        $this->assertTrue(config($this->vendor . '.widget.enabled'));
     }
 
     private function makeProvider(Closure $configure): PackageServiceProvider
     {
         $fixtureRoot = $this->fixtureRoot;
 
-        return new class($this->app, $fixtureRoot, $configure) extends PackageServiceProvider
+        return new class($this->app, $fixtureRoot, $this->vendor, $configure) extends PackageServiceProvider
         {
             public function __construct(
                 $app,
                 private readonly string $fixtureRoot,
+                private readonly string $vendor,
                 private readonly Closure $configure,
             ) {
                 parent::__construct($app);
@@ -78,7 +95,7 @@ class PublishedConfigOverrideTest extends TestCase
 
             public function configurePackage(Package $package): void
             {
-                $package->setName('acme/widget')
+                $package->setName($this->vendor . '/widget')
                     ->setPublishTagId('acme')
                     ->setPathFrom($this->fixtureRoot);
 

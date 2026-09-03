@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
 use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Package\Tools\Support\ConfigFile;
 use Simtabi\Laranail\Package\Tools\Support\PathResolver;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Contracts\ResolverInterface;
@@ -251,7 +252,7 @@ class ConfigFileResolver implements ResolverInterface
             throw InvalidPath::configFileNotReadable($path);
         }
 
-        $data = require $path;
+        $data = ConfigFile::read($path);
 
         if (! is_array($data)) {
             throw InvalidPath::configFileNotArray($path);

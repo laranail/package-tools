@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\Config;
 
 use Throwable;
 use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Package\Tools\Support\ConfigFile;
 use Simtabi\Laranail\Package\Tools\Contracts\ValidatorInterface;
 
 /**
@@ -39,8 +40,11 @@ class ConfigValidator implements ValidatorInterface
             }
 
             try {
-                $config = require $input;
-                if (! is_array($config)) {
+                // include, not require: a failed require is a fatal compile
+                // error and is NOT caught by the try below, so the guard here was
+                // never doing what it looks like it does.
+                $config = ConfigFile::read($input);
+                if ($config === null) {
                     $errors[] = "Configuration file must return an array: {$input}";
                 }
             } catch (Throwable $e) {

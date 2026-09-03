@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
+use Simtabi\Laranail\Package\Tools\Support\ConfigFile;
 use Simtabi\Laranail\Package\Tools\Enums\BootCriticality;
 use Simtabi\Laranail\Package\Tools\Support\ConfigDecorator;
 use Simtabi\Laranail\Package\Tools\Services\Config\ConfigMerger;
@@ -137,7 +138,7 @@ trait HasConfigDecorations
             return [];
         }
 
-        $data = require $file;
+        $data = ConfigFile::read($file);
 
         return is_array($data) ? $data : [];
     }

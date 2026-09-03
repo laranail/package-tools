@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\Config;
 use Illuminate\Support\Arr;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
+use Simtabi\Laranail\Package\Tools\Support\ConfigFile;
 use Simtabi\Laranail\Package\Tools\Exceptions\InvalidPath;
 use Simtabi\Laranail\Package\Tools\Contracts\ServiceInterface;
 
@@ -32,7 +33,7 @@ class ConfigService implements ServiceInterface
             return;
         }
 
-        $config = require $path;
+        $config = ConfigFile::read($path);
 
         if (! is_array($config)) {
             return;
@@ -63,7 +64,7 @@ class ConfigService implements ServiceInterface
             return;
         }
 
-        $config = require $path;
+        $config = ConfigFile::read($path);
 
         if (! is_array($config)) {
             return;
