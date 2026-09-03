@@ -17,7 +17,63 @@ composer require laranail/package-tools
 
 ## <a name="documentation"></a>Documentation
 
-Full documentation is at **[opensource.simtabi.com/documentation/laranail/package-tools](https://opensource.simtabi.com/documentation/laranail/package-tools/)** — getting started, the fluent builder, declarative registration & batch helpers (scheduled commands, policies, morph maps, about sections, doctor checks, install commands), the fluent provider builders (force HTTPS, locale, pagination, config decoration, gates, route groups & bindings, events), container bindings and facades (`hasSingleton`, `hasFacade`, `hasClassAlias` — which refuses a global alias another package or the application already holds, rather than silently replacing it), the `PackageAction{Started,Succeeded,Failed}` lifecycle events with the `PackageActions` facade, the failure-handling standard (classify by consequence — Critical fails fast, Degradable reports & continues — with a `boot:health` doctor gate), fluent rate limiters, the seeding subsystem (`db:seed`-time bundles, opt-in autorun after migrations, background/scheduled execution with completion events), per-package logging via `$package->log()`, the fluent runtime config manager, attribute discovery, the package registry and its `packages` command (every package built on the toolkit, what each claimed, and whether two claimed the same name), the caller-relative path resolver (replacing `__DIR__ . '/../..'` with an explicit level count and direction), the public-name registries (why views and translations take `laranail/atlas::` while Blade component tags cannot), the Artisan commands, HTTP controllers, provenance/SBOM, the dist-integrity audit (`vendor/bin/laranail-dist-integrity` — every path `composer.json` references must survive `git archive`, so a package cannot ship a manifest pointing at a file a dist install strips), asset publishing & orphan pruning (a `--force` that overwrites, a `--clean` that deletes, and a guard that refuses a publish root of `public`), seeder file helpers, the testing harness, configuration, and the release process.
+Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https://opensource.simtabi.com/documentation/laranail/package-tools/)**.
+
+### Guides
+
+- [Installation](docs/installation.md) — requirements and install
+- [Getting started](docs/getting-started.md) — the smallest working provider
+- [Configuration](docs/configuration.md) — what the toolkit reads and how to change it
+- [Architecture](docs/architecture.md) — the Package/provider split, and why the seams are where they are
+- [Services](docs/services.md) — the service layer
+- [Seeding](docs/seeding.md) — db:seed-time bundles, autorun and scheduled execution
+- [Failure handling](docs/failure-handling.md) — classify by consequence: Critical fails fast, Degradable continues
+- [Release](docs/release.md) — the release process
+
+### Reference
+
+- [About sections](docs/tools/about-sections.md) — fluent `php artisan about` sections
+- [Action events](docs/tools/action-events.md) — the `PackageAction{Started,Succeeded,Failed}` lifecycle events
+- [Attribute discovery](docs/tools/attribute-discovery.md) — registering commands, routes and listeners by attribute
+- [Audit](docs/tools/audit.md) — the package audit command
+- [Command naming](docs/tools/command-naming.md) — the `vendor::slug.command` shape, and why `::` needs a base class
+- [Config manager](docs/tools/config-manager.md) — the fluent runtime config manager
+- [Config namespacing](docs/tools/config-namespacing.md) — how a config key is derived, and the id-versus-key distinction
+- [Container](docs/tools/container.md) — declaring singletons, facades and class aliases
+- [Dist integrity](docs/tools/dist-integrity.md) — every path `composer.json` references must survive `git archive`
+- [Doctor](docs/tools/doctor.md) — health checks, and classifying them by consequence
+- [Http controllers](docs/tools/http-controllers.md) — the controller base and `#[AsRoute]`
+- [Ide helper](docs/tools/ide-helper.md) — generated IDE metadata
+- [Isolated testcase](docs/tools/isolated-testcase.md) — the testing harness
+- [Logging](docs/tools/logging.md) — per-package logging via `$package->log()`
+- [Package registry](docs/tools/package-registry.md) — every package built on the toolkit, and whether two claimed one name
+- [Path resolver](docs/tools/path-resolver.md) — an explicit level count instead of `__DIR__ . '/../..'`
+- [Pint](docs/tools/pint.md) — the shared code-style config
+- [Provider builders](docs/tools/provider-builders.md) — force HTTPS, locale, pagination, gates, route groups, events
+- [Public names](docs/tools/public-names.md) — why views take `vendor/package::` while Blade tags cannot
+- [Publishing](docs/tools/publishing.md) — publish tags, asset groups and orphan pruning
+- [Rate limiters](docs/tools/rate-limiters.md) — fluent rate limiters
+- [Resilience](docs/tools/resilience.md) — retries, backoff and circuit breaking
+- [Runtime services](docs/tools/runtime-services.md) — the services the toolkit resolves at runtime
+- [Sbom](docs/tools/sbom.md) — provenance and SBOM generation
+- [Scheduling](docs/tools/scheduling.md) — declaring a command's cadence beside the command
+
+### Recipes
+
+- [Scaffolding a package](docs/recipes/scaffolding-a-package.md) — the smallest provider that gives you the conventions
+- [Adding a config file](docs/recipes/adding-a-config-file.md) — the flat path, and the id-versus-key distinction
+- [Adding a command](docs/recipes/adding-a-command.md) — the namespaced name and the base class it needs
+- [Exposing a facade](docs/recipes/exposing-a-facade.md) — singleton, accessor and global alias in one statement
+- [Publishing assets](docs/recipes/publishing-assets.md) — declaring the group and re-publishing on upgrade
+- [Adding a doctor check](docs/recipes/adding-a-doctor-check.md) — asking a question a human would otherwise ask by hand
+- [Scheduling a command](docs/recipes/scheduling-a-command.md) — cadence beside the command, not in the application
+- [Testing a package](docs/recipes/testing-a-package.md) — IsolatedTestCase, and the shared-skeleton trap
+
+### Project
+
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
 
 ## Contributing & security
 
