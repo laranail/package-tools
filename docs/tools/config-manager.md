@@ -25,7 +25,7 @@ Both write to `config()`, so it is worth being explicit about which owns what.
 They are not competing APIs — they run at different times with opposite intent,
 and mixing them up is the only way they conflict.
 
-| | [`ConfigService`](services.md) | `ConfigManager` |
+| | [`ConfigService`](../services.md) | `ConfigManager` |
 |---|---|---|
 | When | boot, from a package provider | runtime, from the application |
 | Merge | `array_merge($file, $existing)` — **app config wins** | override — **the caller wins** |
