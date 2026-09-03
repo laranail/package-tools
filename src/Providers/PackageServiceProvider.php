@@ -26,6 +26,7 @@ use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessConfig
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessInertia;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessLogging;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessCommands;
+use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessContainer;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessMigrations;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessTranslations;
 use Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider\ProcessAboutSections;
@@ -72,6 +73,7 @@ abstract class PackageServiceProvider extends ServiceProvider
     use ProcessBladeDirectives;
     use ProcessCommands;
     use ProcessConfigs;
+    use ProcessContainer;
     use ProcessInertia;
     use ProcessLivewireComponents;
     use ProcessLogging;
@@ -157,6 +159,7 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->registerPackageLogging();
 
         $this->registerPackageChildProviders();
+        $this->registerPackageBindings();
 
         $this->packageRegistered();
     }

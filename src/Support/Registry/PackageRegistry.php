@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Support\Registry;
 
 use Throwable;
 use Composer\InstalledVersions;
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
 use Simtabi\Laranail\Package\Tools\Package;
 
@@ -89,15 +90,23 @@ final class PackageRegistry
             // Resolved from the console kernel, so a command whose name is set at construction --
             // which is how the family's `vendor::slug.command` shape gets past Symfony's validator --
             // reports the name it actually answers to.
-            'commands'    => $this->commandNames($package->commands),
-            'path'        => $package->basePath(),
-            'description' => $package->summary ?? $manifest['description'],
-            'authors'     => $package->maintainers !== [] ? $package->maintainers : $manifest['authors'],
-            'homepage'    => $manifest['homepage'],
-            'license'     => $manifest['license'],
-            'keywords'    => $manifest['keywords'],
-            'docs'        => $package->documentationUrl ?? $manifest['docs'] ?? $manifest['homepage'],
-            'stability'   => $package->stability,
+            'commands' => $this->commandNames($package->commands),
+            // What the package asked the CONTAINER for. Bindings are keyed by a
+            // class name, which cannot silently collide the way a string key can,
+            // so the short accessors are what a reader needs to see.
+            'bindings' => array_values($package->containerAliases),
+            // Read from the LIVE AliasLoader: an alias the package declared but did
+            // not get - because the application or another package was there first -
+            // must not be reported as claimed. Same reasoning as publish tags above.
+            'classAliases' => $this->liveClassAliases($package),
+            'path'         => $package->basePath(),
+            'description'  => $package->summary ?? $manifest['description'],
+            'authors'      => $package->maintainers !== [] ? $package->maintainers : $manifest['authors'],
+            'homepage'     => $manifest['homepage'],
+            'license'      => $manifest['license'],
+            'keywords'     => $manifest['keywords'],
+            'docs'         => $package->documentationUrl ?? $manifest['docs'] ?? $manifest['homepage'],
+            'stability'    => $package->stability,
         ];
     }
 
@@ -112,16 +121,24 @@ final class PackageRegistry
     public function collisions(): array
     {
         /** @var array<string, array<string, list<string>>> $claims */
-        $claims = ['config' => [], 'views' => [], 'translations' => [], 'components' => []];
+        $claims = [
+            'config' => [], 'views' => [], 'translations' => [], 'components' => [],
+            // Both are flat global maps, and both replace silently - exactly the
+            // question this class exists to answer.
+            'bindings' => [], 'classAliases' => [],
+        ];
 
         foreach (array_keys($this->entries) as $provider) {
             $described = $this->describe($provider);
 
             foreach (array_keys($claims) as $surface) {
-                $name = $described[$surface] ?? null;
+                $claimed = $described[$surface] ?? null;
 
-                if (is_string($name) && $name !== '') {
-                    $claims[$surface][$name][] = $described['name'];
+                // Some surfaces are one name per package, some are a list.
+                foreach (is_array($claimed) ? $claimed : [$claimed] as $name) {
+                    if (is_string($name) && $name !== '') {
+                        $claims[$surface][$name][] = $described['name'];
+                    }
                 }
             }
         }
@@ -140,6 +157,35 @@ final class PackageRegistry
         }
 
         return $collisions;
+    }
+
+    /**
+     * Global class aliases this package actually got.
+     *
+     * A declared alias that was refused - because the application or another
+     * package registered it first - is deliberately absent: reporting it would
+     * claim a name the package does not hold.
+     *
+     * @return list<string>
+     */
+    private function liveClassAliases(Package $package): array
+    {
+        if ($package->classAliases === []) {
+            return [];
+        }
+
+        $live = class_exists(AliasLoader::class) ? AliasLoader::getInstance()->getAliases() : [];
+        $held = [];
+
+        foreach ($package->classAliases as $alias => $class) {
+            $actual = $live[$alias] ?? null;
+
+            if ($actual !== null && ltrim((string) $actual, '\\') === ltrim($class, '\\')) {
+                $held[] = $alias;
+            }
+        }
+
+        return $held;
     }
 
     /**

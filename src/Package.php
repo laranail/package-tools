@@ -21,6 +21,7 @@ use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresHelpers;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresCommands;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComposer;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresDatabase;
+use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresContainer;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresLifecycle;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresComponents;
 use Simtabi\Laranail\Package\Tools\Concerns\Package\ConfiguresMiddleware;
@@ -37,6 +38,7 @@ class Package
     use ConfiguresComponents;
     use ConfiguresComposer;
     use ConfiguresConfig;
+    use ConfiguresContainer;
     use ConfiguresDatabase;
     use ConfiguresEvents;
     use ConfiguresHelpers;
