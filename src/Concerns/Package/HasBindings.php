@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 
 use Closure;
+use Illuminate\Contracts\Foundation\Application;
 
 /**
  * Container bindings, declared rather than written by hand.
@@ -94,7 +95,7 @@ trait HasBindings
      * a container would invite imperative work at configure time - which is
      * exactly the register/boot ordering this class exists to keep straight.
      *
-     * @param Closure(\Illuminate\Contracts\Foundation\Application, static): void $callback
+     * @param Closure(Application, static): void $callback
      */
     public function registerUsing(Closure $callback): static
     {
