@@ -32,8 +32,10 @@ $package
 
 `hasFacade()` expands to a singleton, a container alias so the facade's
 `getFacadeAccessor()` resolves, and — when a facade class is given — a global
-class alias so `\Flux` works unqualified. The alias name defaults to the facade's
-short class name; pass a fourth argument to override it.
+class alias so `\Flux` works unqualified. The alias name defaults to the facade's short class name **with a trailing
+`Facade` stripped** — `FluxFacade` implies the alias `Flux`, which is why the
+class is named that way in the first place. Pass `alias:` when the class name
+does not imply the alias.
 
 ## The full surface
 

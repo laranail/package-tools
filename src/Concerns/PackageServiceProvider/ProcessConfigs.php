@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\PackageServiceProvider;
 use Illuminate\Support\Facades\File;
 use Illuminate\Contracts\Config\Repository;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Support\ConfigFile;
 use Illuminate\Contracts\Foundation\CachesConfiguration;
 
 trait ProcessConfigs
@@ -67,9 +68,9 @@ trait ProcessConfigs
             return;
         }
 
-        $override = require $published;
+        $override = ConfigFile::read($published);
 
-        if (! is_array($override)) {
+        if ($override === null) {
             return;
         }
 
@@ -92,9 +93,9 @@ trait ProcessConfigs
             return;
         }
 
-        $loaded = require $path;
+        $loaded = ConfigFile::read($path);
 
-        if (! is_array($loaded)) {
+        if ($loaded === null) {
             return;
         }
 

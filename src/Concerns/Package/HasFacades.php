@@ -44,7 +44,7 @@ trait HasFacades
         $this->hasContainerAlias($concrete, $accessor);
 
         if ($facade !== null) {
-            $this->hasClassAlias($alias ?? class_basename($facade), $facade);
+            $this->hasClassAlias($alias ?? static::defaultAliasFor($facade), $facade);
         }
 
         return $this;
@@ -61,5 +61,25 @@ trait HasFacades
         $this->classAliases[$alias] = $class;
 
         return $this;
+    }
+
+    /**
+     * The global alias a facade class implies.
+     *
+     * `FluxFacade` means the alias `Flux`, not `FluxFacade`. Naming the class
+     * `XFacade` is a common convention precisely because `X` is taken by the
+     * alias, so deriving the alias verbatim from the class name produces a name
+     * nobody wanted - and the failure is silent, because unqualified calls to
+     * `X::` simply report a missing class far from the registration.
+     *
+     * Pass $alias explicitly when the class name does not imply the alias.
+     */
+    protected static function defaultAliasFor(string $facade): string
+    {
+        $short = class_basename($facade);
+
+        return str_ends_with($short, 'Facade') && $short !== 'Facade'
+            ? substr($short, 0, -strlen('Facade'))
+            : $short;
     }
 }

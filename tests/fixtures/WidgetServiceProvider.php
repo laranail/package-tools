@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Tests\Fixtures;
 
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Tests\ParallelSafe;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 /**
@@ -16,7 +17,7 @@ class WidgetServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
-        $package->setName('acme/widget')
+        $package->setName(ParallelSafe::vendor() . '/widget')
             ->setPublishTagId('acme')
             ->setPathFrom(__DIR__ . '/nested-config-package')
             ->hasConfigFile('widget');
