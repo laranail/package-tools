@@ -24,19 +24,19 @@ use PHPUnit\Framework\Attributes\Test;
  */
 final class DocsConformanceTest extends TestCase
 {
-    private const FOOTER = '[← Docs index](';
+    private const string FOOTER = '[← Docs index](';
 
     #[Test]
     public function there_are_pages_to_check(): void
     {
         // An empty glob would make every other test here vacuously true.
-        $this->assertGreaterThan(20, count(self::pages()));
+        $this->assertGreaterThan(20, count($this->pages()));
     }
 
     #[Test]
     public function every_page_opens_with_an_h1_and_a_one_line_summary(): void
     {
-        foreach (self::pages() as $page) {
+        foreach ($this->pages() as $page) {
             $lines = $this->content($page);
 
             $this->assertStringStartsWith('# ', $lines[0], "$page does not open with an H1");
@@ -54,7 +54,7 @@ final class DocsConformanceTest extends TestCase
     #[Test]
     public function every_page_ends_with_a_rule_and_a_footer_at_the_right_depth(): void
     {
-        foreach (self::pages() as $page) {
+        foreach ($this->pages() as $page) {
             $lines = $this->content($page);
 
             // docs/x.md -> ../ ; docs/tools/x.md and docs/recipes/x.md -> ../../
@@ -70,12 +70,12 @@ final class DocsConformanceTest extends TestCase
     public function no_page_carries_a_decorative_emoji(): void
     {
         // Semantic glyphs are fine and the footer arrow is one; status emoji are not.
-        foreach (self::pages() as $page) {
+        foreach ($this->pages() as $page) {
             $this->assertSame(
                 0,
                 preg_match(
                     '/[\x{1F300}-\x{1FAFF}\x{2705}\x{274C}\x{26A0}\x{2757}\x{2B50}]/u',
-                    file_get_contents(self::root() . '/' . $page),
+                    file_get_contents($this->root() . '/' . $page),
                 ),
                 "$page contains a decorative emoji",
             );
@@ -87,14 +87,14 @@ final class DocsConformanceTest extends TestCase
     {
         // The index is the README's Documentation section; two indexes drift.
         // Architectural rationale is prose in architecture.md, not an adr/ tree.
-        $this->assertFileDoesNotExist(self::root() . '/docs/README.md');
-        $this->assertDirectoryDoesNotExist(self::root() . '/docs/adr');
+        $this->assertFileDoesNotExist($this->root() . '/docs/README.md');
+        $this->assertDirectoryDoesNotExist($this->root() . '/docs/adr');
     }
 
     #[Test]
     public function the_readme_index_lists_every_page_and_only_real_ones(): void
     {
-        $readme = file_get_contents(self::root() . '/README.md');
+        $readme = file_get_contents($this->root() . '/README.md');
 
         $section = explode('## <a name="documentation"></a>Documentation', $readme, 2)[1] ?? '';
         $section = explode("\n## ", $section, 2)[0];
@@ -104,7 +104,7 @@ final class DocsConformanceTest extends TestCase
         preg_match_all('#\]\((docs/[^)\#]+\.md)\)#', $section, $m);
 
         $linked = array_unique($m[1]);
-        $onDisk = self::pages();
+        $onDisk = $this->pages();
 
         sort($linked);
 
@@ -115,15 +115,15 @@ final class DocsConformanceTest extends TestCase
         );
     }
 
-    private static function root(): string
+    private function root(): string
     {
         return dirname(__DIR__, 2);
     }
 
     /** @return list<string> repo-relative paths */
-    private static function pages(): array
+    private function pages(): array
     {
-        $root = self::root() . '/docs';
+        $root = $this->root() . '/docs';
 
         $found = [];
 
@@ -141,8 +141,8 @@ final class DocsConformanceTest extends TestCase
     /** @return list<string> the page's non-empty lines */
     private function content(string $page): array
     {
-        $lines = explode("\n", file_get_contents(self::root() . '/' . $page));
+        $lines = explode("\n", file_get_contents($this->root() . '/' . $page));
 
-        return array_values(array_filter(array_map('rtrim', $lines), static fn ($l) => trim($l) !== ''));
+        return array_values(array_filter(array_map(rtrim(...), $lines), static fn ($l): bool => trim($l) !== ''));
     }
 }
