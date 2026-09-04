@@ -79,4 +79,6 @@ a separate copy step.
 The `release.yml` workflow attaches a CycloneDX SBOM to every GitHub
 release.
 
+---
+
 [← Docs index](../../README.md#documentation)

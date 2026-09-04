@@ -89,4 +89,6 @@ class WidgetApiController extends ApiController
 - [examples/Http/WidgetApiController.php](../examples/Http/WidgetApiController.php)
   — an `ApiController` subclass exercising each JSON helper.
 
+---
+
 [← Docs index](../../README.md#documentation)

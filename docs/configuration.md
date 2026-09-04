@@ -847,4 +847,6 @@ the rest together:
 - [architecture.md](architecture.md) — the aggregator-trait structure
   underneath the builder.
 
+---
+
 [← Docs index](../README.md#documentation)

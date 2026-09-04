@@ -273,4 +273,6 @@ Route::get('/health', fn () => HealthResponder::json([new ConfigPublishedCheck])
 - [runtime-services.md](runtime-services.md) — `SystemService`, handy for
   building environment-aware checks.
 
+---
+
 [← Docs index](../../README.md#documentation)

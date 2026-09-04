@@ -1,5 +1,7 @@
 # Architecture
 
+How the library is put together: a service layer behind a fluent builder, and the seams a consuming package extends.
+
 ## Overview
 
 `laranail/package-tools` is organised as a service layer behind a fluent
@@ -255,5 +257,7 @@ service interactions and full register/boot workflows.
 - PHPStan level 8 (Larastan).
 - Rector clean.
 - Security auditing via `composer audit` and the `laranail::package-tools.audit` command.
+
+---
 
 [← Docs index](../README.md#documentation)

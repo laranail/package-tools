@@ -137,4 +137,6 @@ files that fail to reflect are skipped.
   — a `#[AsFacade]` contract (consumed by the ide-helper command, not by
   discovery).
 
+---
+
 [← Docs index](../../README.md#documentation)

@@ -89,4 +89,6 @@ verbatim.
 - [examples/Console/SyncCommand.php](../examples/Console/SyncCommand.php) —
   a consumer command with the `acme::hello.sync` namespaced signature.
 
+---
+
 [← Docs index](../../README.md#documentation)

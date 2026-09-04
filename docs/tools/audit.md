@@ -100,4 +100,6 @@ link, making it usable directly as a CI gate.
 The `security.yml` workflow runs this audit (and
 `google/osv-scanner-action`) on a weekly schedule.
 
+---
+
 [← Docs index](../../README.md#documentation)
