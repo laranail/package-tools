@@ -99,4 +99,6 @@ the package's `require-dev`.
   end-to-end test extending `IsolatedTestCase` that boots the provider,
   runs a migration, and exercises every helper.
 
+---
+
 [← Docs index](../../README.md#documentation)

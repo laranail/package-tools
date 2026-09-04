@@ -219,4 +219,6 @@ should be resolved through their interfaces — see
   these services back.
 - [Tools & features](../README.md#documentation) — per-command and per-feature deep dives.
 
+---
+
 [← Docs index](../README.md#documentation)

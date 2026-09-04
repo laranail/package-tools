@@ -1,5 +1,7 @@
 # Installation
 
+What the package requires, how Composer installs and auto-registers it, and the provider a consuming package writes first.
+
 ## Requirements
 
 | Requirement | Constraint |
@@ -82,5 +84,7 @@ environment variables are documented in
 - [architecture.md](architecture.md) — how the runtime is structured.
 - [tools/runtime-services.md](tools/runtime-services.md) — the three
   bindings registered on installation, with usage.
+
+---
 
 [← Docs index](../README.md#documentation)

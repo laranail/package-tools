@@ -148,4 +148,6 @@ generation is an explicit command step.
 - [examples/Contracts/GreeterContract.php](../examples/Contracts/GreeterContract.php)
   — a contract carrying `#[AsFacade]` for generation.
 
+---
+
 [← Docs index](../../README.md#documentation)

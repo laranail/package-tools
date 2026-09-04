@@ -181,4 +181,6 @@ final class HelloInstaller
   — a job using `HasGuzzleConfig` and `HasErrorStorage` and resolving all
   three runtime service contracts.
 
+---
+
 [← Docs index](../../README.md#documentation)
