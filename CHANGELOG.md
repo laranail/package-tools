@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- **`Testing\AssertsDriverContract`** — a trait guarding the two package defects a mocked test
+  structurally cannot reach: a driver name the configuration can produce but the manager cannot
+  build, and a config key read where nothing is registered.
+
+  `assertEveryDriverIsBuildable()` checks each name against the `create*Driver()` method
+  `Illuminate\Support\Manager` interpolates it into, studly-casing the way Manager does, and
+  **fails on an empty list** so a fixture that silently read nothing cannot pass as coverage.
+  `assertReadsConfigAtRegisteredKey()` scans the package source for reads at the bare key, matching
+  dotted keys of any depth and interpolated suffixes, with an `$exempt` list for the segments that
+  belong to a different registry (container tags, gate abilities).
+
+  Both are covered by tests that assert they *fail* correctly, not merely that they pass — a shared
+  helper that cannot fail hands a green tick to every package that adopts it. See
+  `docs/tools/driver-contract.md`, which also sets out when to prefer an exhaustive `match` over an
+  enum to a `Manager` in the first place.
+
+### Fixed
+
+- **`docs/tools/config-namespacing.md` described the default backwards, and two packages shipped a
+  broken config because of it.** It said `hasConfigFile('foo')` registers `config('foo.*')`, "flat
+  — unchanged, exactly like Laravel". It does not: `setName()` *requires* `vendor/package` and
+  rejects a bare name, so `configVendor` is never null, `hasConfigNamespacing()` reduces to the
+  `$configNamespacing` flag, and that flag defaults to **true**. A package named `acme/widget`
+  registers at `config('acme.widget.*')`.
+
+  Reading the bare key is silent — `config()` returns null or the call site's inline default — so
+  `laranail/env-tools` and `laranail/env-kit-webui` both ran entirely on inline defaults, with
+  protected keys that were therefore writable and secret-masking that masked nothing. Both are
+  fixed in their own repositories; this is the documentation that produced them.
+
+  `tests/Feature/ConfigNamespacingDefaultTest.php` now pins the behaviour, including that a bare
+  package name throws, so the page cannot drift from the code again.
+
 ### Removed
 
 - **`Enums\Timezone`** (419 cases, 454 lines) and its generator. It was already
