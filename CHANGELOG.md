@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docs/tools/driver-contract.md`, which also sets out when to prefer an exhaustive `match` over an
   enum to a `Manager` in the first place.
 
+  `IsolatedTestCase` now `use`s it, alongside `AssertsPublishedConfigOverrides`, so the 24 packages
+  extending the shared base get both assertions without a `uses()` line. No method name collides
+  anywhere in the family — checked before wiring it in.
+
 ### Fixed
 
 - **`docs/tools/config-namespacing.md` described the default backwards, and two packages shipped a
