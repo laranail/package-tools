@@ -1,47 +1,8 @@
 # Namespaced & nested config
 
-**Config is namespaced by default. `hasConfigFile('foo')` does not register
-`config('foo.*')`.** A package named `acme/widget` registers its config file at
-`config('acme.widget.*')`, and reading the bare key returns nothing.
-
-This is the single most expensive thing to get wrong in this package, because
-nothing reports it. `config('foo.key')` on an unregistered key returns `null`,
-or whatever default the call site passes — so a package reading its own config
-at the wrong key keeps running on inline defaults, and its tests keep passing
-if the test harness sets the bare key itself. Two packages in the family
-shipped exactly that: `env-tools` and `env-tools-webui` had *every* shipped
-config value silently inert, including protected keys that were therefore
-writable and secret-masking that masked nothing.
-
-The rule in one line: **`setName()` requires `vendor/package` and rejects a bare
-name**, so every booted package has a vendor, and namespacing is on unless the
-package calls `withoutConfigNamespacing()`.
-
-```php
-$package->name('acme/widget')->hasConfigFile('widget');
-
-config('acme.widget.timeout');   // yes — this is where it is registered
-config('widget.timeout');        // no  — returns null, silently
-```
-
-`hasConfigFile('widget')` reads `config/widget.php`: the argument is the **file
-id**, not the key. The key is derived from `name()`.
-
-Pinned by `tests/Feature/ConfigNamespacingDefaultTest.php`, so this page cannot
-drift away from the behaviour again.
-
-## Opting out
-
-A package that must keep reading bare keys — because it predates this base, or
-because consumers already depend on the flat name — says so explicitly:
-
-```php
-$package->name('acme/widget')->withoutConfigNamespacing();  // config('widget.*')
-```
-
-Nine packages in the family do this deliberately. It is a supported mode, not a
-workaround; what is not supported is *reading* bare while registering
-namespaced.
+By default a package registers **flat** config files — `hasConfigFile('foo')`
+merges `config/foo.php` and you read `config('foo.key')`, exactly like Laravel.
+That's unchanged.
 
 On top of that, package-tools can mount config files that live in
 **sub-directories** at a **dotted key derived from their folder path**, so
@@ -53,7 +14,7 @@ native `config()` — there's no runtime resolver and no performance cost.
 
 | Builder call | Reads `config/…` | Resolves as |
 |---|---|---|
-| `hasConfigFile('foo')` | `config/foo.php` | `config('<vendor>.<package>.*')` when `foo` is the package short name, else `config('<vendor>.<package>.foo.*')` |
+| `hasConfigFile('foo')` | `config/foo.php` | `config('foo.*')` *(flat — unchanged)* |
 | `hasNestedConfig('panel', 'admin')` | `config/admin/panel.php` | `config('admin.panel.*')` |
 | `hasNestedConfigs(['panel','users'], 'admin')` | `config/admin/{panel,users}.php` | `config('admin.panel.*')`, `config('admin.users.*')` |
 | `hasConfigDirectory('admin')` | every file directly in `config/admin/` | `config('admin.<file>.*')` *(one level)* |
@@ -66,7 +27,7 @@ public function configurePackage(Package $package): void
 {
     $package
         ->name('acme/widget')
-        ->hasConfigFile()                 // config/widget.php       → config('acme.widget.*')
+        ->hasConfigFile()                 // config/widget.php       → config('widget.*')
         ->hasNestedConfig('panel', 'admin') // config/admin/panel.php → config('admin.panel.*')
         ->discoversConfig();              // mounts the rest of config/ by folder
 }

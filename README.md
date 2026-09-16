@@ -45,7 +45,6 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Http controllers](docs/tools/http-controllers.md) — the controller base and `#[AsRoute]`
 - [Ide helper](docs/tools/ide-helper.md) — generated IDE metadata
 - [Isolated testcase](docs/tools/isolated-testcase.md) — the testing harness
-- [Driver contract](docs/tools/driver-contract.md) — assert a driver name resolves and a config key is read where it is registered
 - [Logging](docs/tools/logging.md) — per-package logging via `$package->log()`
 - [Package registry](docs/tools/package-registry.md) — every package built on the toolkit, and whether two claimed one name
 - [Path resolver](docs/tools/path-resolver.md) — an explicit level count instead of `__DIR__ . '/../..'`

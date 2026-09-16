@@ -44,13 +44,6 @@ jobs:
           restore-keys: composer-${{ runner.os }}-${{ matrix.php }}-
 
       - name: Drop cached laranail archives
-        # laranail/* resolve through a single MOVING v0.1.0 tag, so composer's dist
-        # cache is keyed on a name whose contents change underneath it. A restored
-        # archive is then silently stale: the install reports success and unpacks
-        # whatever was cached the first time. Everything else is immutable per
-        # version and stays cached.
-        # POSIX command via bash: Windows runners default to PowerShell, where this
-        # would be a parse error rather than a no-op.
         shell: bash
         run: rm -rf "$(composer config cache-files-dir)/laranail"
 
