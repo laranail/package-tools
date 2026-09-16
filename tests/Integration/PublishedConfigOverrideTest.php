@@ -29,7 +29,7 @@ class PublishedConfigOverrideTest extends TestCase
     {
         parent::setUp();
 
-        $this->fixtureRoot = dirname(__DIR__) . '/fixtures/nested-config-package';
+        $this->fixtureRoot = __DIR__ . '/../fixtures/nested-config-package';
         // Process-scoped: this test writes into the skeleton's shared config
         // directory, which every parallel worker boots against. See ParallelSafe.
         $this->vendor = ParallelSafe::vendor();

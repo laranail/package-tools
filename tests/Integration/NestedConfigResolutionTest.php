@@ -25,7 +25,7 @@ class NestedConfigResolutionTest extends TestCase
     {
         parent::setUp();
 
-        $this->fixtureRoot = dirname(__DIR__) . '/fixtures/nested-config-package';
+        $this->fixtureRoot = __DIR__ . '/../fixtures/nested-config-package';
     }
 
     #[Test]

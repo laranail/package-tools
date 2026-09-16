@@ -235,7 +235,7 @@ final class AutoSeederDiscoveryProvider extends PackageServiceProvider
 
         $package->hasPackageSeeders(
             AutoSeederDefinition::make('t/discovered')
-                ->discoverIn(dirname(__DIR__) . '/fixtures/auto-seeders')
+                ->discoverIn(__DIR__ . '/../fixtures/auto-seeders')
                 ->ignoreSeeders([DiscoveredIgnoredSeeder::class]),
         );
     }
