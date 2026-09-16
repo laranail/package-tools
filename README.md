@@ -37,6 +37,7 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Attribute discovery](docs/tools/attribute-discovery.md) — registering commands, routes and listeners by attribute
 - [Audit](docs/tools/audit.md) — the package audit command
 - [Command naming](docs/tools/command-naming.md) — the `vendor::slug.command` shape, and why `::` needs a base class
+- [Command options](docs/tools/command-options.md) — normalising console input, and which accessor preserves absence
 - [Config manager](docs/tools/config-manager.md) — the fluent runtime config manager
 - [Config namespacing](docs/tools/config-namespacing.md) — how a config key is derived, and the id-versus-key distinction
 - [Container](docs/tools/container.md) — declaring singletons, facades and class aliases

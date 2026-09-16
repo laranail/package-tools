@@ -9,6 +9,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Commands\Concerns\ReadsOptions`** — one concern for console-input normalisation, applied by
+  the base `Command`. Seven accessors: `strOption()`, `stringOption()`, `strArg()`, `boolOption()`,
+  `intOption()`, `arrayOption()`, `listOption()` and `strArgOrNull()`.
+
+  `strArgOrNull()` is the nullable counterpart to `strArg()`, which is shaped for a REQUIRED
+  argument and so never sees `''`. An OPTIONAL argument is the case that needs absence preserved,
+  because the next step is usually a fallback — and `argument('key') ?? config(...)` covers an
+  omitted argument but not `artisan cmd ""`. Five commands in `laranail/license-verifier` had
+  exactly that.
+
+  `intOption()` carries a conditional return type (`@return ($default is null ? int|null : int)`),
+  so a caller passing a non-null default does not have to restate it to satisfy a parameter typed
+  `int`.
+
+  `strOption()`, `strArg()` and `listOption()` came from `laranail/db-tools`, where they were the
+  only copy in the family and nothing else could reach them. `stringOption()` moved off the base
+  `Command` into the trait, so both string accessors sit together and the difference between them is
+  visible. `boolOption()`, `intOption()` and `arrayOption()` are new, and were chosen by measuring
+  the family rather than by guessing — 54 raw `(bool)` casts at option call sites, 14 `(array)` and
+  13 `(int)`.
+
+  Each replaces a cast that is wrong in a specific case and silent about it: `(bool) 'false'` is
+  **true**, so `--force=false` sets the flag; `(int) 'twenty'` is `0`, which looks like a deliberate
+  limit, port or timeout; `(string)` on `--connection=` yields `''`, which forks anything keyed on
+  the resolved connection. See `docs/tools/command-options.md`.
+
+  It lands here rather than in `laranail/console`, where command concerns otherwise live, because
+  neither package can depend on the other — both keep `require` free of every `laranail/*` entry —
+  and `stringOption()` is here. 18 of the 19 packages whose commands extend console's base already
+  require this package.
+
+- **`Testing\AssertsDriverContract::assertNoNullOnlyOptionGuards()`** — a third source-scanning
+  guard, for the failure mode no type system sees. Symfony returns `null` for an option that was not
+  supplied and `''` for one supplied without a value (`--days=`, which a shell produces readily from
+  an unset variable). Code defaulting with `??`, `!== null` or `=== null` covers only half of "the
+  caller gave me nothing", and `''` walks through into a cast that turns it into `0`, `0.0` or
+  `false`. The command then succeeds on a number nobody chose.
+
+  `laranail/license-verifier` shipped both halves: `watch --cycles=` never terminated, and
+  `reminder skip --days=` wrote an already-expired reminder. `laranail/license-kit` issued a signing
+  key with an empty `kid`.
+
+  Scans source, because the defect is in a branch the suite does not take. `?? ''` is exempt, since
+  the default is the empty string and the two cases coincide. A genuinely correct null-only test is
+  annotated with `@option-guard-exempt` **on its own line or in the comment block above it** — not
+  by filename, because a whole-file skip also covers reads added to that file later, which is how a
+  guard stops guarding without anyone deciding that it should.
+
+### Changed
+
+- **`Command::stringOption()` falls back to `$default` for `--flag=`**, not just when the option is
+  absent. Previously the documented fallback did not apply to an option written without a value, so
+  `stringOption('format', 'csv')` answered `''` for `--format=`. Pass `''` explicitly to keep an
+  empty string. The method is otherwise unchanged and still resolves on the base `Command`, which
+  now applies the trait that holds it.
+
+### Added
+
 - **`Testing\AssertsDriverContract`** — a trait guarding the two package defects a mocked test
   structurally cannot reach: a driver name the configuration can produce but the manager cannot
   build, and a config key read where nothing is registered.
