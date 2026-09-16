@@ -64,7 +64,7 @@ final class ConditionalRoutesTestPackageProvider extends PackageServiceProvider
     public function configurePackage(Package $package): void
     {
         $package->setName('test/conditional-routes');
-        $package->basePath = dirname(__DIR__) . '/fixtures/routes-package';
+        $package->basePath = __DIR__ . '/../fixtures/routes-package';
 
         $package->hasRoutesWhen('test.routes_on', 'extra');
         $package->hasRoutesWhen('test.routes_default_on', 'on-by-default', default: true);

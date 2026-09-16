@@ -40,7 +40,7 @@ final class ParallelSafe
         $target = sys_get_temp_dir() . '/package-tools-skeleton-' . $token;
 
         if (! is_dir($target)) {
-            $source = dirname(__DIR__) . '/vendor/orchestra/testbench-core/laravel';
+            $source = __DIR__ . '/../vendor/orchestra/testbench-core/laravel';
 
             $iterator = new RecursiveIteratorIterator(
                 new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
