@@ -40,6 +40,13 @@ use RecursiveDirectoryIterator;
 trait AssertsDriverContract
 {
     /**
+     * Annotate a console-option read with this to exempt that one line from
+     * {@see assertNoNullOnlyOptionGuards()} -- for a null-only test whose body
+     * validates the empty case and fails closed.
+     */
+    public const OPTION_GUARD_EXEMPTION = '@option-guard-exempt';
+
+    /**
      * The method name `Illuminate\Support\Manager` will look for, for a given driver name.
      *
      * Manager studlies the name, so `lemon-squeezy` resolves `createLemonSqueezyDriver()`.
@@ -132,6 +139,122 @@ trait AssertsDriverContract
             'These read config at the bare key [%s], which resolves to nothing in a real '
             . "application — each silently returns its own inline default:\n  %s",
             $bareKey,
+            implode("\n  ", $offenders),
+        ));
+    }
+
+    /**
+     * Assert that no console option is defaulted by a test against `null`.
+     *
+     * The third silent failure mode, and the one no type system sees. Symfony returns `null` for an
+     * option that was **not supplied** and `''` for one supplied **without a value** — `--days=`,
+     * which a shell produces readily from an unset variable (`--days=$DAYS`). Code that defaults
+     * with `?? `, `!== null` or `=== null` therefore covers only half of "the caller gave me
+     * nothing", and `''` walks through the guard into whatever follows it.
+     *
+     * What follows is usually a cast, and every cast turns `''` into a plausible value rather than
+     * an error: `(int) ''` is `0`, `(float) ''` is `0.0`, `(bool) ''` is `false`. The command then
+     * runs, successfully, on a number the caller never chose.
+     *
+     * Measured in `laranail/license-verifier`, which shipped both halves of this:
+     * `watch --cycles=` became `0`, and the loop breaks on `++$count === $cycles` with `$count`
+     * starting at 1, so it never terminated — including in a non-interactive run, whose early
+     * return was itself guarded on `=== null`. `reminder skip --days=` became `0`, bypassing the
+     * manager's `null` fallback to write a reminder that had already expired.
+     *
+     * A `?? ''` is exempt: the default *is* the empty string, so the two cases coincide and nothing
+     * can slip through.
+     *
+     * The fix is `ReadsOptions`, whose accessors report absent and empty alike:
+     * `strOption()` → `null`, `intOption()` → the default, `listOption()` → `[]`.
+     *
+     * Scans **source**, because the defect is in a branch the suite does not take: a test that
+     * passes `--days=3` never reaches it, and one that omits `--days` takes the guard's other arm.
+     *
+     * ```php
+     * $this->assertNoNullOnlyOptionGuards(__DIR__ . '/../../src');
+     * ```
+     *
+     * @param list<string> $exempt Basenames to skip. Prefer annotating the line with
+     *                             {@see OPTION_GUARD_EXEMPTION}; a whole-file skip also covers
+     *                             reads added to that file later.
+     */
+    protected function assertNoNullOnlyOptionGuards(string $sourceDir, array $exempt = []): void
+    {
+        $offenders = [];
+        $scanned = 0;
+
+        // An option/argument read, then a null-ish test: `?? x`, `!== null`, `=== null`. The read
+        // and the test must be on one line, which is where this idiom is written -- a multi-line
+        // ternary is matched on the arm that carries the read.
+        $read = '\$this->(?:option|argument)\(';
+        $pattern = '/' . $read . '[^;]*?(?:\?\?|[!=]== *null)|(?:[!=]== *null[^;]*?' . $read . ')/';
+
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir)) as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $exemptedByComment = false;
+
+            foreach (file($file->getPathname()) ?: [] as $number => $line) {
+                $trimmedLine = trim($line);
+
+                // A marker may sit on the offending line, or anywhere in the contiguous comment
+                // block immediately above it -- the rationale for an exemption is usually a
+                // sentence, which does not fit as a trailing comment.
+                if (str_starts_with($trimmedLine, '//') || str_starts_with($trimmedLine, '*')) {
+                    $exemptedByComment = $exemptedByComment || str_contains($line, self::OPTION_GUARD_EXEMPTION);
+
+                    continue;
+                }
+
+                if (str_contains($line, '$this->option(') || str_contains($line, '$this->argument(')) {
+                    $scanned++;
+                }
+
+                if (preg_match($pattern, $line) !== 1) {
+                    continue;
+                }
+
+                // `?? ''` defaults to the empty string, so '' and null coincide -- correct as written.
+                $collapsed = (string) preg_replace('/\s+/', '', $line);
+
+                if (str_contains($collapsed, "??''") || str_contains($collapsed, '??""')) {
+                    continue;
+                }
+
+                // An exemption is annotated on the offending line, not listed in the test. A
+                // file-level allowlist silently covers every OTHER read in that file, including
+                // ones written later -- which is how a guard stops guarding without anyone
+                // deciding that it should.
+                if ($exemptedByComment || str_contains($line, self::OPTION_GUARD_EXEMPTION)) {
+                    continue;
+                }
+
+                $exemptedByComment = false;
+
+                if (in_array(basename($file->getPathname()), $exempt, true)) {
+                    continue;
+                }
+
+                $offenders[] = basename($file->getPathname()) . ':' . ($number + 1) . ' — ' . trim($line);
+            }
+        }
+
+        // A scan that reads no option at all passes everything below it trivially, which is worse
+        // than no assertion: it reads as a guarantee and is a statement about an empty set.
+        Assert::assertGreaterThan(0, $scanned, sprintf(
+            'No console option or argument is read anywhere under [%s], so this assertion proved '
+            . 'nothing. Point it at the directory holding the commands.',
+            $sourceDir,
+        ));
+
+        Assert::assertSame([], $offenders, sprintf(
+            'These default a console option by testing only for null. An option supplied without a '
+            . "value arrives as '' and walks through the guard, where a cast turns it into 0, 0.0 or "
+            . 'false and the command runs on a value the caller never chose. Use ReadsOptions, whose '
+            . "accessors report absent and empty alike:\n  %s",
             implode("\n  ", $offenders),
         ));
     }

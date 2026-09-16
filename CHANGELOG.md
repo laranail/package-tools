@@ -30,6 +30,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `stringOption()` is here. 18 of the 19 packages whose commands extend console's base already
   require this package.
 
+- **`Testing\AssertsDriverContract::assertNoNullOnlyOptionGuards()`** — a third source-scanning
+  guard, for the failure mode no type system sees. Symfony returns `null` for an option that was not
+  supplied and `''` for one supplied without a value (`--days=`, which a shell produces readily from
+  an unset variable). Code defaulting with `??`, `!== null` or `=== null` covers only half of "the
+  caller gave me nothing", and `''` walks through into a cast that turns it into `0`, `0.0` or
+  `false`. The command then succeeds on a number nobody chose.
+
+  `laranail/license-verifier` shipped both halves: `watch --cycles=` never terminated, and
+  `reminder skip --days=` wrote an already-expired reminder. `laranail/license-kit` issued a signing
+  key with an empty `kid`.
+
+  Scans source, because the defect is in a branch the suite does not take. `?? ''` is exempt, since
+  the default is the empty string and the two cases coincide. A genuinely correct null-only test is
+  annotated with `@option-guard-exempt` **on its own line or in the comment block above it** — not
+  by filename, because a whole-file skip also covers reads added to that file later, which is how a
+  guard stops guarding without anyone deciding that it should.
+
 ### Changed
 
 - **`Command::stringOption()` falls back to `$default` for `--flag=`**, not just when the option is
