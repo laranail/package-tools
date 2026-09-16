@@ -28,7 +28,7 @@ final class PackageBaseDirResolutionTest extends TestCase
 
         $baseDir = $provider->resolvePackageBaseDir();
 
-        $expectedRoot = dirname(__DIR__) . '/fixtures/sample-package';
+        $expectedRoot = __DIR__ . '/../fixtures/sample-package';
 
         $this->assertSame(realpath($expectedRoot), realpath($baseDir));
         $this->assertStringEndsWith('sample-package', $baseDir);
