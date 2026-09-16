@@ -43,13 +43,23 @@ jobs:
         # success and unpacks whatever was cached the first time. That is how
         # `vendor/bin/laranail-pint` went missing here while the tag carried it.
         # Everything else is immutable per version and stays cached.
+        # POSIX command: Windows runners default to PowerShell, where this
+        # is a Remove-Item parse error rather than a no-op. Git Bash ships on
+        # the Windows images, so one line makes the step portable.
+        shell: bash
         run: rm -rf "$(composer config cache-files-dir)/laranail"
 
       - name: Install dependencies
         run: composer update --prefer-stable --no-interaction --no-progress
 
       - name: Pint (code style)
-        run: vendor/bin/pint --test
+        # `bin/laranail-pint`, not `vendor/bin/laranail-pint`: composer links a
+        # package's `bin` into vendor/bin for DEPENDENTS, never for the package
+        # itself, so inside this repo that path does not exist and the step exits
+        # 127. The script resolves the config as `dirname(__DIR__)/pint.json`,
+        # which is this repo's own pint.json -- the same file every consumer
+        # receives.
+        run: php bin/laranail-pint --test
 
       - name: PHPStan (level 8)
         run: vendor/bin/phpstan analyse --no-progress --error-format=github

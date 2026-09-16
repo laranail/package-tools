@@ -11,12 +11,9 @@ parameters:
         - tests/_output (?)
         - tests/fixtures
     ignoreErrors:
-        # larastan validates a view-string literal against a skeleton app that never
-        # boots this package's provider, so a namespace registered at RUNTIME is
-        # invisible to it and every `view()` / `View::make()` call reads as an error.
-        # The views exist; the suite renders them. Broad on purpose -- the narrow
-        # forms missed `static method`, `Contracts\View\Factory` and the helper,
-        # each of which had to be discovered from a red run.
+        # larastan 3.x reports every package view namespace this way: the namespace is
+        # registered at RUNTIME by the service provider, and PHPStan does not execute that, so
+        # it cannot resolve the literal to a file. The views all exist.
         - '#expects view-string, string given#'
         # HasErrorStorage and HasGuzzleConfig are public-API traits — they
         # exist to be `use`-d by external package authors. PHPStan only
@@ -30,7 +27,8 @@ parameters:
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Commands\\HasProgressBar is used zero times#'
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\ManagesComposer is used zero times#'
 
-    # Required BECAUSE of the ignore above: only larastan 3.x emits that error, so
-    # where an older one is installed the pattern would itself become an
-    # unmatched-ignore ERROR -- moving the failure rather than fixing it.
+    # Required BECAUSE of the ignore above: only larastan 3.x emits that error, and `composer
+    # update` on CI resolves a newer larastan than a long-lived local vendor/ has. With the
+    # default (true), the pattern would itself be an unmatched-ignore ERROR wherever the older
+    # larastan is installed -- moving the failure rather than fixing it.
     reportUnmatchedIgnoredErrors: false
