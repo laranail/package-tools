@@ -11,7 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`Commands\Concerns\ReadsOptions`** — one concern for console-input normalisation, applied by
   the base `Command`. Seven accessors: `strOption()`, `stringOption()`, `strArg()`, `boolOption()`,
-  `intOption()`, `arrayOption()` and `listOption()`.
+  `intOption()`, `arrayOption()`, `listOption()` and `strArgOrNull()`.
+
+  `strArgOrNull()` is the nullable counterpart to `strArg()`, which is shaped for a REQUIRED
+  argument and so never sees `''`. An OPTIONAL argument is the case that needs absence preserved,
+  because the next step is usually a fallback — and `argument('key') ?? config(...)` covers an
+  omitted argument but not `artisan cmd ""`. Five commands in `laranail/license-verifier` had
+  exactly that.
+
+  `intOption()` carries a conditional return type (`@return ($default is null ? int|null : int)`),
+  so a caller passing a non-null default does not have to restate it to satisfy a parameter typed
+  `int`.
 
   `strOption()`, `strArg()` and `listOption()` came from `laranail/db-tools`, where they were the
   only copy in the family and nothing else could reach them. `stringOption()` moved off the base
