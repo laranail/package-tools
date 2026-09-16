@@ -31,6 +31,22 @@ jobs:
           extensions: dom, curl, libxml, mbstring, zip, fileinfo
           coverage: none
 
+      - name: Resolve composer cache directory
+        id: composer-cache
+        shell: bash
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore composer cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: composer-${{ runner.os }}-${{ matrix.php }}-
+
+      - name: Drop cached laranail archives
+        shell: bash
+        run: rm -rf "$(composer config cache-files-dir)/laranail"
+
       - name: Install dependencies
         run: composer update --prefer-stable --no-interaction --no-progress
 
