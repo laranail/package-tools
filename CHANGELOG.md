@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`Commands\Concerns\ReadsOptions`** — one concern for console-input normalisation, applied by
+  the base `Command`. Seven accessors: `strOption()`, `stringOption()`, `strArg()`, `boolOption()`,
+  `intOption()`, `arrayOption()` and `listOption()`.
+
+  `strOption()`, `strArg()` and `listOption()` came from `laranail/db-tools`, where they were the
+  only copy in the family and nothing else could reach them. `stringOption()` moved off the base
+  `Command` into the trait, so both string accessors sit together and the difference between them is
+  visible. `boolOption()`, `intOption()` and `arrayOption()` are new, and were chosen by measuring
+  the family rather than by guessing — 54 raw `(bool)` casts at option call sites, 14 `(array)` and
+  13 `(int)`.
+
+  Each replaces a cast that is wrong in a specific case and silent about it: `(bool) 'false'` is
+  **true**, so `--force=false` sets the flag; `(int) 'twenty'` is `0`, which looks like a deliberate
+  limit, port or timeout; `(string)` on `--connection=` yields `''`, which forks anything keyed on
+  the resolved connection. See `docs/tools/command-options.md`.
+
+  It lands here rather than in `laranail/console`, where command concerns otherwise live, because
+  neither package can depend on the other — both keep `require` free of every `laranail/*` entry —
+  and `stringOption()` is here. 18 of the 19 packages whose commands extend console's base already
+  require this package.
+
+### Changed
+
+- **`Command::stringOption()` falls back to `$default` for `--flag=`**, not just when the option is
+  absent. Previously the documented fallback did not apply to an option written without a value, so
+  `stringOption('format', 'csv')` answered `''` for `--format=`. Pass `''` explicitly to keep an
+  empty string. The method is otherwise unchanged and still resolves on the base `Command`, which
+  now applies the trait that holds it.
+
+### Added
+
 - **`Testing\AssertsDriverContract`** — a trait guarding the two package defects a mocked test
   structurally cannot reach: a driver name the configuration can produce but the manager cannot
   build, and a config key read where nothing is registered.
