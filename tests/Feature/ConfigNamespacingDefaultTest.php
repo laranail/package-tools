@@ -47,5 +47,5 @@ it('registers flat only when the package explicitly opts out', function (): void
 it('rejects a bare package name, which is why configVendor is never null', function (): void {
     // The load-bearing fact behind all of the above: there is no booted package without a vendor,
     // so there is no package for which namespacing is off by accident.
-    expect(fn () => (new Package)->name('widget'))->toThrow(InvalidPackage::class);
+    expect(fn (): Package => (new Package)->name('widget'))->toThrow(InvalidPackage::class);
 });
