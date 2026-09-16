@@ -54,6 +54,11 @@ final class ReadsOptionsCommand extends BaseCommand
         return $this->strArg($key);
     }
 
+    public function readStrArgOrNull(string $key): ?string
+    {
+        return $this->strArgOrNull($key);
+    }
+
     public function readBoolOption(string $key): bool
     {
         return $this->boolOption($key);
@@ -143,6 +148,16 @@ final class ReadsOptionsTest extends TestCase
     public function an_absent_argument_is_an_empty_string(): void
     {
         self::assertSame('', $this->dispatch([])->readStrArg('name'));
+    }
+
+    #[Test]
+    public function an_optional_argument_given_as_an_empty_string_is_null(): void
+    {
+        // `artisan cmd ""` arrives as '', which a `?? config(...)` fallback does
+        // not cover -- the empty string wins over the configured value.
+        self::assertNull($this->dispatch(['name' => ''])->readStrArgOrNull('name'));
+        self::assertNull($this->dispatch([])->readStrArgOrNull('name'));
+        self::assertSame('users', $this->dispatch(['name' => 'users'])->readStrArgOrNull('name'));
     }
 
     // --- boolOption --------------------------------------------------------
@@ -256,7 +271,7 @@ final class ReadsOptionsTest extends TestCase
     #[Test]
     public function the_base_command_still_exposes_every_accessor(): void
     {
-        foreach (['stringOption', 'strOption', 'strArg', 'boolOption', 'intOption', 'arrayOption', 'listOption'] as $method) {
+        foreach (['stringOption', 'strOption', 'strArg', 'strArgOrNull', 'boolOption', 'intOption', 'arrayOption', 'listOption'] as $method) {
             self::assertTrue(
                 method_exists(Command::class, $method),
                 "the base Command must still expose {$method}()",

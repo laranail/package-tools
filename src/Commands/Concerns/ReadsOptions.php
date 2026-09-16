@@ -89,6 +89,29 @@ trait ReadsOptions
     }
 
     /**
+     * An optional argument, or null when absent or given as an empty string.
+     *
+     * The nullable counterpart to {@see strArg()}, which is shaped for a
+     * REQUIRED argument -- one that always has a value, so `''` never arises.
+     * An optional argument (`{key?}`) is the case that needs absence
+     * preserved, because the usual next step is a fallback:
+     *
+     * ```php
+     * $key = $this->strArgOrNull('key') ?? config('…license_key');
+     * ```
+     *
+     * Written with `??` against the raw accessor, that fallback covers an
+     * omitted argument and not `artisan … ""`, which arrives as `''` and wins
+     * over the config value.
+     */
+    protected function strArgOrNull(string $key): ?string
+    {
+        $value = $this->argument($key);
+
+        return is_string($value) && $value !== '' ? $value : null;
+    }
+
+    /**
      * A boolean option.
      *
      * A declared flag (`VALUE_NONE`) already arrives as a bool, so the common
@@ -128,6 +151,13 @@ trait ReadsOptions
      * Deliberately not `(int)`, which turns a typo into `0` -- a value that
      * looks deliberate for `--limit`, `--port` or `--timeout` and passes every
      * downstream check.
+     *
+     * The conditional return type is what makes this usable without a redundant
+     * `?? $default` at the call site: given a non-null default the result cannot
+     * be null, and a caller passing it to something typed `int` should not have
+     * to restate the default to prove that.
+     *
+     * @return ($default is null ? int|null : int)
      */
     protected function intOption(string $key, ?int $default = null): ?int
     {
