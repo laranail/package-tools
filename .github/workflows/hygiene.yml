@@ -22,6 +22,7 @@ on:
       - '.github/workflows/**'
       - 'scripts/verify-action-pins.py'
       - 'scripts/verify-tag-currency.sh'
+      - 'scripts/verify-trait-copies.py'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -61,6 +62,38 @@ jobs:
         run: bash scripts/verify-tag-currency.sh ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trait-copies:
+    name: Trait copies
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # The only org-wide check here. The other three ask about this repository --
+    # its pins, its tag, its archive. This one asks which packages in the family
+    # keep a local copy of the naming trait, and whether each still has a reason
+    # that holds.
+    #
+    # It lives on this caller alone, deliberately. Run from all 37 repositories it
+    # would assert the same fact 37 times a week and, when it broke, go red in 37
+    # of them -- none necessarily the one that drifted.
+    #
+    # A SCHEDULED DRIFT DETECTOR, NOT A MERGE GATE. It reads every package's
+    # default branch over the API, so a pull request that adds an undeclared copy
+    # is caught on the next run rather than before it merges. Closing that needs
+    # the check to overlay the caller's working tree on the org it reads, which is
+    # a change to the script, not to this file.
+    #
+    # Why it exists: the conformance docblocks name which packages carry a copy
+    # and why, that prose went wrong twice in one day, and every check stayed
+    # green both times -- those tests assert the trait's behaviour, which is
+    # identical whether a package carries a copy or imports one.
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Every trait copy declares a reason that still holds
+        run: python3 scripts/verify-trait-copies.py --org ${{ github.repository_owner }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   dist:
     name: Dist integrity
