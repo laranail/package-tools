@@ -21,6 +21,12 @@ use Simtabi\Laranail\Package\Tools\Commands\Concerns\SupportsNamespacedNames as 
  * undeclared `$commandAliases` and fataled at boot for any command that used it without declaring
  * the property. This file is the same in every package that carries a copy, so a divergence fails
  * somewhere instead of shipping.
+ *
+ * @trait-copy-reason no-laranail-requirement This package is the one every other
+ *   laranail package may depend on, so its `require` carries no `laranail/*` entry and it
+ *   cannot take `laranail/console` for the canonical trait. Read by
+ *   `scripts/verify-trait-copies.py`, which fails if a `laranail/*` requirement ever
+ *   appears -- at which point this copy should go rather than the check being relaxed.
  */
 function conformanceCommand(): SymfonyCommand
 {
