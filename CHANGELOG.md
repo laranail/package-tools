@@ -5,6 +5,24 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`assertNoNullOnlyOptionGuards()` scanned files that have nothing to do with the console.**
+  `$this->option()` is not exclusively `Illuminate\Console\Command`'s — an adapter, value object or
+  widget may expose its own `option()` over an options array, and the guard matched on call shape
+  alone. `laranail/captcha`'s ReCaptcha adapters are the worked example: they read a widget's
+  options, extend `SiteVerifyAdapter`, and were flagged for a defect that cannot exist there.
+
+  Now only command-shaped files are scanned — `extends *Command`, or a declared `$signature`.
+  Verified against every package that has adopted the guard: no file they read options in falls
+  outside that shape, so nothing stops being covered.
+
+  This is a whole class of false positive removed rather than exempted one line at a time. An
+  exemption should mark a real guard that is correct anyway, not a file the guard should never have
+  opened.
+
 ## Unreleased
 
 ### Added
