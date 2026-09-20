@@ -171,6 +171,10 @@ trait AssertsDriverContract
      * Scans **source**, because the defect is in a branch the suite does not take: a test that
      * passes `--days=3` never reaches it, and one that omits `--days` takes the guard's other arm.
      *
+     * Only files that look like commands are scanned -- `extends *Command` or a `$signature`.
+     * `$this->option()` is not exclusively the console's: an adapter or value object may expose its
+     * own, and those reads are not this defect.
+     *
      * ```php
      * $this->assertNoNullOnlyOptionGuards(__DIR__ . '/../../src');
      * ```
@@ -192,6 +196,17 @@ trait AssertsDriverContract
 
         foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir)) as $file) {
             if ($file->getExtension() !== 'php') {
+                continue;
+            }
+
+            // `$this->option()` is not exclusively Illuminate\Console\Command's. An adapter, a
+            // value object or a widget may expose its own `option()` reading an options array, and
+            // flagging those is not a false positive to be exempted one by one -- it is the wrong
+            // file. laranail/captcha's ReCaptcha adapters are the worked example: they read a
+            // widget's options and extend SiteVerifyAdapter.
+            $source = (string) file_get_contents($file->getPathname());
+
+            if (preg_match('/extends\s+\w*Command\b/', $source) !== 1 && ! str_contains($source, '$signature')) {
                 continue;
             }
 

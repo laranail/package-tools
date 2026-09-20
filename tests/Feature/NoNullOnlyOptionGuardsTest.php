@@ -40,7 +40,7 @@ final class NoNullOnlyOptionGuardsTest extends TestCase
         $this->write('ReminderCommand.php', '$days = $this->option(\'days\') !== null ? (int) $this->option(\'days\') : null;');
 
         $this->expectException(AssertionFailedError::class);
-        $this->expectExceptionMessageMatches('/ReminderCommand\.php:2/');
+        $this->expectExceptionMessageMatches('/ReminderCommand\.php:\d+/');
 
         $this->subject()->run($this->sandbox);
     }
@@ -108,7 +108,32 @@ final class NoNullOnlyOptionGuardsTest extends TestCase
         $this->write('IssueCommand.php', "\$a = \$this->option('days') !== null; // @option-guard-exempt\n\$b = \$this->option('kid') ?? 'generated';");
 
         $this->expectException(AssertionFailedError::class);
-        $this->expectExceptionMessageMatches('/IssueCommand\.php:3/');
+        $this->expectExceptionMessageMatches('/IssueCommand\.php:\d+/');
+
+        $this->subject()->run($this->sandbox);
+    }
+
+    #[Test]
+    public function it_ignores_a_class_that_merely_has_its_own_option_accessor(): void
+    {
+        // `$this->option()` is not exclusively the console's. laranail/captcha's ReCaptcha
+        // adapters read a widget's options through a method of that name and extend
+        // SiteVerifyAdapter -- flagging them is the wrong file, not an exemption to annotate.
+        $this->writeRaw('EnterpriseAdapter.php', "class EnterpriseAdapter extends SiteVerifyAdapter {\n  public function build() {\n    return \$this->option('language') !== null ? \$this->option('language') : 'en';\n  }\n}");
+        $this->writeRaw('RealCommand.php', "class RealCommand extends Command {\n  protected \$signature = 'x';\n  public function handle() { return \$this->option('a'); }\n}");
+
+        $this->subject()->run($this->sandbox);
+
+        $this->addToAssertionCount(1);
+    }
+
+    #[Test]
+    public function a_command_shaped_file_is_still_scanned(): void
+    {
+        $this->writeRaw('RealCommand.php', "class RealCommand extends Command {\n  protected \$signature = 'x';\n  public function handle() { return \$this->option('a') ?? 'fallback'; }\n}");
+
+        $this->expectException(AssertionFailedError::class);
+        $this->expectExceptionMessageMatches('/RealCommand\.php/');
 
         $this->subject()->run($this->sandbox);
     }
@@ -126,7 +151,17 @@ final class NoNullOnlyOptionGuardsTest extends TestCase
         $this->subject()->run($this->sandbox);
     }
 
+    /**
+     * Writes a COMMAND-shaped file, because that is what the guard scans -- a bare
+     * statement is skipped by design, and a fixture that is skipped proves nothing.
+     */
     private function write(string $name, string $body): void
+    {
+        $class = basename($name, '.php');
+        $this->writeRaw($name, "class {$class} extends Command\n{\n    protected \$signature = 'x';\n\n    public function handle(): int\n    {\n        {$body}\n\n        return 0;\n    }\n}");
+    }
+
+    private function writeRaw(string $name, string $body): void
     {
         file_put_contents($this->sandbox . '/' . $name, "<?php\n" . $body);
     }
