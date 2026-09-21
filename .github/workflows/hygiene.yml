@@ -38,7 +38,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
 
       - name: Verify every pin is honest and current
         run: python3 scripts/verify-action-pins.py
@@ -56,7 +56,7 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
 
       - name: Verify the moving tag is on main
         run: bash scripts/verify-tag-currency.sh ${{ github.repository }}
@@ -88,7 +88,7 @@ jobs:
     # green both times -- those tests assert the trait's behaviour, which is
     # identical whether a package carries a copy or imports one.
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
 
       - name: Every trait copy declares a reason that still holds
         run: python3 scripts/verify-trait-copies.py --org ${{ github.repository_owner }}
@@ -104,7 +104,7 @@ jobs:
     # the repository and fatal in a consumer's vendor/. It needs both a
     # reference and an export-ignore, so neither line looks wrong on its own.
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
 
       - name: Every referenced path survives the archive
         run: bin/laranail-dist-integrity
