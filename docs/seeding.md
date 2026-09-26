@@ -410,6 +410,22 @@ echo $stats->getSummary(); // "2/2 seeders completed successfully in 12.30ms"
 exposes `autoSeed()`, `seeders()` (a fresh `SeederBuilder`), `run()` (run
 everything registered), and `registry()`.
 
+## Foreign keys on PostgreSQL
+
+`withoutForeignKeyChecks()` defaults to `true`, so a bundle normally runs inside
+`ForeignKeyCheckGuard`. MySQL, MariaDB and SQLite switch foreign keys off outright.
+PostgreSQL cannot switch off only foreign keys. It follows
+`laranail.package-tools.seeders.postgres_foreign_keys` (env
+`PACKAGE_TOOLS_POSTGRES_FOREIGN_KEYS`):
+
+| Mode | Statement | Effect |
+|---|---|---|
+| `defer` (default) | `SET CONSTRAINTS ALL DEFERRED` | Only `DEFERRABLE` constraints are relaxed. **A seeder that inserts a child before its parent still fails** on an ordinary foreign key. Triggers keep firing. |
+| `replica` | `SET session_replication_role = replica` | Foreign keys are off. So is every ordinary trigger while the bundle runs, so data a trigger maintains is not maintained. Needs a superuser or, on PostgreSQL 15+, a grant. Without it the bundle fails before running rather than falling back. |
+
+Prefer seeding parents before children. Reach for `replica` only for a bundle
+whose tables carry no triggers you rely on.
+
 ## Fluent `SeederBuilder`
 
 ```php

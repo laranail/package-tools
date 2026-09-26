@@ -153,7 +153,7 @@ The `PKG_HTTP_*` defaults are documented in
 | `Support\ConfigGate` | The single config-gating implementation behind every `whenConfig()` / `whenConfigNotNull()`: truthy and not-null modes, evaluated at `passes()` time. |
 | `Support\DeferredCallQueue` | Generic capture/replay of fluent calls onto a later target, with recursive argument normalization (`BackedEnum` → value, `TimeOfDay` → `'H:i'`, `CronExpressible` → expression, arrays recursed) and unknown-method validation. |
 | `Support\FluentPackageHelper` | Fluent helper for package-specific operations (config, routes, assets, views, translations). |
-| `Support\ForeignKeyCheckGuard` | Disables FK-constraint enforcement around a callback, with safe nesting and exception-safe restoration. |
+| `Support\ForeignKeyCheckGuard` | Disables FK-constraint enforcement around a callback, with safe nesting and exception-safe restoration. On PostgreSQL, see [Foreign keys on PostgreSQL](seeding.md#foreign-keys-on-postgresql). |
 | `Support\GateMode` | Enum of the two `ConfigGate` modes (`Truthy`, `NotNull`). |
 | `Support\PathResolver` | Cross-platform path resolution: normalization, traversal protection, package-root detection. |
 | `Support\RuntimeConfigurator` | Fluent PHP runtime configuration (memory, timeouts, error reporting, debug tooling). |
