@@ -17,26 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`SeederRunTracker::advance()` takes `int $by = 1`**, so a run can count rows or files rather than
   one unit per call. A non-positive step records nothing. Existing callers are unchanged.
 
-### Fixed
-
-- **`assertNoNullOnlyOptionGuards()` scanned files that have nothing to do with the console.**
-  `$this->option()` is not exclusively `Illuminate\Console\Command`'s — an adapter, value object or
-  widget may expose its own `option()` over an options array, and the guard matched on call shape
-  alone. `laranail/captcha`'s ReCaptcha adapters are the worked example: they read a widget's
-  options, extend `SiteVerifyAdapter`, and were flagged for a defect that cannot exist there.
-
-  Now only command-shaped files are scanned — `extends *Command`, or a declared `$signature`.
-  Verified against every package that has adopted the guard: no file they read options in falls
-  outside that shape, so nothing stops being covered.
-
-  This is a whole class of false positive removed rather than exempted one line at a time. An
-  exemption should mark a real guard that is correct anyway, not a file the guard should never have
-  opened.
-
-## Unreleased
-
-### Added
-
 - **`Commands\Concerns\ReadsOptions`** — one concern for console-input normalisation, applied by
   the base `Command`. Seven accessors: `strOption()`, `stringOption()`, `strArg()`, `boolOption()`,
   `intOption()`, `arrayOption()`, `listOption()` and `strArgOrNull()`.
@@ -85,16 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   by filename, because a whole-file skip also covers reads added to that file later, which is how a
   guard stops guarding without anyone deciding that it should.
 
-### Changed
-
-- **`Command::stringOption()` falls back to `$default` for `--flag=`**, not just when the option is
-  absent. Previously the documented fallback did not apply to an option written without a value, so
-  `stringOption('format', 'csv')` answered `''` for `--format=`. Pass `''` explicitly to keep an
-  empty string. The method is otherwise unchanged and still resolves on the base `Command`, which
-  now applies the trait that holds it.
-
-### Added
-
 - **`Testing\AssertsDriverContract`** — a trait guarding the two package defects a mocked test
   structurally cannot reach: a driver name the configuration can produce but the manager cannot
   build, and a config key read where nothing is registered.
@@ -115,43 +85,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   extending the shared base get both assertions without a `uses()` line. No method name collides
   anywhere in the family — checked before wiring it in.
 
-### Fixed
-
-- **`docs/tools/config-namespacing.md` described the default backwards, and two packages shipped a
-  broken config because of it.** It said `hasConfigFile('foo')` registers `config('foo.*')`, "flat
-  — unchanged, exactly like Laravel". It does not: `setName()` *requires* `vendor/package` and
-  rejects a bare name, so `configVendor` is never null, `hasConfigNamespacing()` reduces to the
-  `$configNamespacing` flag, and that flag defaults to **true**. A package named `acme/widget`
-  registers at `config('acme.widget.*')`.
-
-  Reading the bare key is silent — `config()` returns null or the call site's inline default — so
-  `laranail/env-tools` and `laranail/env-kit-webui` both ran entirely on inline defaults, with
-  protected keys that were therefore writable and secret-masking that masked nothing. Both are
-  fixed in their own repositories; this is the documentation that produced them.
-
-  `tests/Feature/ConfigNamespacingDefaultTest.php` now pins the behaviour, including that a bare
-  package name throws, so the page cannot drift from the code again.
-
-### Removed
-
-- **`Enums\Timezone`** (419 cases, 454 lines) and its generator. It was already
-  `@deprecated` in favour of `laranail/chrono`'s, which has identical case names and
-  values plus `city()`, `kind()`, `canonical()` and the alias map. Nothing in this
-  package used it, and nothing anywhere in the org did -- verified before removal.
-  A timezone enum has no business in a package-authoring toolkit that 51 packages
-  install. Migration is a one-line `use` change; `timezone()` also takes a plain
-  string. The `sync-check` script and its static-analysis step go with it.
-
-### Added
-
 - **`Validation\Predicates\Pattern`** -- canonical patterns and one total matcher, so
   `console` and `validation` can share them without either depending on the other.
 
 - **A shared `pint.json`**, no longer `export-ignore`d, consumed org-wide via
   `--config vendor/laranail/package-tools/pint.json`. See `docs/tools/pint.md`.
-
-
-### Added
 
 - **`vendor/bin/laranail-dist-integrity`** — verifies that every path `composer.json` references
   survives `git archive`, so a package cannot ship a manifest pointing at a file a dist install
@@ -183,7 +121,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   See [Package registry](docs/tools/package-registry.md).
 
+- `Package::componentPrefix()`, the hyphen form of the view namespace. Blade component tags are the
+  one registry that cannot take a slash: `ComponentTagCompiler` captures the name with
+  `[\w\-\:\.]`, so `<x-laranail/atlas::card />` truncates at the slash and is emitted as literal
+  text rather than compiled. `bootPackageViews()` registers the prefix as an alias over the paths
+  `loadViewsFrom()` just resolved -- the published override directory included -- so both spellings
+  find the same file and an override still wins for component tags. A custom view namespace is
+  mirrored rather than ignored, so a package that opts out of the default still gets a tag-safe
+  prefix.
+- `tests/Feature/NamespaceSeparatorTest.php`, pinning the split against Blade's own name pattern
+  rather than against a comment, so an upstream change to that pattern fails a test here.
+
 ### Changed
+
+- **`Command::stringOption()` falls back to `$default` for `--flag=`**, not just when the option is
+  absent. Previously the documented fallback did not apply to an option written without a value, so
+  `stringOption('format', 'csv')` answered `''` for `--format=`. Pass `''` explicitly to keep an
+  empty string. The method is otherwise unchanged and still resolves on the base `Command`, which
+  now applies the trait that holds it.
 
 - **`laranail/console` is a suggestion, not a requirement.** It was reached by exactly one class out
   of roughly 270 -- `SeederConsoleFormatter`, which renders styled seeder output -- and this package
@@ -212,26 +167,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   scattering them across the `lang/vendor` root. A package passing an explicit namespace to
   `hasViews()` is unaffected.
 
-### Added
-
-- `Package::componentPrefix()`, the hyphen form of the view namespace. Blade component tags are the
-  one registry that cannot take a slash: `ComponentTagCompiler` captures the name with
-  `[\w\-\:\.]`, so `<x-laranail/atlas::card />` truncates at the slash and is emitted as literal
-  text rather than compiled. `bootPackageViews()` registers the prefix as an alias over the paths
-  `loadViewsFrom()` just resolved -- the published override directory included -- so both spellings
-  find the same file and an override still wins for component tags. A custom view namespace is
-  mirrored rather than ignored, so a package that opts out of the default still gets a tag-safe
-  prefix.
-- `tests/Feature/NamespaceSeparatorTest.php`, pinning the split against Blade's own name pattern
-  rather than against a comment, so an upstream change to that pattern fails a test here.
-
-### Changed
-
 - **Breaking.** The package's OWN config publish tag is now
   `laranail::package-tools-config` (was the bare `package-tools-config`) — the same
   namespacing this package mints for everyone else's tags, enforced by a live-registry test.
   `vendor:publish --tag=package-tools-config` becomes
   `vendor:publish --tag=laranail::package-tools-config`.
+
+### Removed
+
+- **`Enums\Timezone`** (419 cases, 454 lines) and its generator. It was already
+  `@deprecated` in favour of `laranail/chrono`'s, which has identical case names and
+  values plus `city()`, `kind()`, `canonical()` and the alias map. Nothing in this
+  package used it, and nothing anywhere in the org did -- verified before removal.
+  A timezone enum has no business in a package-authoring toolkit that 51 packages
+  install. Migration is a one-line `use` change; `timezone()` also takes a plain
+  string. The `sync-check` script and its static-analysis step go with it.
+
+### Fixed
+
+- **`assertNoNullOnlyOptionGuards()` scanned files that have nothing to do with the console.**
+  `$this->option()` is not exclusively `Illuminate\Console\Command`'s — an adapter, value object or
+  widget may expose its own `option()` over an options array, and the guard matched on call shape
+  alone. `laranail/captcha`'s ReCaptcha adapters are the worked example: they read a widget's
+  options, extend `SiteVerifyAdapter`, and were flagged for a defect that cannot exist there.
+
+  Now only command-shaped files are scanned — `extends *Command`, or a declared `$signature`.
+  Verified against every package that has adopted the guard: no file they read options in falls
+  outside that shape, so nothing stops being covered.
+
+  This is a whole class of false positive removed rather than exempted one line at a time. An
+  exemption should mark a real guard that is correct anyway, not a file the guard should never have
+  opened.
+
+- **`docs/tools/config-namespacing.md` described the default backwards, and two packages shipped a
+  broken config because of it.** It said `hasConfigFile('foo')` registers `config('foo.*')`, "flat
+  — unchanged, exactly like Laravel". It does not: `setName()` *requires* `vendor/package` and
+  rejects a bare name, so `configVendor` is never null, `hasConfigNamespacing()` reduces to the
+  `$configNamespacing` flag, and that flag defaults to **true**. A package named `acme/widget`
+  registers at `config('acme.widget.*')`.
+
+  Reading the bare key is silent — `config()` returns null or the call site's inline default — so
+  `laranail/env-tools` and `laranail/env-kit-webui` both ran entirely on inline defaults, with
+  protected keys that were therefore writable and secret-masking that masked nothing. Both are
+  fixed in their own repositories; this is the documentation that produced them.
+
+  `tests/Feature/ConfigNamespacingDefaultTest.php` now pins the behaviour, including that a bare
+  package name throws, so the page cannot drift from the code again.
 
 ## [0.1.0] - 2026-08-15
 
