@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Commands;
 
+use Symfony\Component\Console\Formatter\OutputFormatter;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorService;
@@ -61,16 +62,12 @@ final class PackageDoctorCommand extends Command
                 ? "[{$row['group']}] " . $row['check']->name()
                 : $row['check']->name();
             $msg = $row['result']->message;
-            $color = $status->ansiColor();
-            $reset = "\033[0m";
-
             $this->line(sprintf(
-                '  %s%s%s  <fg=white;options=bold>%s</> — %s',
-                $color,
-                $status->symbol(),
-                $reset,
-                $name,
-                $msg,
+                '  <fg=%s>%s</>  <fg=white;options=bold>%s</> — %s',
+                $status->color(),
+                $status->glyph(),
+                OutputFormatter::escape($name),
+                OutputFormatter::escape($msg),
             ));
 
             foreach ($row['result']->detail as $key => $value) {

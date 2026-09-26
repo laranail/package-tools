@@ -24,6 +24,19 @@ final class PackageDoctorCommandTest extends TestCase
         $this->assertStringContainsString('boot:health', $output);
     }
 
+    public function test_doctor_writes_no_raw_escape_codes_to_plain_output(): void
+    {
+        // The status glyph used to be wrapped in raw \033[32m…\033[0m, which a
+        // plain (piped, --no-ansi) output cannot strip. It is markup now, so an
+        // undecorated output carries the glyph and nothing else.
+        Artisan::call('laranail::package-tools.doctor');
+        $output = Artisan::output();
+
+        $this->assertStringNotContainsString("\033[", $output);
+        $this->assertStringNotContainsString('<fg=', $output);
+        $this->assertMatchesRegularExpression('/(✓|\[OK\])\s+(\[[^\]]+\]\s+)?boot:health/u', $output);
+    }
+
     public function test_doctor_passes_when_all_checks_pass(): void
     {
         $service = $this->app->make(DoctorService::class);

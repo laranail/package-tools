@@ -5,6 +5,17 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`laranail::package-tools.doctor` wrote raw ANSI escape codes.** The status glyph was wrapped in
+  `\033[32m…\033[0m`, which `--no-ansi` and piped output cannot strip, so CI logs and redirected
+  output carried the codes. The glyph is `<fg=…>` markup now. `DoctorStatus::color()` gives the
+  formatter colour, and `glyph()` uses laranail/console's shared `Symbols` when console is installed,
+  so it follows the terminal's Unicode/ASCII capability. `DoctorReporter`'s table cell is rendered
+  the same way. `DoctorStatus::ansiColor()` is deprecated.
+
 ## [0.1.2] - 2026-09-26
 
 ### Added

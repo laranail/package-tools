@@ -45,7 +45,7 @@ final class DoctorReporter
         }
 
         $cmd->table(['', 'Check', 'Result'], array_map(static fn (array $row): array => [
-            $row['result']->status->symbol(),
+            '<fg=' . $row['result']->status->color() . '>' . $row['result']->status->glyph() . '</>',
             ($row['group'] ?? null) !== null ? "[{$row['group']}] " . $row['check']->name() : $row['check']->name(),
             $row['result']->message,
         ], $report));
