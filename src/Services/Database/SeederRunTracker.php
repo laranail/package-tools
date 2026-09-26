@@ -40,12 +40,21 @@ final class SeederRunTracker
         ], self::PROCESSING_TTL);
     }
 
-    public function advance(string $key, bool $failed = false): void
+    /**
+     * Record `$by` more units as processed (and, when `$failed`, as failed).
+     * A unit is whatever the run counts: a seeder for a bundle, a row or file
+     * for a chunked run. A non-positive `$by` records nothing.
+     */
+    public function advance(string $key, bool $failed = false, int $by = 1): void
     {
-        $this->update($key, static function (array $state) use ($failed): array {
-            $state['processed'] = max($state['processed'] + 1, $state['processed']);
+        if ($by < 1) {
+            return;
+        }
+
+        $this->update($key, static function (array $state) use ($failed, $by): array {
+            $state['processed'] = max($state['processed'] + $by, $state['processed']);
             if ($failed) {
-                $state['failed']++;
+                $state['failed'] += $by;
             }
 
             return $state;
