@@ -168,6 +168,45 @@ failed, processed counts, timestamps) via the cache-backed
 execution paths (plus schedule-level `withoutOverlapping` for scheduled
 runs), so two triggers can't seed the same bundle concurrently.
 
+## Chunked workloads: `ChunkedBatchDispatcher`
+
+A bundle runs *seeder classes*. Some seeding is one large workload instead:
+thousands of files or rows, too many for one job. `ChunkedBatchDispatcher`
+splits that workload into chunks and runs one job per chunk, either as a
+queued `Bus::batch()` or inline.
+
+```php
+use Simtabi\Laranail\Package\Tools\Services\Database\ChunkedBatchDispatcher;
+
+$dispatcher = ChunkedBatchDispatcher::make("Seed icons: {$package}")
+    ->items($files)->chunk(1000)
+    ->job(fn (array $chunk, int $index, int $total) => new SeedIconsJob($package, $chunk, $index, $total))
+    ->queue('icons')
+    ->track("icons:{$package}");
+
+$batch  = $dispatcher->dispatch();     // queued: one job per chunk, one batch
+$result = $dispatcher->runInline();    // or in this process: ChunkRunResult
+
+ChunkedBatchDispatcher::drain('icons', $this->output);  // work the queue until empty
+```
+
+- **Progress is counted in items, not chunks.** `track()` starts the run in
+  `SeederRunTracker` with the item count. On a queued run, each job reports its
+  own chunk as it finishes, with
+  `app(SeederRunTracker::class)->advance($key, by: count($chunk))`, and the
+  batch settles the run as completed, or as failed when any chunk failed.
+  Inline runs advance and settle the tracker themselves.
+- **Failures.** A failed chunk does not stop the others (`allowFailures()` is
+  on by default). Inline, it is recorded in `ChunkRunResult::$errors`.
+- **Serialization.** Batch callbacks are serialized onto the queue. The
+  dispatcher's own callbacks capture only scalars. A callback you add through
+  `configure(fn (PendingBatch $b) => …)` has the same obligation: resolve
+  services from the container inside it rather than capturing them.
+- An inline job only needs a `handle()` method, which is called through the
+  container. A queued job needs `ShouldQueue`, `Batchable` and
+  `InteractsWithQueue`. Without `InteractsWithQueue` the batch never records
+  the job as done, and its `then()` and `finally()` callbacks never run.
+
 ## Scheduling seeders
 
 Bundles can recur on the scheduler — the cadence vocabulary is the same

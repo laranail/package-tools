@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`Services\Database\ChunkedBatchDispatcher`** runs one job per chunk of a large seeding workload,
+  either as a queued `Bus::batch()` (`dispatch()`) or inline (`runInline()`, which returns a
+  `ValueObjects\ChunkRunResult`). `drain()` works a queue until it is empty. Progress is tracked in
+  items through `SeederRunTracker`. The dispatcher's batch callbacks capture only scalars, so they
+  serialize onto any queue.
+- **`SeederRunTracker::advance()` takes `int $by = 1`**, so a run can count rows or files rather than
+  one unit per call. A non-positive step records nothing. Existing callers are unchanged.
+
 ### Fixed
 
 - **`assertNoNullOnlyOptionGuards()` scanned files that have nothing to do with the console.**
