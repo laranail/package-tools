@@ -44,6 +44,17 @@ return [
     'seeders' => [
 
         /*
+        | How ForeignKeyCheckGuard treats PostgreSQL for bundles that disable
+        | foreign-key checks. PostgreSQL cannot switch off only foreign keys:
+        |   defer   -- SET CONSTRAINTS ALL DEFERRED; only DEFERRABLE constraints
+        |              are relaxed, triggers keep firing (default).
+        |   replica -- SET session_replication_role = replica; foreign keys AND
+        |              ordinary triggers are off while the bundle runs. Needs a
+        |              superuser or a PostgreSQL 15+ grant, or the run fails.
+        */
+        'postgres_foreign_keys' => env('PACKAGE_TOOLS_POSTGRES_FOREIGN_KEYS', 'defer'),
+
+        /*
         | Extra root-seeder FQCNs whose resolution triggers package seeding
         | (in addition to Database\Seeders\DatabaseSeeder). db:seed with a
         | custom --class never triggers package bundles unless listed here.

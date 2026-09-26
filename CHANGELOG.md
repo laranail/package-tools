@@ -5,6 +5,21 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`laranail.package-tools.seeders.postgres_foreign_keys`** (`defer` | `replica`, env
+  `PACKAGE_TOOLS_POSTGRES_FOREIGN_KEYS`).
+  - `ForeignKeyCheckGuard`, which wraps every bundle by default, only deferred constraints on
+    PostgreSQL. An ordinary foreign key stayed enforced there, unlike on every other driver, and the
+    docs said "FK checks off".
+  - `defer` stays the default and is documented as exactly that.
+  - `replica` uses `session_replication_role`, which really switches foreign keys off and suspends
+    ordinary triggers. It fails loudly, without running the bundle, when the role lacks the privilege.
+  - This mirrors laranail/db-tools' `ForeignKeySwitch`. It is a copy rather than a dependency
+    because db-tools requires this package.
+
 ## [0.1.1] - 2026-09-26
 
 ### Added
