@@ -41,7 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from a pull request that already merged green, because job names differ per repository; jobs from
   path-filtered workflows, skipped jobs and other apps are left out and listed, since a required
   check that never reports blocks every merge. Each check is pinned to the GitHub Actions app. Dry
-  run by default; `--apply` creates or updates the ruleset in place.
+  run by default; `--apply` creates or updates the ruleset in place. Path filters are read from the
+  default branch as it is now, and the evidence is the most recent merged pull request whose checks
+  ran green, so a docs-only merge with nothing to read no longer stops it.
 
 ### Fixed
 
