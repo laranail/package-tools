@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`scripts/apply-branch-ruleset.py`** applies the family's default-branch ruleset: pull request,
+  conversation resolution, no force pushes or deletion, and now **required status checks**. The
+  previous ruleset required a pull request but let one with red CI merge. Required checks are read
+  from a pull request that already merged green, because job names differ per repository; jobs from
+  path-filtered workflows, skipped jobs and other apps are left out and listed, since a required
+  check that never reports blocks every merge. Each check is pinned to the GitHub Actions app. Dry
+  run by default; `--apply` creates or updates the ruleset in place.
+
 ### Fixed
 
 - **`laranail::package-tools.doctor` wrote raw ANSI escape codes.** The status glyph was wrapped in
