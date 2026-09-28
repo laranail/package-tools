@@ -16,6 +16,31 @@ Requires PHP `^8.4.1 || ^8.5` on Laravel `^13`.
 composer require laranail/package-tools
 ```
 
+## Quick start
+
+Extend `PackageServiceProvider` and describe the package once. Configs, views, migrations and
+commands register themselves from that description:
+
+```php
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+
+final class AcmeBlogServiceProvider extends PackageServiceProvider
+{
+    public function configurePackage(Package $package): void
+    {
+        $package
+            ->name('acme/blog')          // config resolves under config('acme.blog.*')
+            ->hasConfigFile()
+            ->hasViews()
+            ->hasMigration('create_posts_table');
+    }
+}
+```
+
+Full walkthrough: [docs/getting-started.md](docs/getting-started.md).
+Everything else: [Documentation](#documentation).
+
 ## <a name="documentation"></a>Documentation
 
 Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https://opensource.simtabi.com/documentation/laranail/package-tools/)**.
