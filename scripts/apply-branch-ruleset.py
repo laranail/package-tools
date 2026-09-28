@@ -211,9 +211,12 @@ def main(argv: list[str]) -> int:
     pr, sha = evidence_pr(repo, number)
     contexts, excluded = collect(repo, sha)
 
-    # A required set built from nothing passes everything. Refuse it.
+    # A required set built from nothing passes everything. Refuse it, and say why: every
+    # job excluded looks exactly like no job run unless the exclusions are printed.
     if not contexts:
-        print(f"No passing pull_request check runs on #{pr} ({sha[:7]}); nothing to require.", file=sys.stderr)
+        print(f"{repo}: nothing to require from #{pr} ({sha[:7]}).", file=sys.stderr)
+        for e in excluded:
+            print(f"  {e}", file=sys.stderr)
         return 1
 
     print(f"{repo}: {len(contexts)} required check(s) from #{pr} ({sha[:7]})")
