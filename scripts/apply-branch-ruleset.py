@@ -13,7 +13,7 @@ from evidence: the check runs of a pull request that already merged green. Only
 what has demonstrably run and passed on a pull request is required, which is the
 difference between a gate and a merge button that never lights up.
 
-Four things are deliberately left out of the required set, each because
+Five things are deliberately left out of the required set, each because
 requiring it would block merges forever:
 
   PATH-FILTERED  a workflow with `paths` / `paths-ignore` on `pull_request`
@@ -27,6 +27,12 @@ requiring it would block merges forever:
                  posted by anything else under the same name cannot satisfy it.
   NON-PR RUNS    schedule and workflow_dispatch jobs (the weekly macOS run) are
                  never on a pull request.
+  REMOVED        a workflow that ran on the evidence pull request but is no
+                 longer on the default branch.
+
+Path filters are read from the default branch as it is now, not from the
+evidence commit, since a filter added later is exactly what would strand a
+required check.
 
 Branches need not be up to date before merging (`strict` off): every change here
 goes through a pull request, CI tests the merge result, and on a one-maintainer
@@ -73,16 +79,39 @@ def gh_json(*args: str) -> object:
     return json.loads(gh(*args))
 
 
+def pr_runs(repo: str, sha: str) -> list[dict]:
+    return gh_json("api", f"repos/{repo}/actions/runs?head_sha={sha}&event=pull_request&per_page=100")["workflow_runs"]
+
+
+def green(runs: list[dict]) -> bool:
+    """Ran something, and nothing it ran failed."""
+    return bool(runs) and all(r["conclusion"] in ("success", "skipped") for r in runs)
+
+
 def evidence_pr(repo: str, number: str | None) -> tuple[str, str]:
-    """The pull request whose green checks define the required set."""
-    if number is None:
-        merged = gh_json("pr", "list", "--repo", repo, "--state", "merged",
-                         "--limit", "1", "--json", "number")
-        if not merged:
-            raise SystemExit(f"{repo} has no merged pull request to read checks from; pass --pr.")
-        number = str(merged[0]["number"])
-    pr = gh_json("pr", "view", number, "--repo", repo, "--json", "headRefOid")
-    return number, pr["headRefOid"]
+    """The pull request whose green checks define the required set.
+
+    The newest merged pull request is often a docs-only one on which every
+    path-filtered workflow stayed silent, so it can carry no runs at all. Walk
+    back through recent merges to the first that actually ran something, and ran it green.
+    """
+    if number is not None:
+        pr = gh_json("pr", "view", number, "--repo", repo, "--json", "headRefOid")
+        return number, pr["headRefOid"]
+
+    merged = gh_json("pr", "list", "--repo", repo, "--state", "merged",
+                     "--limit", "15", "--json", "number,headRefOid,author")
+    for pr in merged:
+        # Dependabot pull requests run the same workflows, but prefer a human one when
+        # there is a choice: it is the shape the next pull request will have.
+        if pr["author"]["login"].startswith("app/"):
+            continue
+        if green(pr_runs(repo, pr["headRefOid"])):
+            return str(pr["number"]), pr["headRefOid"]
+    for pr in merged:
+        if green(pr_runs(repo, pr["headRefOid"])):
+            return str(pr["number"]), pr["headRefOid"]
+    raise SystemExit(f"{repo}: none of the last {len(merged)} merged pull requests ran its checks green; pass --pr.")
 
 
 def pull_request_filter(workflow_yaml: str) -> str | None:
@@ -99,21 +128,36 @@ def pull_request_filter(workflow_yaml: str) -> str | None:
     return None
 
 
+def current_workflow(repo: str, path: str, branch: str) -> str | None:
+    """The workflow as the default branch has it now, or None if it is gone."""
+    try:
+        content = gh_json("api", f"repos/{repo}/contents/{path}?ref={branch}")
+    except RuntimeError as e:
+        if "404" in str(e) or "Not Found" in str(e):
+            return None
+        raise
+    return base64.b64decode(content["content"]).decode()
+
+
 def collect(repo: str, sha: str) -> tuple[list[str], list[str]]:
     required: set[str] = set()
     excluded: list[str] = []
+    branch = gh_json("api", f"repos/{repo}")["default_branch"]
 
-    runs = gh_json("api", f"repos/{repo}/actions/runs?head_sha={sha}&event=pull_request&per_page=100")
-    for run in runs["workflow_runs"]:
+    for run in pr_runs(repo, sha):
         path = run["path"].split("@")[0]
-        content = gh_json("api", f"repos/{repo}/contents/{path}?ref={sha}")
-        source = base64.b64decode(content["content"]).decode()
         jobs = gh_json("api", run["jobs_url"] + "?per_page=100")
 
-        path_filter = pull_request_filter(source)
+        # Judged against the default branch as it is now, not as it was at the evidence
+        # commit: a filter added since would otherwise make a required check that
+        # never reports on the pull requests it filters out.
+        source = current_workflow(repo, path, branch)
+        path_filter = None if source is None else pull_request_filter(source)
         for job in jobs["jobs"]:
             label = f"{run['name']} / {job['name']}"
-            if path_filter:
+            if source is None:
+                excluded.append(f"REMOVED        {label}  ({path} is no longer on {branch})")
+            elif path_filter:
                 excluded.append(f"PATH-FILTERED  {label}  ({path} has `{path_filter}`)")
             elif job["conclusion"] == "skipped":
                 excluded.append(f"SKIPPED        {label}")
