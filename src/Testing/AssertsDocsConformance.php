@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Testing;
 
-use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
 
 /**
  * The docs standard, asserted rather than described — shared across the estate.
@@ -51,9 +51,9 @@ trait AssertsDocsConformance
     /**
      * Run every docs assertion against a package root.
      *
-     * @param  int  $minimumPages  the floor below which the glob is assumed broken rather
-     *                             than the tree assumed clean. Per package: this one ships
-     *                             43 pages, `@ichava/motion` ships 6. Never 0.
+     * @param int $minimumPages the floor below which the glob is assumed broken rather
+     *                          than the tree assumed clean. Per package: this one ships
+     *                          43 pages, `@ichava/motion` ships 6. Never 0.
      */
     protected function assertDocsConformToStandard(string $root, int $minimumPages = 1): void
     {
@@ -78,7 +78,7 @@ trait AssertsDocsConformance
             max(1, $minimumPages),
             count($this->docsPages($root)),
             "fewer than {$minimumPages} docs pages were inspected in {$root}/docs — "
-            .'treat this as a broken glob, not a clean tree',
+            . 'treat this as a broken glob, not a clean tree',
         );
     }
 
@@ -112,11 +112,11 @@ trait AssertsDocsConformance
     {
         foreach ($this->docsPages($root) as $page) {
             $lines = $this->docsPageLines($root, $page);
-            $body = (string) file_get_contents($root.'/'.$page);
+            $body = (string) file_get_contents($root . '/' . $page);
 
             // docs/x.md -> ../ ; docs/tools/x.md and docs/recipes/x.md -> ../../
             $depth = substr_count($page, '/');
-            $expected = self::DOCS_FOOTER.str_repeat('../', $depth).'README.md#documentation)';
+            $expected = self::DOCS_FOOTER . str_repeat('../', $depth) . 'README.md#documentation)';
 
             $this->assertSame($expected, end($lines), "{$page} has the wrong docs-index footer");
             $this->assertSame('---', prev($lines), "{$page} is missing the `---` rule before its footer");
@@ -136,7 +136,7 @@ trait AssertsDocsConformance
                 0,
                 preg_match(
                     '/[\x{1F300}-\x{1FAFF}\x{2705}\x{274C}\x{26A0}\x{2757}\x{2B50}]/u',
-                    (string) file_get_contents($root.'/'.$page),
+                    (string) file_get_contents($root . '/' . $page),
                 ),
                 "{$page} contains a decorative emoji",
             );
@@ -147,14 +147,14 @@ trait AssertsDocsConformance
     {
         // The index is the README's Documentation section; two indexes drift.
         // Architectural rationale is prose in architecture.md, not an adr/ tree.
-        $this->assertFileDoesNotExist($root.'/docs/README.md');
-        $this->assertDirectoryDoesNotExist($root.'/docs/adr');
+        $this->assertFileDoesNotExist($root . '/docs/README.md');
+        $this->assertDirectoryDoesNotExist($root . '/docs/adr');
     }
 
     /** Asserted in both directions: every page is linked, and every link is a real page. */
     protected function assertReadmeIndexListsEveryPage(string $root): void
     {
-        $readme = (string) file_get_contents($root.'/README.md');
+        $readme = (string) file_get_contents($root . '/README.md');
 
         $section = explode(self::DOCS_INDEX_HEADING, $readme, 2)[1] ?? '';
         $section = explode("\n## ", $section, 2)[0];
@@ -180,7 +180,7 @@ trait AssertsDocsConformance
      */
     protected function assertReadmeHasAQuickStart(string $root): void
     {
-        $readme = (string) file_get_contents($root.'/README.md');
+        $readme = (string) file_get_contents($root . '/README.md');
 
         $this->assertMatchesRegularExpression(
             '/^## Quick start$/m',
@@ -190,7 +190,7 @@ trait AssertsDocsConformance
 
         $install = strpos($readme, "\n## Install");
         $quick = strpos($readme, "\n## Quick start");
-        $docs = strpos($readme, "\n".self::DOCS_INDEX_HEADING);
+        $docs = strpos($readme, "\n" . self::DOCS_INDEX_HEADING);
 
         if ($install !== false && $quick !== false) {
             $this->assertGreaterThan($install, $quick, '`## Quick start` must come after `## Install`');
@@ -210,14 +210,14 @@ trait AssertsDocsConformance
      */
     protected function assertLicenceFilePresentAndAgreesWithManifest(string $root): void
     {
-        $this->assertFileExists($root.'/LICENSE', 'the package ships no LICENSE file');
+        $this->assertFileExists($root . '/LICENSE', 'the package ships no LICENSE file');
 
         $this->assertFileDoesNotExist(
-            $root.'/LICENSE.md',
+            $root . '/LICENSE.md',
             'the package ships both LICENSE and LICENSE.md — one of them is the real one',
         );
 
-        $manifest = $root.'/composer.json';
+        $manifest = $root . '/composer.json';
 
         if (! is_file($manifest)) {
             return;
@@ -229,7 +229,7 @@ trait AssertsDocsConformance
             return;
         }
 
-        $text = (string) file_get_contents($root.'/LICENSE');
+        $text = (string) file_get_contents($root . '/LICENSE');
 
         if (strcasecmp($declared, 'MIT') === 0) {
             $this->assertStringContainsStringIgnoringCase(
@@ -251,7 +251,7 @@ trait AssertsDocsConformance
     /** @return list<string> repo-relative paths, sorted */
     private function docsPages(string $root): array
     {
-        $docs = $root.'/docs';
+        $docs = $root . '/docs';
 
         if (! is_dir($docs)) {
             return [];
@@ -261,7 +261,7 @@ trait AssertsDocsConformance
 
         foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($docs)) as $file) {
             if ($file->isFile() && $file->getExtension() === 'md') {
-                $found[] = 'docs/'.str_replace('\\', '/', substr($file->getPathname(), strlen($docs) + 1));
+                $found[] = 'docs/' . str_replace('\\', '/', substr($file->getPathname(), strlen($docs) + 1));
             }
         }
 
@@ -273,7 +273,7 @@ trait AssertsDocsConformance
     /** @return list<string> the page's non-empty, right-trimmed lines */
     private function docsPageLines(string $root, string $page): array
     {
-        $lines = explode("\n", (string) file_get_contents($root.'/'.$page));
+        $lines = explode("\n", (string) file_get_contents($root . '/' . $page));
 
         return array_values(array_filter(array_map(rtrim(...), $lines), static fn ($l): bool => trim($l) !== ''));
     }

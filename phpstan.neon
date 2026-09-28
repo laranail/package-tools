@@ -26,6 +26,12 @@ parameters:
         # so PHPStan (which scans only src/) always reports them as unused.
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Commands\\HasProgressBar is used zero times#'
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Concerns\\Package\\ManagesComposer is used zero times#'
+        # AssertsDocsConformance is the same shape: it ships in src/Testing/ to be
+        # `use`-d by every package's own docs gate, and the only consumer inside this
+        # repository is tests/Unit/DocsConformanceTest.php, which PHPStan does not scan.
+        # Its assertions are exercised there, and the mutation checks in that PR proved
+        # each one fails when the thing it guards is broken.
+        - '#Trait Simtabi\\Laranail\\Package\\Tools\\Testing\\AssertsDocsConformance is used zero times#'
 
     # Required BECAUSE of the ignore above: only larastan 3.x emits that error, and `composer
     # update` on CI resolves a newer larastan than a long-lived local vendor/ has. With the
