@@ -93,7 +93,8 @@ def evidence_pr(repo: str, number: str | None) -> tuple[str, str]:
 
     The newest merged pull request is often a docs-only one on which every
     path-filtered workflow stayed silent, so it can carry no runs at all. Walk
-    back through recent merges to the first that actually ran something, and ran it green.
+    back through recent merges to the first that actually ran something, and ran it green,
+    then, for a repository that has never merged one, to any other pull request.
     """
     if number is not None:
         pr = gh_json("pr", "view", number, "--repo", repo, "--json", "headRefOid")
@@ -111,7 +112,19 @@ def evidence_pr(repo: str, number: str | None) -> tuple[str, str]:
     for pr in merged:
         if green(pr_runs(repo, pr["headRefOid"])):
             return str(pr["number"]), pr["headRefOid"]
-    raise SystemExit(f"{repo}: none of the last {len(merged)} merged pull requests ran its checks green; pass --pr.")
+
+    # A repository that has never merged a pull request can still have open or closed ones
+    # (Dependabot's, usually) whose checks ran: job names are the same on any pull request.
+    # Skip any that edit the workflows, since those can rename the very jobs being required.
+    others = gh_json("pr", "list", "--repo", repo, "--state", "all",
+                     "--limit", "30", "--json", "number,headRefOid,files")
+    for pr in others:
+        if any(f["path"].startswith(".github/workflows/") for f in pr.get("files") or []):
+            continue
+        if green(pr_runs(repo, pr["headRefOid"])):
+            return str(pr["number"]), pr["headRefOid"]
+
+    raise SystemExit(f"{repo}: no merged, open or closed pull request ran its checks green; pass --pr.")
 
 
 def pull_request_filter(workflow_yaml: str) -> str | None:
