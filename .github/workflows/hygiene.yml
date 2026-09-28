@@ -23,6 +23,7 @@ on:
       - 'scripts/verify-action-pins.py'
       - 'scripts/verify-tag-currency.sh'
       - 'scripts/verify-trait-copies.py'
+      - 'scripts/verify-vcs-urls.py'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -94,6 +95,36 @@ jobs:
         run: python3 scripts/verify-trait-copies.py --org ${{ github.repository_owner }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  vcs-urls:
+    name: VCS urls
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # The second org-wide check, and it lives on this caller alone for the same
+    # reason `trait-copies` does: run from every repository it would assert the
+    # same fact 37 times a week and go red in 37 of them when it broke, none of
+    # them necessarily the one that drifted.
+    #
+    # A SCHEDULED DRIFT DETECTOR, NOT A MERGE GATE. It reads every package's
+    # default branch over the API, so a pull request introducing a stale url is
+    # caught on the next run rather than before it merges.
+    #
+    # Why it exists: the family resolves inter-package dependencies through VCS
+    # urls, and GitHub keeps redirecting the old name after a rename -- so a
+    # stale url keeps working right up until somebody creates a repository under
+    # the freed name, at which point consumers silently resolve a different
+    # project. `laranail/authkit-social` was renamed to `authkit-social-login`
+    # while `authkit-preset` went on declaring the old url, and it resolved
+    # correctly throughout, which is exactly why nothing caught it. Every other
+    # check in the family passes on a redirect, because a redirect works.
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Every vcs url names the repository it is
+        run: python3 scripts/verify-vcs-urls.py --org ${{ github.repository_owner }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   dist:
     name: Dist integrity
