@@ -9,6 +9,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`scripts/verify-vcs-urls.py`** — a hygiene check for the one repository-level change every
+  other check passes over: a rename.
+
+  The family resolves inter-package dependencies through VCS urls, and GitHub keeps redirecting the
+  old name after a rename. A stale url therefore keeps working, and keeps working until somebody
+  creates a repository under the freed name — at which point consumers silently resolve a different
+  project. `laranail/authkit-social` was renamed to `laranail/authkit-social-login` while
+  `authkit-preset` went on declaring the old url, and every gate stayed green throughout, because a
+  redirect works.
+
+  Reports `REDIRECT` (renamed), `MISSING` (no such repository), `UNREACHABLE` (could not ask) and
+  `SPLIT` (a package's composer name no longer matches its own repository).
+
+  `MISSING` and `UNREACHABLE` are separate deliberately. The first run reported `laranail/email` as
+  missing on a TLS handshake timeout, for a repository that is public and fine — so a transport error
+  is retried and then reported under its own name, and exit 2 means "could not look" rather than
+  "found something".
+
+  The slug comes from `origin`, never from the directory name: seven directories in the tree are
+  named differently from their repository (`pdf-toolkit` is `laranail/pdf`), and trusting the name
+  reports a SPLIT that is a local naming choice.
+
+  Sources are `verify-trait-copies.py`'s, imported rather than copied, so local and CI runs cannot
+  drift into checking different things. Wired into `hygiene.yml` as an org-wide scheduled drift
+  detector on this caller alone, for the reason the trait-copies job states.
+
 - **`scripts/apply-branch-ruleset.py`** applies the family's default-branch ruleset: pull request,
   conversation resolution, no force pushes or deletion, and now **required status checks**. The
   previous ruleset required a pull request but let one with red CI merge. Required checks are read
