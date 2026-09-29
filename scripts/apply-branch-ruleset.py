@@ -28,7 +28,10 @@ requiring it would block merges forever:
   NON-PR RUNS    schedule and workflow_dispatch jobs (the weekly macOS run) are
                  never on a pull request.
   REMOVED        a workflow that ran on the evidence pull request but is no
-                 longer on the default branch.
+                 longer on the default branch -- or a job deleted from a workflow
+                 that still is. The evidence can be months old when every newer
+                 merge was a Dependabot bump, and a job removed since would be
+                 required forever by a check nothing produces any more.
 
 Path filters are read from the default branch as it is now, not from the
 evidence commit, since a filter added later is exactly what would strand a
@@ -55,6 +58,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import subprocess
 import sys
 
@@ -141,6 +145,24 @@ def pull_request_filter(workflow_yaml: str) -> str | None:
     return None
 
 
+def job_names(workflow_yaml: str) -> list[re.Pattern[str]]:
+    """A pattern per job for the check-run names that job can render.
+
+    GitHub names a check run from the job's `name` (with any `${{ }}` expression
+    expanded) or else its key, appends ` (a, b)` for a matrix when the name does not
+    already carry the matrix, and prefixes a reusable workflow's jobs with the
+    caller's name and ` / `.
+    """
+    doc = yaml.safe_load(workflow_yaml) or {}
+    patterns = []
+    for key, job in (doc.get("jobs") or {}).items():
+        name = job.get("name") if isinstance(job, dict) else None
+        parts = re.split(r"\$\{\{.*?\}\}", str(name if name else key))
+        stem = ".+".join(re.escape(p) for p in parts)
+        patterns.append(re.compile(rf"{stem}(?: \(.+\))?(?: / .+)?"))
+    return patterns
+
+
 def current_workflow(repo: str, path: str, branch: str) -> str | None:
     """The workflow as the default branch has it now, or None if it is gone."""
     try:
@@ -166,10 +188,13 @@ def collect(repo: str, sha: str) -> tuple[list[str], list[str]]:
         # never reports on the pull requests it filters out.
         source = current_workflow(repo, path, branch)
         path_filter = None if source is None else pull_request_filter(source)
+        patterns = [] if source is None else job_names(source)
         for job in jobs["jobs"]:
             label = f"{run['name']} / {job['name']}"
             if source is None:
                 excluded.append(f"REMOVED        {label}  ({path} is no longer on {branch})")
+            elif not any(p.fullmatch(job["name"]) for p in patterns):
+                excluded.append(f"REMOVED        {label}  (no job in {path} on {branch} renders this name)")
             elif path_filter:
                 excluded.append(f"PATH-FILTERED  {label}  ({path} has `{path_filter}`)")
             elif job["conclusion"] == "skipped":
