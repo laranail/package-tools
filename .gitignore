@@ -32,3 +32,7 @@ Thumbs.db
 *.log
 
 /composer.lock
+
+# Bytecode written when scripts/*.py run (e.g. apply-branch-ruleset.py)
+__pycache__/
+*.py[cod]
