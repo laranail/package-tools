@@ -16,7 +16,19 @@ Requires PHP `^8.4.1 || ^8.5` on Laravel `^13`.
 composer require laranail/package-tools
 ```
 
-## Quick start
+## Quick start guide and usage
+
+### Getting started
+
+Nothing to configure: package discovery registers `PackageToolsServiceProvider` on install, and it
+publishes no config of its own. Once your provider exists, verify the wiring:
+
+```bash
+php artisan about                       # your package appears in the About section
+php artisan laranail::package-tools.doctor   # health-check the package wiring
+```
+
+### Usage
 
 Extend `PackageServiceProvider` and describe the package once. Configs, views, migrations and
 commands register themselves from that description:
