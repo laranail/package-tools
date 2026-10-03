@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `AssertsDocsConformance::assertReadmeHasAQuickStart()` checks the README standard of 2026-10-03:
+  a `## Quick start guide and usage` section with `### Getting started` then `### Usage`, between
+  `Install` and `Documentation`. A README still headed `## Quick start` now fails with a message
+  naming the new heading.
+
 ### Added
 
 - **`scripts/verify-vcs-urls.py`** — a hygiene check for the one repository-level change every

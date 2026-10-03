@@ -19,7 +19,7 @@ use Simtabi\Laranail\Package\Tools\Testing\AssertsDocsConformance;
  *
  * Nothing was dropped in the move: every assertion this file used to make, it still
  * makes, through the trait. The trait adds two the standard gained since — a required
- * `## Quick start`, and a LICENSE that agrees with `composer.json`.
+ * `## Quick start guide and usage`, and a LICENSE that agrees with `composer.json`.
  *
  * This file stays as the package's own entry point. Deleting it would mean the gate runs
  * only where someone remembered to wire it.
