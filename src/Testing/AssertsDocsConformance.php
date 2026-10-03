@@ -12,7 +12,7 @@ use RecursiveDirectoryIterator;
  *
  * The rules are the mechanical ones from the org standard in `~/.claude/CLAUDE.md`:
  * an H1 that names the page, a one-line summary under it, a `---` rule and a
- * relative footer at the end, a `## Quick start` in the README, no decorative
+ * relative footer at the end, a `## Quick start guide and usage` in the README, no decorative
  * emoji, and no `docs/README.md` or `docs/adr/` (the index is the README's
  * Documentation section; rationale is prose in architecture.md).
  *
@@ -174,30 +174,49 @@ trait AssertsDocsConformance
     }
 
     /**
-     * `## Quick start` became required on 2026-09-28. It is one runnable example and two
-     * links, sitting between `Install` and `Documentation` — a reader should never have to
-     * leave the README to see what the package looks like in use.
+     * `## Quick start guide and usage` is required: renamed from `## Quick start` on
+     * 2026-10-03 (required since 2026-09-28). It has a `### Getting started` part, the setup a
+     * fresh install needs before the first call, then a `### Usage` part, and sits between
+     * `Install` and `Documentation` — a reader should never have to leave the README to see
+     * how to start and what the package looks like in use.
      */
     protected function assertReadmeHasAQuickStart(string $root): void
     {
         $readme = (string) file_get_contents($root . '/README.md');
+        $heading = '## Quick start guide and usage';
 
-        $this->assertMatchesRegularExpression(
+        $this->assertDoesNotMatchRegularExpression(
             '/^## Quick start$/m',
             $readme,
-            'the README has no `## Quick start` section',
+            'the README still uses `## Quick start`; the section is now `' . $heading . '`',
+        );
+        $this->assertMatchesRegularExpression(
+            '/^' . preg_quote($heading, '/') . '$/m',
+            $readme,
+            'the README has no `' . $heading . '` section',
         );
 
+        $quick = (int) strpos($readme, "\n" . $heading . "\n");
+        $next = preg_match('/^## /m', $readme, $m, PREG_OFFSET_CAPTURE, $quick + strlen($heading) + 2) === 1
+            ? $m[0][1]
+            : strlen($readme);
+        $section = substr($readme, $quick, $next - $quick);
+        $started = strpos($section, "\n### Getting started\n");
+        $usage = strpos($section, "\n### Usage\n");
+
+        $this->assertNotFalse($started, 'the quick start section has no `### Getting started` part');
+        $this->assertNotFalse($usage, 'the quick start section has no `### Usage` part');
+        $this->assertGreaterThan($started, $usage, '`### Usage` must come after `### Getting started`');
+
         $install = strpos($readme, "\n## Install");
-        $quick = strpos($readme, "\n## Quick start");
         $docs = strpos($readme, "\n" . self::DOCS_INDEX_HEADING);
 
-        if ($install !== false && $quick !== false) {
-            $this->assertGreaterThan($install, $quick, '`## Quick start` must come after `## Install`');
+        if ($install !== false) {
+            $this->assertGreaterThan($install, $quick, '`' . $heading . '` must come after `## Install`');
         }
 
-        if ($quick !== false && $docs !== false) {
-            $this->assertLessThan($docs, $quick, '`## Quick start` must come before `## Documentation`');
+        if ($docs !== false) {
+            $this->assertLessThan($docs, $quick, '`' . $heading . '` must come before `## Documentation`');
         }
     }
 
