@@ -491,3 +491,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   directory swap is still refused.
 
 Initial public release.
+
+[Unreleased]: https://github.com/laranail/package-tools/compare/v0.1.2...HEAD
