@@ -51,13 +51,33 @@ scoped names it found. `assertRegisteredNamesScoped(NameRegistry $registry, …)
 | `assertMiddlewareAliasesScoped` | `Router::getMiddleware()` | `laranail-atlas`, `laranail-atlas.*` |
 | `assertViewNamespacesScoped` | view finder hints | `laranail/atlas`, `laranail-atlas` |
 | `assertTranslationNamespacesScoped` | translation loader namespaces | `laranail/atlas`, `laranail-atlas` |
-| `assertLivewireComponentsScoped` | Livewire 4 finder, or Livewire 3 registry | `laranail-atlas.*` |
+| `assertLivewireComponentsScoped` | Livewire 4 finder, or Livewire 3 registry | `laranail-atlas.*`, any class name, a name derived from an owned class |
 | `assertGateAbilitiesScoped` | `Gate::abilities()` | `laranail-atlas.*` |
 | `assertBladeComponentsScoped` | class aliases, class and anonymous prefixes | `laranail-atlas::*` |
 | `assertContainerAliasesScoped` | container aliases and bindings | `laranail-atlas`, `laranail/atlas`, `laranail.atlas`, any class name |
 
 A name matches a prefix when it equals it or continues it with `.`, `:` or `/`. A hyphen does not
 count as a continuation, because `laranail-atlas-pro.*` belongs to `laranail/atlas-pro`.
+
+A class name is namespaced already, so in the container-alias and Livewire registries it always
+has the scoped shape. It counts toward `atLeast` only when it maps to a class the package owns, or
+every framework binding would count.
+
+### Livewire names derived from the class
+
+Filament registers each page and widget with Livewire under a name Livewire derives from the class,
+not one the package chooses. When the component maps to a class in the owner namespace, these count
+as scoped:
+
+| Name | Example for `Simtabi\Laranail\Atlas\Filament\Pages\Report` |
+|---|---|
+| the class name | `Simtabi\Laranail\Atlas\Filament\Pages\Report` |
+| Livewire 4's hash name for a nameless registration | `lw` followed by the CRC32 of the class name |
+| the class name kebab-cased and dotted, a trailing `.index` dropped | `simtabi.laranail.atlas.filament.pages.report` |
+
+Each is as unique as the class. A name that only ends in the class's basename (`report`,
+`pages.report`) is not derived from it, so it is judged like any other name: a bare `foo-panel`
+mapping to the package's component still fails. `NamingScope::isNamedAfterOwnClass()` makes the call.
 
 A registry read by reflection throws if the property is gone, rather than reading as empty. So does
 the Livewire assertion in an application without Livewire.

@@ -33,11 +33,19 @@ final class NamingAssertions
             $name = (string) $name;
 
             if ($scope->matches($registry, $name)) {
-                // A class-name container key always has the scoped shape; it counts toward the floor
-                // only when it is this package's, or every framework binding would.
+                // A class-name container key or Livewire component always has the scoped shape; it
+                // counts toward the floor only when it is this package's, or every framework one would.
                 if (! str_contains($name, '\\') || $scope->owns($evidence)) {
                     $scoped[] = $name;
                 }
+
+                continue;
+            }
+
+            // A Livewire name derived from the package's own class (how Filament registers pages and
+            // widgets) is as unique as the class, so it is scoped.
+            if ($scope->isNamedAfterOwnClass($registry, $name, $evidence)) {
+                $scoped[] = $name;
 
                 continue;
             }

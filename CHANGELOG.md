@@ -5,6 +5,21 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`assertLivewireComponentsScoped()` accepts a Livewire name derived from the package's own
+  class.** Filament registers its pages and widgets with Livewire under a name Livewire derives from
+  the class, not one the package chooses, so an adopter's own Filament page was reported as a bare
+  name (ai-compliance listed every page class as a sanctioned prefix to get past it). A Livewire name
+  that is a class name now has the scoped shape, as a class-name container alias already did, and
+  counts toward the floor only when the class is the package's. `NamingScope::isNamedAfterOwnClass()`
+  also accepts Livewire 4's `lw<crc32>` hash name and the class name kebab-cased and dotted
+  (`simtabi.laranail.atlas.filament.pages.report`, `.index` dropped), when the component maps to a
+  class the package owns. A bare `foo-panel`, the kebab-cased basename alone, or a dotted tail of
+  the derived name still fails. Pinned by regression tests in both directions.
+
 ## [0.1.4] - 2026-10-05
 
 ### Fixed
