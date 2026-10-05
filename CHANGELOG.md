@@ -405,45 +405,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `knownTags()` was always empty of them, meaning `--tag=livewire:assets` was refused as unknown
   even though the application published it.
 
-### Added
-
-- **`--external`** on `laranail::package-tools.publish` — publish every tag this package did not
-  register. Replaces the pattern of hardcoding provider class names
-  (`Livewire\LivewireServiceProvider`, `Laravel\Horizon\HorizonServiceProvider`), which published
-  exactly the packages someone thought of and guarded each with `class_exists` so a missing one
-  failed silently. Combines with `--all` to publish both sets.
-
-- **`Services\Doctor\Checks\UnregisteredPublishableCheck`** — reports package directories that
-  registered no publish tag. The failure is silent by construction: a module whose provider forgot
-  `setPublishTagId()` works fine and simply never publishes, so the symptom arrives later as a
-  missing asset. Warns rather than fails, because a module with nothing to publish is ordinary, and
-  **never publishes or deletes anything** — the command this idea comes from answered the same
-  question by publishing each directory under a guessed tag name.
-
-### Security
-
-- **Two recursive-delete paths were bypassing `PublishPathGuard`.** The guard's
-  docblock has always claimed it is the one place in this package that deletes
-  anything, and that it exists because a registered destination of `''` resolves
-  to the document root. Both claims were false.
-
-  `AssetRegistry::cleanup()` and `HasAssetPublisher::cleanAsset()` called
-  `File::deleteDirectory()` directly — no containment check, no `..` rejection,
-  no minimum depth, and no `is_link()` dispatch, so a symlinked destination was
-  followed and its target emptied. `cleanAsset()` took the registered
-  destination straight into `public_path()`, where `''` is the document root.
-
-  Both now route through the guard. A target outside every configured prune root
-  is **skipped and reported** rather than deleted: packages publish into
-  `config/` and `database/migrations/` as well as `public/vendor/`, and silently
-  removing a published config file is a worse surprise than declining to.
-
-  `AssetRegistry::cleanup()` now returns `list<string>` — the refused targets —
-  instead of `void`. It is not on `RegistryInterface`, and the one caller
-  ignored the return, so nothing breaks.
-
-### Fixed
-
 - **`Services\Config\ConfigService::forget()` could not remove a top-level
   key.** It pruned a copy of `all()` and re-seeded the survivors — but a removed
   top-level key is simply absent from that copy, so nothing ever touched it and
@@ -463,6 +424,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   changes for a package that used the flag.
 
 ### Added
+
+- **`--external`** on `laranail::package-tools.publish` — publish every tag this package did not
+  register. Replaces the pattern of hardcoding provider class names
+  (`Livewire\LivewireServiceProvider`, `Laravel\Horizon\HorizonServiceProvider`), which published
+  exactly the packages someone thought of and guarded each with `class_exists` so a missing one
+  failed silently. Combines with `--all` to publish both sets.
+
+- **`Services\Doctor\Checks\UnregisteredPublishableCheck`** — reports package directories that
+  registered no publish tag. The failure is silent by construction: a module whose provider forgot
+  `setPublishTagId()` works fine and simply never publishes, so the symptom arrives later as a
+  missing asset. Warns rather than fails, because a module with nothing to publish is ordinary, and
+  **never publishes or deletes anything** — the command this idea comes from answered the same
+  question by publishing each directory under a guessed tag name.
 
 - **`Services\Config\ConfigManager`** (+ `Contracts\ConfigManagerInterface`) —
   a fluent, chainable runtime configuration manager, relocated here from
@@ -541,6 +515,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`package-tools.assets.*` and `package-tools.seeders.{files_path,faker_locale}`**
   config blocks.
+
+### Security
+
+- **Two recursive-delete paths were bypassing `PublishPathGuard`.** The guard's
+  docblock has always claimed it is the one place in this package that deletes
+  anything, and that it exists because a registered destination of `''` resolves
+  to the document root. Both claims were false.
+
+  `AssetRegistry::cleanup()` and `HasAssetPublisher::cleanAsset()` called
+  `File::deleteDirectory()` directly — no containment check, no `..` rejection,
+  no minimum depth, and no `is_link()` dispatch, so a symlinked destination was
+  followed and its target emptied. `cleanAsset()` took the registered
+  destination straight into `public_path()`, where `''` is the document root.
+
+  Both now route through the guard. A target outside every configured prune root
+  is **skipped and reported** rather than deleted: packages publish into
+  `config/` and `database/migrations/` as well as `public/vendor/`, and silently
+  removing a published config file is a worse surprise than declining to.
+
+  `AssetRegistry::cleanup()` now returns `list<string>` — the refused targets —
+  instead of `void`. It is not on `RegistryInterface`, and the one caller
+  ignored the return, so nothing breaks.
 
 ### Changed
 
