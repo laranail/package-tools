@@ -81,5 +81,32 @@ trait HasViews
         return str_replace('/', '-', $this->viewNamespace());
     }
 
+    /**
+     * Every view namespace the provider registers, primary first.
+     *
+     * The primary namespace, then componentPrefix() when it differs. When the primary is the hyphen
+     * form of the package's own name -- `hasViews('laranail-confetti')`, how packages registered
+     * views before the slash form was the default -- the canonical `vendor/package` form is added
+     * too, over the same resolved paths. That name is unambiguously the package's own; a custom
+     * namespace that is anything else (a vendored or legacy name) gets nothing added.
+     *
+     * @return list<string>
+     */
+    public function viewNamespaces(): array
+    {
+        $primary = $this->viewNamespace();
+        $forms = [$primary, $this->componentPrefix()];
+
+        if ($this->configVendor !== null) {
+            $canonical = $this->getSlashNamespace();
+
+            if ($primary === str_replace('/', '-', $canonical)) {
+                $forms[] = $canonical;
+            }
+        }
+
+        return array_values(array_unique($forms));
+    }
+
     abstract public function getSlashNamespace(): string;
 }

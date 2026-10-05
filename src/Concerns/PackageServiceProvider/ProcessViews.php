@@ -24,23 +24,24 @@ trait ProcessViews
 
         // Blade's component-tag pattern is x[-\:]([\w\-\:\.]*) -- no forward slash -- so a tag
         // written against the canonical `vendor/package` namespace truncates at the slash and is
-        // never compiled. Alias the hyphen form over the paths loadViewsFrom() just resolved, which
-        // includes the application's published override directory, so both spellings find the same
-        // file and publishing an override still wins for component tags.
-        $componentPrefix = $this->package->componentPrefix();
+        // never compiled. Every other form viewNamespaces() lists (the hyphen prefix, and the
+        // canonical slash form for a package registered under its hyphen name) is aliased over the
+        // paths loadViewsFrom() just resolved, which include the application's published override
+        // directory, so every spelling finds the same file and publishing an override still wins.
+        $forms = array_values(array_diff($this->package->viewNamespaces(), [$viewNamespace]));
 
-        if ($componentPrefix !== $viewNamespace) {
+        if ($forms !== []) {
             // getHints() is on FileViewFinder rather than the interface, so an application running
             // a custom finder falls back to the package path alone. It loses the published-override
-            // lookup for component tags, but the tags still resolve.
+            // lookup for the aliases, but they still resolve.
             $finder = View::getFinder();
+            $paths = $finder instanceof FileViewFinder
+                ? ($finder->getHints()[$viewNamespace] ?? [$vendorViews])
+                : [$vendorViews];
 
-            View::addNamespace(
-                $componentPrefix,
-                $finder instanceof FileViewFinder
-                    ? ($finder->getHints()[$viewNamespace] ?? [$vendorViews])
-                    : [$vendorViews],
-            );
+            foreach ($forms as $form) {
+                View::addNamespace($form, $paths);
+            }
         }
 
         if ($this->app->runningInConsole()) {

@@ -8,7 +8,9 @@ use Override;
 use ReflectionClass;
 use RuntimeException;
 use Illuminate\Support\Str;
+use Psr\Log\LoggerInterface;
 use Illuminate\Routing\Router;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Events\Dispatcher;
 use Simtabi\Laranail\Package\Tools\Package;
@@ -305,6 +307,11 @@ abstract class PackageServiceProvider extends ServiceProvider
         $this->package->bootPackageGates();
         $this->package->bootPackageRouteBindings(
             $this->app->make(Router::class),
+        );
+        $this->package->bootPackageDeprecatedRouteNames(
+            $this->app->make(Router::class),
+            $this->app->make(UrlGenerator::class),
+            fn (): LoggerInterface => $this->app->make(LoggerInterface::class),
         );
         $this->package->bootPackageRuntimeTweaks();
         $this->package->bootPackageConfigDecorators();

@@ -57,6 +57,43 @@ trait AssertsDriverContract
     }
 
     /**
+     * Every read of $bareKey in $source, as [byte offset, first segment, matched text].
+     *
+     * The whole file is scanned at once rather than line by line, because a call split across lines
+     * -- `config(\n    'sms.driver',\n)` -- has its function and its key on different lines. The forms
+     * covered are `config()`, `->get()` / `->has()` on a repository, and `Config::get()` /
+     * `Config::has()`, each with or without the `key:` named argument; segments may carry digits and
+     * hyphens; and a key interpolated after its prefix (`"sms.{$suffix}"`, `"sms.$suffix"`) counts.
+     *
+     * Anchoring the closing quote after the first segment is the obvious mistake, and it silently
+     * misses every multi-segment key.
+     *
+     * @return list<array{0: int, 1: string, 2: string}>
+     */
+    protected static function bareConfigReads(string $source, string $bareKey): array
+    {
+        $pattern = '/(?:\bconfig\(|->(?:get|has)\(|\bConfig::(?:get|has)\()\s*(?:key\s*:\s*)?[\'"]'
+            . preg_quote($bareKey, '/')
+            . '(?:\.([a-z0-9_-]+))?(?:\.[a-z0-9_.-]+)?(?:[\'"]|\.?\{|\.\$)/i';
+
+        if (preg_match_all($pattern, $source, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) === false) {
+            return [];
+        }
+
+        $reads = [];
+
+        foreach ($matches as $match) {
+            $reads[] = [
+                $match[0][1],
+                isset($match[1]) && $match[1][1] !== -1 ? $match[1][0] : '',
+                (string) preg_replace('/\s+/', ' ', $match[0][0]),
+            ];
+        }
+
+        return $reads;
+    }
+
+    /**
      * Assert that every name in $driverNames resolves to a `create*Driver()` method on $managerClass.
      *
      * Performs no I/O and needs no credentials: the question is whether a driver is *constructible*,
@@ -110,30 +147,33 @@ trait AssertsDriverContract
     protected function assertReadsConfigAtRegisteredKey(string $sourceDir, string $bareKey, array $exempt = []): void
     {
         $offenders = [];
-        $quoted = preg_quote($bareKey, '/');
-
-        // Matches `config('key…')` and `->get('key…')`, for a bare key, a dotted one of any depth,
-        // and an interpolated "key.{$suffix}". Anchoring the closing quote after the first segment
-        // is the obvious mistake and it silently misses every multi-segment key.
-        $pattern = '/(?:config\(|->get\()\s*[\'"]' . $quoted . '(?:\.([a-z_]+))?(?:\.[a-z_.]+)?[\'"{]/';
+        $scanned = 0;
 
         foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($sourceDir)) as $file) {
             if ($file->getExtension() !== 'php') {
                 continue;
             }
 
-            foreach (file($file->getPathname()) ?: [] as $number => $line) {
-                if (preg_match($pattern, $line, $matches) !== 1) {
+            $scanned++;
+            $source = (string) file_get_contents($file->getPathname());
+
+            foreach (self::bareConfigReads($source, $bareKey) as [$offset, $segment, $read]) {
+                if (in_array($segment, $exempt, true)) {
                     continue;
                 }
 
-                if (in_array($matches[1] ?? '', $exempt, true)) {
-                    continue;
-                }
-
-                $offenders[] = basename($file->getPathname()) . ':' . ($number + 1) . ' — ' . trim($line);
+                $line = substr_count($source, "\n", 0, $offset) + 1;
+                $offenders[] = basename($file->getPathname()) . ':' . $line . ' — ' . $read;
             }
         }
+
+        // A scan of a directory holding no PHP -- a path typo, a renamed src/ -- reports a clean tree,
+        // which is worse than no assertion: it reads as a guarantee about an empty set.
+        Assert::assertGreaterThan(0, $scanned, sprintf(
+            'No PHP file was found under [%s], so this assertion proved nothing. Point it at the '
+            . "package's src/ directory.",
+            $sourceDir,
+        ));
 
         Assert::assertSame([], $offenders, sprintf(
             'These read config at the bare key [%s], which resolves to nothing in a real '

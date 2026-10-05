@@ -13,6 +13,7 @@ namespace Simtabi\Laranail\Package\Tools\Concerns\Package;
 trait ConfiguresRoutes
 {
     use HasAdvancedPaths;
+    use HasDeprecatedRouteNames;
     use HasNestedLevels;
     use HasRateLimiters;
     use HasRouteBindings;

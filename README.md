@@ -79,6 +79,7 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Config manager](docs/tools/config-manager.md) — the fluent runtime config manager
 - [Config namespacing](docs/tools/config-namespacing.md) — how a config key is derived, and the id-versus-key distinction
 - [Container](docs/tools/container.md) — declaring singletons, facades and class aliases
+- [Deprecated command aliases](docs/tools/deprecated-command-aliases.md) — one-line warning when a command runs by a bare alias
 - [Dist integrity](docs/tools/dist-integrity.md) — every path `composer.json` references must survive `git archive`
 - [Doctor](docs/tools/doctor.md) — health checks, and classifying them by consequence
 - [Http controllers](docs/tools/http-controllers.md) — the controller base and `#[AsRoute]`
@@ -86,6 +87,8 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Isolated testcase](docs/tools/isolated-testcase.md) — the testing harness
 - [Driver contract](docs/tools/driver-contract.md) — assert a driver name resolves and a config key is read where it is registered
 - [Logging](docs/tools/logging.md) — per-package logging via `$package->log()`
+- [Namespace forms](docs/tools/namespace-forms.md) — views and translations under both `vendor/package` and `vendor-package`
+- [Naming assertions](docs/tools/naming-assertions.md) — every public name scoped, asserted against the live registries
 - [Package registry](docs/tools/package-registry.md) — every package built on the toolkit, and whether two claimed one name
 - [Path resolver](docs/tools/path-resolver.md) — an explicit level count instead of `__DIR__ . '/../..'`
 - [Pint](docs/tools/pint.md) — the shared code-style config
@@ -93,6 +96,7 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Public names](docs/tools/public-names.md) — why views take `vendor/package::` while Blade tags cannot
 - [Publishing](docs/tools/publishing.md) — publish tags, asset groups and orphan pruning
 - [Rate limiters](docs/tools/rate-limiters.md) — fluent rate limiters
+- [Route name aliases](docs/tools/route-name-aliases.md) — deprecated bare route names that still resolve, and `has()` for them
 - [Resilience](docs/tools/resilience.md) — retries, backoff and circuit breaking
 - [Runtime services](docs/tools/runtime-services.md) — the services the toolkit resolves at runtime
 - [Sbom](docs/tools/sbom.md) — provenance and SBOM generation

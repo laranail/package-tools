@@ -71,5 +71,31 @@ trait HasTranslations
         return $this->getSlashNamespace();
     }
 
+    /**
+     * Every translation namespace the provider registers: the canonical `vendor/package`, its
+     * `vendor-package` alias, and the declared alias (if any) last.
+     *
+     * The hyphen alias mirrors the view registry, so `__('laranail-atlas::…')` keeps working for a
+     * host written against the form fourteen packages used before the slash was the default. Each
+     * namespace reads published overrides from its own directory --
+     * `lang/vendor/laranail/atlas` for the canonical one, `lang/vendor/laranail-atlas` for the
+     * alias -- which is where a host that published under the old name already has them.
+     *
+     * @return list<string>
+     */
+    public function translationNamespaces(): array
+    {
+        $canonical = $this->translationNamespace();
+        $forms = [$canonical, str_replace('/', '-', $canonical)];
+
+        $alias = $this->getTranslationAlias();
+
+        if (is_string($alias) && $alias !== '') {
+            $forms[] = $alias;
+        }
+
+        return array_values(array_unique($forms));
+    }
+
     abstract public function getSlashNamespace(): string;
 }

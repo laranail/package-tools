@@ -78,6 +78,13 @@ before its `:`-splitting lookup runs, so
 `php artisan laranail::package-tools.doctor` matches the registered name
 verbatim.
 
+## Deprecated aliases
+
+The base command also mixes in `WarnsOnDeprecatedAliases`: a command invoked by a
+deprecated alias prints one line naming its replacement, then runs as before. An alias
+outside the command's vendor scope is deprecated automatically; a scoped one is
+deprecated by listing it. See [Deprecated command aliases](deprecated-command-aliases.md).
+
 ## See also
 
 - [doctor.md](doctor.md), [sbom.md](sbom.md), [audit.md](audit.md),

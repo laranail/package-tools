@@ -9,12 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Translations register the `vendor-package` alias beside `vendor/package` by default**, over the
+  same files, plus any alias passed to `hasTranslations()`. Views registered under the hyphen form
+  of the package's own name (`hasViews('laranail-confetti')`) now also register the canonical
+  `laranail/confetti` form over the same resolved paths. Both are additive: nothing previously
+  registered is removed, and a custom view namespace that is not the package's own name is
+  unchanged. `Package::viewNamespaces()` and `translationNamespaces()` list what is registered.
+- **The base `Command` warns when invoked by a deprecated alias.** An alias outside the command's
+  vendor scope is deprecated automatically; a scoped one is deprecated by listing it in
+  `deprecatedAliases()`. The command prints one line naming its replacement and then runs as before.
+  No command in the family that extends this base declares an alias today (measured 2026-10-05), so
+  no existing output changes.
+- `composer.json` declares `illuminate/cache`, `container`, `pagination`, `routing`, `translation`
+  and `view`, which `src/` imports. Testbench installs the whole framework, so the gap was invisible
+  to this suite. `tests/Unit/DeclaredRequirementsTest.php` now fails on an undeclared component.
+  `Illuminate\Foundation` (7 imports) has no split package and stays undeclared, pending a decision
+  on requiring `laravel/framework`.
+
 - `AssertsDocsConformance::assertReadmeHasAQuickStart()` checks the README standard of 2026-10-03:
   a `## Quick start guide and usage` section with `### Getting started` then `### Usage`, between
   `Install` and `Documentation`. A README still headed `## Quick start` now fails with a message
   naming the new heading.
 
 ### Added
+
+- **`Support\Routing\BareRouteNameAliases`** keeps a package's deprecated bare route names resolving
+  to its vendor-scoped routes, through `URL::resolveMissingNamedRoutesUsing()`. It replaces five
+  hand-rolled copies (error-pages, env-kit-webui, db-console-webui, installer-web, authkit-preset)
+  and is a superset of them: an exact map and prefix pairs, chaining to the resolver installed
+  before it, accepting that resolver's answer only if it is a string, asking the public `Router`
+  rather than `UrlGenerator::$routes`, and announcing each name once per process as an
+  `E_USER_DEPRECATED`, a log warning, or not at all (`Enums\DeprecationNotice`). `has()` and
+  `currentIs()` answer what `Route::has()` and `routeIs()` cannot, since neither consults the
+  resolver. The protected `UrlGenerator::$missingNamedRouteResolver` is read in one place that throws
+  if it is gone, and a contract test pins it against the installed framework.
+  `$package->hasDeprecatedRouteNames(map: …, prefixes: …)` installs it from the provider.
+- **`Testing\AssertsRegisteredNames`**: live-registry naming assertions for routes, rate limiters,
+  commands and their aliases, middleware aliases, view and translation namespaces, Livewire
+  components, gate abilities, Blade components and container aliases. Each takes a
+  `Testing\NamingScope`, an allow-list of deprecated aliases and a non-vacuity floor, and fails on an
+  owned bare name, a stale allow-list entry, or too few scoped names.
+  `assertDeprecatedRouteNamesResolve()` checks bare route names behave as aliases.
+- **`Support\NamespaceForms::mirror($app, 'vendor/package')`** adds the missing spelling of a view or
+  translation namespace a package registered by hand.
+- `Commands\Concerns\WarnsOnDeprecatedAliases`, generalised from laranail/package-scaffolder's
+  `WarnsOnDeprecatedAlias`, for commands that extend something other than the base.
 
 - **`scripts/verify-vcs-urls.py`** — a hygiene check for the one repository-level change every
   other check passes over: a rename.
@@ -54,6 +93,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`assertReadsConfigAtRegisteredKey()` scans each file whole**, and so finds the `key:` named
+  argument, `Config::get()` / `Config::has()`, `->has()`, digits and hyphens in segments, keys
+  interpolated after a dot, and calls split across lines. It now fails on a directory holding no PHP
+  file. The three packages calling it (barua, artisan-ui, emojis) report no new offender.
 - **`laranail::package-tools.doctor` wrote raw ANSI escape codes.** The status glyph was wrapped in
   `\033[32m…\033[0m`, which `--no-ansi` and piped output cannot strip, so CI logs and redirected
   output carried the codes. The glyph is `<fg=…>` markup now. `DoctorStatus::color()` gives the
