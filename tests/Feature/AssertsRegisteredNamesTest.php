@@ -329,3 +329,61 @@ it('passes a package whose own suite registers framework and harness names besid
     expect(fn () => $this->assertContainerAliasesScoped($scope))
         ->toThrow(AssertionFailedError::class, 'naming-root-own');
 })->with('root layouts');
+
+/**
+ * Filament registers its pages and widgets with Livewire under a name Livewire derives from the
+ * class: the class name itself, Livewire 4's `lw<crc32>` hash for a nameless registration, or the
+ * class name kebab-cased and dotted. Each is as unique as the class, so none is a bare name.
+ */
+function livewireFinderWith(string $name, string $class): void
+{
+    $finder = new FakeLivewireFinder;
+    $finder->register('laranail-naming-demo.panel', DemoComponent::class);
+    $finder->register($name, $class);
+    app()->instance('livewire.finder', $finder);
+}
+
+dataset('names derived from an owned class', [
+    'its class name'                => [DemoComponent::class],
+    'its class name, leading slash' => ['\\' . DemoComponent::class],
+    'Livewire 4 hash name'          => ['lw' . crc32(DemoComponent::class)],
+    'Livewire derived name'         => ['simtabi.laranail.package.tools.tests.fixtures.naming.demo-component'],
+    // Any class name is namespaced by its namespace, as a container alias's is
+    'another owned class\'s name' => [DemoController::class],
+]);
+
+it('accepts a Livewire name derived from a class the package owns', function (string $name): void {
+    livewireFinderWith($name, DemoComponent::class);
+
+    $scoped = $this->assertLivewireComponentsScoped(namingScope(), atLeast: 2);
+
+    expect($scoped)->toContain('laranail-naming-demo.panel', $name);
+})->with('names derived from an owned class');
+
+dataset('bare Livewire names for an owned class', [
+    'a bare package name'               => ['foo-panel'],
+    'the class basename, kebab-cased'   => ['demo-component'],
+    'a dotted tail of the derived name' => ['naming.demo-component'],
+    'another class\'s derived name'     => ['simtabi.laranail.package.tools.tests.fixtures.naming.demo-controller'],
+]);
+
+it('still fails a bare Livewire name that is not derived from the component\'s own class', function (string $name): void {
+    livewireFinderWith($name, DemoComponent::class);
+
+    expect(fn () => $this->assertLivewireComponentsScoped(namingScope()))
+        ->toThrow(AssertionFailedError::class, $name);
+})->with('bare Livewire names for an owned class');
+
+it('does not count a class-named Livewire component of another package toward the floor', function (): void {
+    livewireFinderWith(AssertionFailedError::class, AssertionFailedError::class);
+
+    expect(fn () => $this->assertLivewireComponentsScoped(namingScope(), atLeast: 2))
+        ->toThrow(AssertionFailedError::class, 'Expected at least 2');
+});
+
+it('does not count a Livewire name derived from another package\'s class toward the floor', function (): void {
+    livewireFinderWith('lw' . crc32(AssertionFailedError::class), AssertionFailedError::class);
+
+    expect(fn () => $this->assertLivewireComponentsScoped(namingScope(), atLeast: 2))
+        ->toThrow(AssertionFailedError::class, 'Expected at least 2');
+});

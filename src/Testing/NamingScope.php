@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Testing;
 
 use Closure;
 use ReflectionFunction;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Composer\Autoload\ClassLoader;
 
@@ -113,8 +114,8 @@ final readonly class NamingScope
      */
     public function matches(NameRegistry $registry, string $name): bool
     {
-        // A class-name alias is namespaced by its namespace.
-        if ($registry === NameRegistry::ContainerAlias && str_contains($name, '\\')) {
+        // A class-name alias or component is namespaced by its namespace.
+        if (in_array($registry, [NameRegistry::ContainerAlias, NameRegistry::Livewire], true) && str_contains($name, '\\')) {
             return true;
         }
 
@@ -125,6 +126,44 @@ final readonly class NamingScope
         }
 
         return false;
+    }
+
+    /**
+     * Whether $name is a Livewire component name derived from the class it maps to, and that class is
+     * this package's.
+     *
+     * Filament registers its pages and widgets with Livewire under a name Livewire derives from the
+     * class rather than one the package chooses: the class name itself, Livewire 4's `lw<crc32>`
+     * hash for a registration without a name, or the class name kebab-cased and dotted
+     * (`simtabi.laranail.atlas.filament.pages.report`), with a trailing `.index` dropped. Each is as
+     * unique as the class, so none is a bare name. A name merely ending in the class's kebab-cased
+     * basename (`report`, `pages.report`) is not derived, and stays judged as bare.
+     */
+    public function isNamedAfterOwnClass(NameRegistry $registry, string $name, mixed $evidence): bool
+    {
+        if ($registry !== NameRegistry::Livewire) {
+            return false;
+        }
+
+        $class = match (true) {
+            is_string($evidence)                                   => ltrim($evidence, '\\'),
+            is_object($evidence) && ! $evidence instanceof Closure => $evidence::class,
+            default                                                => null,
+        };
+
+        if ($class === null || $class === '' || ! $this->ownsClass($class)) {
+            return false;
+        }
+
+        $dotted = implode('.', array_map(Str::kebab(...), explode('\\', $class)));
+
+        return in_array($name, [
+            $class,
+            '\\' . $class,
+            'lw' . crc32($class),
+            $dotted,
+            str_ends_with($dotted, '.index') ? substr($dotted, 0, -6) : $dotted,
+        ], true);
     }
 
     /**
