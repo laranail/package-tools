@@ -32,6 +32,9 @@ parameters:
         # Its assertions are exercised there, and the mutation checks in that PR proved
         # each one fails when the thing it guards is broken.
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Testing\\AssertsDocsConformance is used zero times#'
+        # AssertsRegisteredNames is the same shape, and deliberately thin: every method delegates
+        # to NamingAssertions, a class PHPStan does analyse, so nothing escapes analysis by this.
+        - '#Trait Simtabi\\Laranail\\Package\\Tools\\Testing\\AssertsRegisteredNames is used zero times#'
 
     # Required BECAUSE of the ignore above: only larastan 3.x emits that error, and `composer
     # update` on CI resolves a newer larastan than a long-lived local vendor/ has. With the

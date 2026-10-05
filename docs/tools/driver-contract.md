@@ -77,9 +77,27 @@ string reveals that, but reading the config does.
 
 ## `assertReadsConfigAtRegisteredKey(string $sourceDir, string $bareKey, array $exempt = [])`
 
-Asserts no file under `$sourceDir` reads configuration at the bare key. Matches
-`config('key…')` and `->get('key…')` for a bare key, a dotted key of any depth,
-and an interpolated `"key.{$suffix}"`.
+Asserts no file under `$sourceDir` reads configuration at the bare key. Each file is
+scanned whole, so a call split across lines is found and reported at the line it starts
+on. The forms it matches:
+
+| Form | Example |
+|---|---|
+| Helper | `config('sms.driver')`, `config(key: 'sms.driver')` |
+| Repository | `$config->get('sms.driver')`, `->has('sms')`, either with `key:` |
+| Facade | `Config::get('sms.driver')`, `Config::has('sms')`, fully qualified too |
+| Any depth | `sms.encryption.driver`, with digits and hyphens: `sms.v2.fall-back` |
+| Interpolated | `"sms.{$suffix}"`, `"sms.$suffix"` |
+| Multi-line | `config(` on one line, `'sms.driver',` on the next |
+
+It does not match a key sharing the prefix (`smsx.driver`, `sms_gateway.driver`), the
+namespaced key, a write (`Config::set()`, `config([...])`), or a function whose name merely
+ends in `config`. A directory holding no PHP file fails: a path typo would otherwise
+report a clean tree.
+
+Before 2026-10-05 the scan was line by line and matched only `config('…')` and
+`->get('…')` without a named argument, so the named-argument (41 sites across the family),
+facade (63) and multi-line forms passed unseen. None was a live defect when measured.
 
 Asserted against the **source**, deliberately, because this defect lives in lines
 a test never executes and because a harness that sets the bare key hides it

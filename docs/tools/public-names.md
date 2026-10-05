@@ -65,6 +65,12 @@ find the same file, and publishing an override still wins for component tags.
 Where an application runs a custom view finder that has no `getHints()`, the alias falls back to the
 package path alone: tags still resolve, but they stop seeing published overrides.
 
+Translations get the same pair: `bootPackageTranslations()` registers `laranail/atlas` and the
+`laranail-atlas` alias over the same files, plus any alias passed to `hasTranslations()`. A package
+that registered views under its hyphen name (`hasViews('laranail-confetti')`) gets the canonical
+slash form added. A package that registers either by hand adds the missing form with one call. See
+[Namespace forms](namespace-forms.md).
+
 ## Overriding the default
 
 `hasViews('acme/legacy')` sets the namespace explicitly. `componentPrefix()` mirrors it rather than
@@ -85,7 +91,9 @@ expect(View::getFinder()->getHints())->toHaveKey('laranail/atlas')
     ->and(app('router')->getMiddleware())->toHaveKey('laranail-atlas');
 ```
 
-Check the guard has teeth by registering a bare namespace and watching it fail.
+Check the guard has teeth by registering a bare namespace and watching it fail. For all ten
+registries at once, with deprecated aliases and a non-vacuity floor, use
+[Naming assertions](naming-assertions.md).
 
 ---
 

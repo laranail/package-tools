@@ -19,12 +19,10 @@ trait ProcessTranslations
             ? lang_path("vendor/{$translationNamespace}")
             : resource_path("lang/vendor/{$translationNamespace}");
 
-        $this->loadTranslationsFrom($vendorTranslations, $translationNamespace);
-
-        // Optional short alias namespace (e.g. 'license-kit::') alongside the full one.
-        $alias = $this->package->getTranslationAlias();
-        if (is_string($alias) && $alias !== '') {
-            $this->loadTranslationsFrom($vendorTranslations, $alias);
+        // The canonical `vendor/package`, its `vendor-package` alias, and the optional declared
+        // alias (e.g. 'license-kit::'), all over the same packaged files.
+        foreach ($this->package->translationNamespaces() as $namespace) {
+            $this->loadTranslationsFrom($vendorTranslations, $namespace);
         }
 
         $this->loadJsonTranslationsFrom($vendorTranslations);
