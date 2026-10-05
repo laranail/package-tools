@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `EventRegistry::registerListener()` wraps an invokable object or other plain callable in a
+  Closure before handing it to the dispatcher, whose contract takes no plain callable (the
+  current Larastan rejects it). Class strings and `[class, method]` arrays pass through unchanged,
+  so the container still resolves them lazily.
+
 - **`NamingScope` no longer counts the package's own `vendor/` and `tests/` as the package's.** The
   base path defaults to the package root, which in the package's own test suite also holds the
   installed framework and the harness, so every framework closure and every name the TestCase

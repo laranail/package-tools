@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Package\Tools\Services\Event;
 
+use Closure;
 use Illuminate\Support\Facades\Event;
 use Simtabi\Laranail\Package\Tools\Contracts\RegistryInterface;
 
@@ -26,7 +27,10 @@ class EventRegistry implements RegistryInterface
      */
     public function registerListener(string $event, string|callable $listener): void
     {
-        Event::listen($event, $listener);
+        // The dispatcher's contract takes a Closure, a class string or a [class, method] array; an
+        // invokable object or other callable is wrapped so it reaches the same call, and a string or
+        // array is passed through so the container still resolves it lazily.
+        Event::listen($event, is_string($listener) || is_array($listener) ? $listener : Closure::fromCallable($listener));
 
         $this->listeners[$event] ??= [];
 
