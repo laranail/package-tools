@@ -46,6 +46,7 @@
         "illuminate/support": "^13.0",
         "illuminate/translation": "^13.0",
         "illuminate/view": "^13.0",
+        "laravel/framework": "^13.0",
         "symfony/process": "^8.0"
     },
     "require-dev": {
