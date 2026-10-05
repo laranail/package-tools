@@ -37,6 +37,25 @@ final class EventRegistryTest extends TestCase
         $this->assertTrue($this->registry->hasListener('user.created'));
     }
 
+    /** The dispatcher's contract takes no plain callable; an invokable object must still be called. */
+    public function test_an_invokable_object_listener_is_called(): void
+    {
+        $listener = new class
+        {
+            public int $calls = 0;
+
+            public function __invoke(): void
+            {
+                $this->calls++;
+            }
+        };
+
+        $this->registry->registerListener('order.shipped', $listener);
+        event('order.shipped');
+
+        $this->assertSame(1, $listener->calls);
+    }
+
     public function test_get_listeners_empty_for_unknown_event(): void
     {
         $this->assertSame([], $this->registry->getListeners('nothing'));

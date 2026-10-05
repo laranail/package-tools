@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Composer\Autoload\ClassLoader;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\View;
@@ -261,3 +262,70 @@ it('reports a deprecated route name that is registered for real rather than alia
     expect(fn () => $this->assertDeprecatedRouteNamesResolve(['naming-page' => 'laranail-naming-demo.page']))
         ->toThrow(AssertionFailedError::class, 'naming-page');
 });
+
+/**
+ * A package laid out the way every adopter is: its root holds src/ and resources/, and in its own
+ * test suite also vendor/ (the framework) and tests/ (the harness). Only the first two are its.
+ */
+function namingRoot(): string
+{
+    return (string) realpath(__DIR__ . '/../fixtures/NamingRoot');
+}
+
+function namingRootClosure(string $file): Closure
+{
+    return require namingRoot() . '/' . $file;
+}
+
+dataset('root layouts', [
+    'explicit root as base path' => [fn (): NamingScope => NamingScope::for(
+        package: 'laranail/naming-root',
+        ownerNamespace: 'Fixture\\NamingRoot\\',
+        basePath: namingRoot(),
+    )],
+    'base path read from the autoloader' => [function (): NamingScope {
+        // What an adopter gets by default: the owner namespace maps to <root>/src.
+        ClassLoader::getRegisteredLoaders()[array_key_first(ClassLoader::getRegisteredLoaders())]
+            ->addPsr4('Fixture\\NamingRoot\\', namingRoot() . '/src');
+
+        return NamingScope::for('laranail/naming-root', 'Fixture\\NamingRoot\\');
+    }],
+]);
+
+it('does not count closures under the package root vendor/ or tests/ as the package\'s', function (Closure $scope): void {
+    $scope = $scope();
+
+    expect($scope->owns(namingRootClosure('vendor/acme/framework/bindings.php')))->toBeFalse()
+        ->and($scope->owns(namingRootClosure('tests/TestCaseLimiter.php')))->toBeFalse()
+        ->and($scope->ownsPath(namingRoot() . '/vendor'))->toBeFalse()
+        ->and($scope->ownsPath(namingRoot() . '/vendor/acme/framework/bindings.php'))->toBeFalse()
+        ->and($scope->ownsPath(namingRoot() . '/tests/TestCaseLimiter.php'))->toBeFalse();
+})->with('root layouts');
+
+it('still counts the package\'s own source and resources', function (Closure $scope): void {
+    $scope = $scope();
+
+    expect($scope->owns(namingRootClosure('src/registrations.php')))->toBeTrue()
+        ->and($scope->ownsPath(namingRoot() . '/resources/views'))->toBeTrue()
+        ->and($scope->ownsPath(namingRoot() . '/vendored/notes.php'))->toBeTrue()
+        ->and($scope->ownsPath(namingRoot() . '/testsuite.php'))->toBeTrue();
+})->with('root layouts');
+
+it('passes a package whose own suite registers framework and harness names beside its own', function (Closure $scope): void {
+    $scope = $scope();
+
+    // license-kit's suite reported `events`, `log`, `router` and its TestCase's `api` limiter as its own.
+    app()->bind('laranail-naming-root.service', namingRootClosure('src/registrations.php'));
+    app()->bind('naming-root-framework', namingRootClosure('vendor/acme/framework/bindings.php'));
+    RateLimiter::for('laranail-naming-root.api', namingRootClosure('src/registrations.php'));
+    RateLimiter::for('api', namingRootClosure('tests/TestCaseLimiter.php'));
+
+    $this->assertContainerAliasesScoped($scope);
+    $this->assertRateLimitersScoped($scope);
+
+    // A bare name the source does register is still caught.
+    app()->bind('naming-root-own', namingRootClosure('src/registrations.php'));
+
+    expect(fn () => $this->assertContainerAliasesScoped($scope))
+        ->toThrow(AssertionFailedError::class, 'naming-root-own');
+})->with('root layouts');

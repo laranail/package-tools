@@ -74,8 +74,15 @@ A name is judged only if it belongs to the package. It does when any of these ho
   registered through a closure that carries no evidence of its owner.
 
 The base path defaults to the parent of the namespace's PSR-4 directory, read from Composer's
-autoloader. Pass `basePath:` when the package is autoloaded another way. An application's own
-`dashboard` route is not the package's, and is never reported.
+autoloader: the package root, so `resources/`, `routes/` and `config/` count as the package's. Pass
+`basePath:` when the package is autoloaded another way. An application's own `dashboard` route is
+not the package's, and is never reported.
+
+`vendor/` and `tests/` directly under the base path are never the package's, whatever base path is
+passed. In the package's own suite the root holds the installed framework and the test harness too,
+and without the exclusion every framework binding (`events`, `log`, `router`) and every name the
+TestCase defines (an `api` rate limiter) would be reported as the package's offence. Register a
+name the assertion should judge from `src/`, not from the TestCase.
 
 ## Sanctioned variants
 
