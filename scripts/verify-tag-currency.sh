@@ -86,6 +86,21 @@ tag_commit() {
   fi
 }
 
+# A package on the moving-tag model holds exactly one v* tag and moves it. A package that has cut
+# a second tag is on real releases, and a published release is immutable: moving it hands consumers
+# who already resolved it different code under the same name. Such a tag falls behind main whenever
+# main gains a commit, which Dependabot does weekly. A commit that touches only .github/ ships
+# nothing (the directory is export-ignored), so it is not unreleased code and must not turn the
+# check red. Called after ${tags} is read.
+released() { [ "$(printf '%s\n' "${tags}" | grep -c .)" -gt 1 ]; }
+
+ci_only() {
+  local files
+  files=$(gh api "repos/${REPO}/compare/$1...${head}" --jq '.files[].filename' 2>/dev/null) || return 1
+  [ -n "${files}" ] || return 1
+  ! printf '%s\n' "${files}" | grep -qvE '^\.github/'
+}
+
 # Not mapfile: macOS ships bash 3.2, which does not have it, and this has to run
 # on a maintainer's laptop as well as in CI.
 tags=$(gh api "repos/${REPO}/git/matching-refs/tags/v" --jq '.[].ref | sub("refs/tags/"; "")' 2>/dev/null | sort -V)
@@ -167,7 +182,11 @@ if [ "${commit}" = "${head}" ]; then
       ok "${highest} is also on ${BRANCH}."
     else
       hbehind=$(gh api "repos/${REPO}/compare/${hcommit}...${head}" --jq '.ahead_by' 2>/dev/null || echo '?')
+      if released && ci_only "${hcommit}"; then
+        ok "${highest} is a release; the ${hbehind} commit(s) since it touch only .github/."
+      else
       fail "${highest} is the highest tag and is ${hbehind} commit(s) behind ${BRANCH}. An unconstrained \`composer require ${REPO}\` resolves it, so it must be current or it must not exist."
+      fi
     fi
   fi
 else
@@ -178,7 +197,15 @@ else
     --jq '.commits[] | "    " + .sha[0:8] + "  " + (.commit.message | split("\n")[0])' 2>/dev/null || true
   echo
 
-  fail "${current} is behind ${BRANCH}. Move it (git tag -f ${current} ${BRANCH} && git push --force origin ${current}) or cut a new one."
+  if released; then
+    if ci_only "${commit}"; then
+      ok "${current} is a release; the commits since it touch only .github/, so nothing a consumer installs is unreleased."
+    else
+      fail "${current} is behind ${BRANCH}. It is a published release, so do not move it: cut ${current%.*}.$(( ${current##*.} + 1 ))."
+    fi
+  else
+    fail "${current} is behind ${BRANCH}. Move it (git tag -f ${current} ${BRANCH} && git push --force origin ${current}) or cut a new one."
+  fi
 fi
 
 exit "${FAILED}"

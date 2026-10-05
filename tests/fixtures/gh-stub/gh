@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Stub of `gh api <endpoint> [--jq expr]` for verify-tag-currency.sh, driven by env:
+# STUB_TAGS (space-separated), STUB_TAG_SHA (all tags -> this sha), STUB_HEAD, STUB_FILES (space-separated), STUB_ALIAS
+ep=$2; jqx=.; [ "${3:-}" = --jq ] && jqx=$4
+case "$ep" in
+  */git/refs/heads) out='[{"ref":"refs/heads/main"}]' ;;
+  */git/ref/heads/*) out="{\"object\":{\"sha\":\"$STUB_HEAD\",\"type\":\"commit\"}}" ;;
+  */git/matching-refs/tags/v) out=$(for t in $STUB_TAGS; do printf '{"ref":"refs/tags/%s"}\n' $t; done | jq -s .) ;;
+  */git/ref/tags/*) out="{\"object\":{\"sha\":\"$STUB_TAG_SHA\",\"type\":\"commit\"}}" ;;
+  */compare/*) a=${ep##*/compare/}; a=${a%%...*}
+     if [ "$a" = "$STUB_HEAD" ]; then st=identical; n=0; else st=ahead; n=1; fi
+     files=$(for f in $STUB_FILES; do printf '{"filename":"%s"}\n' $f; done | jq -s .)
+     out="{\"status\":\"$st\",\"ahead_by\":$n,\"commits\":[{\"sha\":\"cccccccc\",\"commit\":{\"message\":\"bump\"}}],\"files\":$files}" ;;
+  */contents/composer.json) out="{\"content\":\"$(printf '{"extra":{"branch-alias":{"dev-main":"%s"}}}' "$STUB_ALIAS" | base64)\"}" ;;
+  *) echo "stub: unhandled $ep" >&2; exit 1 ;;
+esac
+printf '%s' "$out" | jq -r "$jqx"

@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `laravel/framework ^13.0` is now declared in `require`. `src/` uses `AliasLoader`, `Application`, `AuthorizesRequests`, `DispatchesJobs` and others from `Illuminate\Foundation`, which no `illuminate/*` component ships, so the dependency only arrived through the host application.
 
+### Fixed
+
+- `scripts/verify-tag-currency.sh` told a package on real releases to force-move its published tag, and went red whenever main gained a commit, Dependabot's weekly `.github/` bumps included. A package with more than one `v*` tag is now treated as released: commits since the release that touch only `.github/` pass, and unreleased shipped code asks for the next patch release instead of a moved tag. Single-moving-tag packages behave as before. Pinned by `VerifyTagCurrencyScriptTest` against a stub `gh`.
+
 ## [0.1.5] - 2026-10-05
 
 ### Fixed
