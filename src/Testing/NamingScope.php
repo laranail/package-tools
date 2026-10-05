@@ -30,10 +30,22 @@ use Composer\Autoload\ClassLoader;
  * base path; it is a path under the base path; or the name itself is the bare slug, or continues it
  * (`atlas`, `atlas.page`, `atlas::x`) -- which catches a bare name registered through a closure that
  * carries no evidence of its owner. The base path defaults to the parent of the namespace's PSR-4
- * directory, read from Composer's autoloader.
+ * directory, read from Composer's autoloader -- the package root, so `resources/`, `routes/` and
+ * `config/` count as the package's.
+ *
+ * In the package's own test suite that root also holds `vendor/` (the framework) and `tests/` (the
+ * harness), so `vendor/` and `tests/` directly under the base path are never the package's, whatever
+ * base path is passed. Without that, every framework closure (`events`, `log`, `router`) and every
+ * name the harness defines (a TestCase's `api` limiter) reads as the package's offence.
  */
 final readonly class NamingScope
 {
+    /**
+     * Directories directly under the base path that are never the package's: the dependencies its
+     * own suite installs, and the suite itself.
+     */
+    private const array FOREIGN_DIRECTORIES = ['vendor', 'tests'];
+
     /** @var array<string, list<string>> */
     private array $prefixes;
 
@@ -151,7 +163,13 @@ final readonly class NamingScope
         $base = rtrim(realpath($this->basePath) ?: $this->basePath, '/');
         $resolved = realpath($path) ?: $path;
 
-        return $resolved === $base || str_starts_with($resolved, $base . '/');
+        if ($resolved !== $base && ! str_starts_with($resolved, $base . '/')) {
+            return false;
+        }
+
+        $first = explode('/', substr($resolved, strlen($base) + 1), 2)[0];
+
+        return ! in_array($first, self::FOREIGN_DIRECTORIES, true);
     }
 
     private static function basePathOf(string $namespace): ?string

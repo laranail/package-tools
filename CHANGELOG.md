@@ -5,6 +5,20 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`NamingScope` no longer counts the package's own `vendor/` and `tests/` as the package's.** The
+  base path defaults to the package root, which in the package's own test suite also holds the
+  installed framework and the harness, so every framework closure and every name the TestCase
+  defined read as the package's: license-kit's `assertContainerAliasesScoped()` reported `events`,
+  `log` and `router`, and a TestCase-defined `api` limiter would have been reported the same way.
+  `ownsPath()`, and with it closure ownership by file, now rejects anything under `vendor/` or
+  `tests/` directly beneath the base path, including when a caller passes the root explicitly.
+  `resources/`, `routes/` and `config/` stay the package's. Pinned by three regression tests over a
+  fixture package laid out like an adopter, each run with an explicit and an autoloader-derived base.
+
 ## [0.1.3] - 2026-10-05
 
 ### Changed
@@ -535,4 +549,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial public release.
 
-[Unreleased]: https://github.com/laranail/package-tools/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/laranail/package-tools/compare/v0.1.3...HEAD
