@@ -5,6 +5,12 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `scripts/verify-tag-currency.sh` now passes a single-moving-tag package whose tag is behind `main` only by commits that touch `.github/`, as it already did for released packages. Those commits ship nothing, and Dependabot adds one weekly, so every moving-tag package's scheduled check went red on a workflow bump.
+
 ## [0.1.6] - 2026-10-05
 
 ### Changed

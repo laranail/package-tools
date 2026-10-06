@@ -37,8 +37,15 @@ it('asks for a new release, never a moved tag, when shipped code is unreleased',
         ->and($process->getOutput())->not->toContain('git tag -f');
 })->skipOnWindows();
 
-it('still asks a moving-tag package to move its tag', function (): void {
+it('passes a moving-tag package whose later commits touch only .github/', function (): void {
     $process = runTagCurrency(['STUB_TAGS' => 'v0.1.0', 'STUB_TAG_SHA' => 'aaa', 'STUB_HEAD' => 'bbb', 'STUB_FILES' => '.github/workflows/ci.yml']);
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($process->getOutput())->toContain('touch only .github/');
+})->skipOnWindows();
+
+it('still asks a moving-tag package to move its tag when shipped code changed', function (): void {
+    $process = runTagCurrency(['STUB_TAGS' => 'v0.1.0', 'STUB_TAG_SHA' => 'aaa', 'STUB_HEAD' => 'bbb', 'STUB_FILES' => 'src/Foo.php']);
 
     expect($process->getExitCode())->toBe(1)
         ->and($process->getOutput())->toContain('Move it');
