@@ -72,6 +72,23 @@
 #      same-named file counts as a copy only when it does NOT import
 #      CANONICAL_FQN.
 #
+#   5. THE TRAIT A FILE COMPOSES NEED NOT BE CONSOLE'S.
+#
+#      Found when `laranail/db-tools` 0.1.5 restored its
+#      `Console/Concerns/SupportsNamespacedNames.php` as a deprecated forwarder
+#      for consuming applications whose commands `use` it. The file is one line:
+#      it imports `laranail/package-tools`' trait, which db-tools requires. That
+#      is note 4's case exactly -- a same-named file composing a copy rather than
+#      being one -- but note 4 recognised console's FQN only, so the forwarder was
+#      reported as an undeclared carrier and failed every run on `main`.
+#
+#      Declaring a `@trait-copy-reason` in db-tools would have been the wrong fix:
+#      neither admissible reason holds there (it requires a `laranail/*` package,
+#      and its PHP floor is console's), and the file is not a copy to justify. So
+#      a file that imports ANY of the traits in COMPOSABLE_FQNS is a composer.
+#      The list is explicit rather than "anything named SupportsNamespacedNames",
+#      so a real copy cannot hide behind an alias of some unrelated trait.
+#
 # Reads the REMOTE tree by default, so a stale local checkout cannot make it pass
 # and it needs no particular fetch depth in CI. Pass --from-checkout to read a
 # local family instead, which is how you run it while editing.
@@ -107,7 +124,15 @@ CONFORMANCE = re.compile(r"NamespacedNamesConformanceTest\.php$")
 CANONICAL_FQN = (
     r"Simtabi\\Laranail\\Console\\Tools\\Commands\\Concerns\\SupportsNamespacedNames"
 )
-COMPOSES = re.compile(r"use\s+" + CANONICAL_FQN + r"\b")
+
+# package-tools' copy, which a package that requires package-tools may compose
+# instead of console's -- db-tools' deprecated forwarder does. See note 5.
+PACKAGE_TOOLS_FQN = (
+    r"Simtabi\\Laranail\\Package\\Tools\\Commands\\Concerns\\SupportsNamespacedNames"
+)
+
+COMPOSABLE_FQNS = (CANONICAL_FQN, PACKAGE_TOOLS_FQN)
+COMPOSES = re.compile(r"use\s+(?:" + "|".join(COMPOSABLE_FQNS) + r")\b")
 
 CANONICAL = re.compile(r"@trait-copy-canonical\b")
 REASON = re.compile(r"@trait-copy-reason\s+([a-z0-9-]+)")
@@ -423,7 +448,7 @@ def main() -> int:
     if composers:
         print(
             f"composes it    : {', '.join(sorted(composers))}  "
-            f"(same filename, imports the canonical trait -- not a carrier)"
+            f"(same filename, imports a carried trait -- not a carrier)"
         )
 
     if problems:

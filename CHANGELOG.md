@@ -5,6 +5,16 @@ All notable changes to `laranail/package-tools` are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `scripts/verify-trait-copies.py` no longer reports `laranail/db-tools` as an undeclared carrier.
+  db-tools 0.1.5 restored `Console/Concerns/SupportsNamespacedNames` as a deprecated forwarder that
+  imports this package's trait; the script recognised only console's trait as one a same-named file
+  may compose, so the forwarder read as a copy and the hygiene job's "Trait copies" step failed on
+  every run. Both carried traits now count. Pinned by `VerifyTraitCopiesScriptTest`.
+
 ## [0.1.7] - 2026-10-06
 
 ### Fixed
