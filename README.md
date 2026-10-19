@@ -86,6 +86,7 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Ide helper](docs/tools/ide-helper.md) — generated IDE metadata
 - [Isolated testcase](docs/tools/isolated-testcase.md) — the testing harness
 - [Driver contract](docs/tools/driver-contract.md) — assert a driver name resolves and a config key is read where it is registered
+- [Test credentials](docs/tools/test-credentials.md) — generate test passwords and keys at run time, and fail on any literal left in the suite
 - [Logging](docs/tools/logging.md) — per-package logging via `$package->log()`
 - [Namespace forms](docs/tools/namespace-forms.md) — views and translations under both `vendor/package` and `vendor-package`
 - [Naming assertions](docs/tools/naming-assertions.md) — every public name scoped, asserted against the live registries
