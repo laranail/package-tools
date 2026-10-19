@@ -88,7 +88,16 @@ it('reports a weak literal in every position named for a credential', function (
     'livewire assert'  => ["\$c->assertSet('NAME', 'VALUE');", 'generatedPassword'],
     'config set'       => ["Config::set('NAME', 'VALUE');", 'services.zoho.api_key'],
     'double quotes'    => ["['NAME' => \"VALUE\"];", 'private_key'],
+    'dotted set key'   => ["\$c->set('NAME', 'VALUE');", 'state.password'],
+    'dotted env key'   => ["['NAME' => 'VALUE'];", 'integrations.dns_api_token'],
 ]);
+
+it('reports a field map whose value repeats its key, because a factory default reads the same', function (): void {
+    // Deliberate: a password key whose value is the word itself maps a form field in an installer,
+    // and is the default password in a factory. The guard cannot tell them apart, so it reports
+    // both; mark a genuine field map exempt.
+    expect(credentialRules(credentialSource("['NAME' => 'VALUE'];", 'password', 'password')))->toBe(['named']);
+});
 
 it('reports the password in a URL', function (): void {
     $url = 'mysql://doadmin' . ':' . 'pw' . '@db.example.com:25060/defaultdb';
@@ -107,24 +116,34 @@ it('reports a strong-looking literal passed to a Password, and only a strong one
 it('leaves alone what is not a credential', function (string $source): void {
     expect(credentialRules('<?php ' . $source))->toBe([]);
 })->with([
-    'generated value'      => "['password' => TestCredentials::password()];",
-    'env read'             => "['password' => env('DB_PASSWORD')];",
-    'empty string'         => "['password' => ''];",
-    'prose'                => "\$c->assertSet('flash', 'Its password is unchanged.');",
-    'prose under the name' => "['password' => 'The password is incorrect.'];",
-    'validation rules'     => "['password' => 'required|string|min:8'];",
-    'interpolated'         => "['password' => \"{\$prefix}-x\"];",
-    'comparison'           => "if (\$token === 'expected') {}",
-    'positional vector'    => "ScramSha256::verifier('pencil', \$salt);",
-    'unrelated constant'   => "const RFC7677_SALT = 'W22ZaJ0SNY7soEsUEjb6gQ==';",
-    'url without password' => "\$dsn = 'pgsql://db.example.com:5432/app';",
-    'url from variables'   => '$dsn = "mysql://{$user}:{$pass}@host/db";',
-    'short placeholder'    => "['password' => 'x', 'api_key' => 'k'];",
-    'mask'                 => "['password' => '••••••••'];",
-    'package name'         => "['Password' => 'illuminate/auth'];",
-    'token type'           => "['token_type' => 'Bearer'];",
-    'field name'           => "['password_field' => 'secret_hash'];",
-    'broker name'          => "['passwords' => 'admins'];",
+    'generated value'         => "['password' => TestCredentials::password()];",
+    'env read'                => "['password' => env('DB_PASSWORD')];",
+    'empty string'            => "['password' => ''];",
+    'prose'                   => "\$c->assertSet('flash', 'Its password is unchanged.');",
+    'prose under the name'    => "['password' => 'The password is incorrect.'];",
+    'validation rules'        => "['password' => 'required|string|min:8'];",
+    'interpolated'            => "['password' => \"{\$prefix}-x\"];",
+    'comparison'              => "if (\$token === 'expected') {}",
+    'positional vector'       => "ScramSha256::verifier('pencil', \$salt);",
+    'unrelated constant'      => "const RFC7677_SALT = 'W22ZaJ0SNY7soEsUEjb6gQ==';",
+    'url without password'    => "\$dsn = 'pgsql://db.example.com:5432/app';",
+    'url from variables'      => '$dsn = "mysql://{$user}:{$pass}@host/db";',
+    'short placeholder'       => "['password' => 'x', 'api_key' => 'k'];",
+    'mask'                    => "['password' => '••••••••'];",
+    'package name'            => "['Password' => 'illuminate/auth'];",
+    'token type'              => "['token_type' => 'Bearer'];",
+    'field name'              => "['password_field' => 'secret_hash'];",
+    'broker name'             => "['passwords' => 'admins'];",
+    'route name'              => "['password.request' => 'laranail-auth.password.request'];",
+    'limiter name'            => "['licensing-token' => 'laranail-license-kit.token'];",
+    'eloquent cast'           => "return ['password' => 'hashed'];",
+    'encrypted cast'          => "return ['api_token' => 'encrypted:array'];",
+    'single rule'             => "['email' => 'required', 'password' => 'required'];",
+    'single rule with arg'    => "['password' => 'min:12'];",
+    'mode under a dotted key' => "config()->set('laranail.password-history.on_store_error', 'degrade');",
+    'provider under secrets'  => "config()->set('laranail.db-console.secrets.reference.provider', 'doppler');",
+    'vault reference'         => "['secret_ref' => 'webhook:test'];",
+    'filename key'            => "['0001_01_01_000006_create_impersonation_tokens_table.php' => '6bab334e4e717134f388b2a05284da1f'];",
 ]);
 
 it('passes over a line marked as a deliberate fixed value, or the line below the marker', function (): void {
@@ -170,6 +189,48 @@ it('skips an exempt file by basename', function (): void {
 it('keeps literal credentials out of package-tools\' own tests', function (): void {
     $this->assertNoLiteralCredentialsIn(dirname(__DIR__), minFiles: 100);
     expect(true)->toBeTrue();
+});
+
+it('reports a purpose that is not a single lowercase word', function (string $purpose): void {
+    $source = credentialSource("TestCredentials::password('VALUE');", value: $purpose);
+
+    expect(array_column(CredentialLiterals::purposesIn($source), 1))->toBe([$purpose]);
+})->with([
+    'hyphenated'   => ['smtp' . '-' . 'new'],
+    'with a digit' => ['draw' . '2'],
+    'mixed case'   => ['Stripe'],
+    'underscored'  => ['remember' . '_' . 'me'],
+]);
+
+it('leaves a single-word purpose, or none, alone', function (string $call): void {
+    expect(CredentialLiterals::purposesIn('<?php ' . $call))->toBe([]);
+})->with([
+    'single word'          => ["TestCredentials::secret('stripe');"],
+    'no purpose'           => ['TestCredentials::password();'],
+    'named word'           => ["TestCredentials::key(purpose: 'wrap', bytes: 32);"],
+    'interpolated purpose' => ['TestCredentials::password($purpose);'],
+]);
+
+it('fails on a compound purpose, naming the file, line and purpose', function (): void {
+    $dir = credentialFixtureDir(['MailTest.php' => credentialSource("\nTestCredentials::password('VALUE');", value: 'smtp' . '-' . 'stored')]);
+
+    try {
+        $this->assertCredentialPurposesAreWordsIn($dir);
+    } catch (AssertionFailedError $e) {
+        expect($e->getMessage())->toContain("MailTest.php:2 'smtp-stored'");
+
+        return;
+    }
+
+    $this->fail('a compound purpose passed the assertion');
+});
+
+it('passes single-word purposes and refuses a scan below its floor', function (): void {
+    $dir = credentialFixtureDir(['Clean.php' => "<?php TestCredentials::password('user');"]);
+
+    $this->assertCredentialPurposesAreWordsIn($dir);
+    expect(fn () => $this->assertCredentialPurposesAreWordsIn($dir, minFiles: 3))
+        ->toThrow(AssertionFailedError::class, 'fewer than the floor of 3');
 });
 
 describe('TestCredentials', function (): void {

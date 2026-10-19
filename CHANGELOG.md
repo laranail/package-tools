@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `AssertsNoLiteralCredentials::assertCredentialPurposesAreWordsIn()`, an opt-in check that every
+  purpose passed to `TestCredentials` is a single lowercase word. GitGuardian read compound
+  purposes such as `'smtp-new'` and `'unreachable-db'` as the password itself during the 2026-10
+  sweep of 33 repos; no single-word purpose was reported. The scanner behind it is
+  `CredentialLiterals::purposesIn()`.
+
+### Changed
+
+- `CredentialLiterals` no longer reports seven shapes the sweep had to exempt by hand. A dotted
+  key is judged by its last segment, so `laranail.password-history.on_store_error`, a
+  `secrets.reference.provider` and a `…_tokens_table.php` filename key are not credential names.
+  It also leaves alone the metadata suffixes `_ref`, `_reference`, `_provider` and `_id`, dotted
+  identifiers such as route and rate-limiter names, the `hashed` and `encrypted` casts, and a
+  single validation rule such as `'required'` or `'min:12'`. A `password` key whose value is the
+  word `password` is still reported, because a factory's default password has the same syntax.
+- `docs/tools/test-credentials.md` now says to name purposes with one word or none, to build
+  prefixed formats and URLs with `sprintf`, and to put the exemption marker on the line above:
+  a trailing marker pulls a literal already on `main` into the pull request's diff, where secret
+  scanning reports it.
+
 ## [0.1.9] - 2026-10-19
 
 ### Added

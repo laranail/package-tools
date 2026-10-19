@@ -18,9 +18,12 @@ use InvalidArgumentException;
  * agree, and differs from run to run. Ask for a different purpose when two values must differ:
  *
  * ```php
- * $theirs = TestCredentials::password('existing-account');
- * $ours   = TestCredentials::password('new-account');
+ * $theirs = TestCredentials::password('theirs');
+ * $ours   = TestCredentials::password('ours');
  * ```
+ *
+ * Name a purpose with one plain lowercase word, or pass none: secret scanning reads a compound
+ * purpose such as `'smtp-new'` as the password itself. See `docs/tools/test-credentials.md`.
  *
  * The guard that keeps literals out is {@see AssertsNoLiteralCredentials}.
  */
