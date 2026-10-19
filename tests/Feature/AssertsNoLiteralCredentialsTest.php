@@ -181,6 +181,14 @@ describe('TestCredentials', function (): void {
             ->and($password)->toMatch('/^[A-Za-z0-9!*\-=^_~]+$/');
     });
 
+    it('reads as strong on every draw, not just most', function (): void {
+        // A password whose only symbols were - and _ matched the identifier shape and read as weak:
+        // a fraction of draws, which failed CI at random. Two hundred draws make that near-certain.
+        foreach (range(1, 200) as $draw) {
+            expect(CredentialLiterals::looksLikeAStrongPassword(TestCredentials::password("draw-{$draw}", 12)))->toBeTrue();
+        }
+    });
+
     it('returns the same value for a purpose within a run, and a different one per purpose', function (): void {
         expect(TestCredentials::password('ours'))->toBe(TestCredentials::password('ours'))
             ->and(TestCredentials::password('ours'))->not->toBe(TestCredentials::password('theirs'))
