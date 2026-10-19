@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Testing\TestCredentials` generates test passwords, secrets and keys at run time, memoised per
+  purpose for the run, so no credential literal reaches the repository for secret scanning to
+  report. GitGuardian raised 28 incidents across laranail by 2026-10-18; 27 were test literals or
+  false positives.
+- `Testing\AssertsNoLiteralCredentials::assertNoLiteralCredentialsIn()` fails a suite on any
+  literal credential:
+  - a literal of any strength under a credential name, including array keys and URL passwords,
+    which the guard copied into `laranail/db-console` did not catch;
+  - a strong-looking literal passed to `new Password()`.
+
+  Deliberate fixed values are marked `@credential-literal-exempt` with a reason. A scan that
+  inspects fewer files than its floor fails. See `docs/tools/test-credentials.md`.
+
 ## [0.1.8] - 2026-10-13
 
 ### Fixed
