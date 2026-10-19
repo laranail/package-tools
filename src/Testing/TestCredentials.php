@@ -32,6 +32,14 @@ final class TestCredentials
      */
     private const string SYMBOLS = '!*-=^_~';
 
+    /**
+     * The symbols that are not identifier characters. The one symbol a password is guaranteed is
+     * drawn from these: a password whose only symbols were `-` and `_` would read as an identifier
+     * (`^[\w.-]+$`), and secret scanners -- and {@see CredentialLiterals::looksLikeAStrongPassword()}
+     * -- do not treat that as a strong password.
+     */
+    private const string NON_WORD_SYMBOLS = '!*=^~';
+
     private const string UPPER = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 
     private const string LOWER = 'abcdefghijkmnopqrstuvwxyz';
@@ -82,7 +90,7 @@ final class TestCredentials
             self::pick(self::UPPER),
             self::pick(self::LOWER),
             self::pick(self::DIGITS),
-            self::pick(self::SYMBOLS),
+            self::pick(self::NON_WORD_SYMBOLS),
         ];
 
         while (count($characters) < $length) {
