@@ -36,6 +36,22 @@ in CI, but fails with `Operation not permitted (EPERM)` inside restricted sandbo
 that error, drop the flag; the result is identical, only slower. PHPStan's parallel worker pool
 behaves the same way.
 
+### Which PHP runs Pint
+
+`vendor/bin/laranail-pint` runs Pint under the PHP that runs the wrapper itself (`PHP_BINARY`).
+It does not execute `vendor/bin/pint` directly, because that goes through Pint's
+`#!/usr/bin/env php` shebang, which takes whichever `php` comes first on `PATH`.
+
+That difference matters locally:
+- With MAMP's PHP 8.4 first on `PATH` and a package targeting 8.5, Pint parses 8.5 syntax under
+  8.4. It then reports parse errors in valid code: chrono showed six.
+- The 8.4 run can also disagree with 8.5 on formatting: emojis' `database/generated/scanner.php`
+  failed `binary_operator_spaces` under 8.4 only.
+
+CI never sees either, because there the two are the same binary. Run the wrapper under the PHP
+the package targets, for example `php8.5 vendor/bin/laranail-pint --test`, or through
+`composer pint`, whose `@php` uses Composer's own interpreter.
+
 ## The preset
 
 `laravel`, not `psr12`. PSR-12 is effectively a subset of Laravel's preset, so starting from
