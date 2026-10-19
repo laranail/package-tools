@@ -33,7 +33,10 @@ final class CredentialLiterals
      *  - `url`: the password in a URL's userinfo.
      *
      * Not a credential, and left alone: the empty string, prose (anything with whitespace),
-     * validation rules (anything with `|`), and interpolated strings.
+     * validation rules (anything with `|`, or a single rule such as `'required'`), a cast name
+     * (`'hashed'`), a dotted identifier such as a route name, and interpolated strings. A dotted
+     * key is named for a credential only when its last segment is:
+     * `laranail.password-history.on_store_error` names an error mode, not a password.
      *
      * @return list<array{int, string, string}>
      */
@@ -61,7 +64,7 @@ final class CredentialLiterals
 
         foreach ($named as $pattern) {
             foreach (self::literalMatches($pattern, $source) as [$offset, $value, $key]) {
-                if (self::isCredentialShaped($value) && ! self::namesMetadata((string) $key)) {
+                if (self::isCredentialShaped($value) && self::namesACredential((string) $key)) {
                     $found[] = [$offset, 'named', $value];
                 }
             }
@@ -82,6 +85,63 @@ final class CredentialLiterals
         usort($found, static fn (array $a, array $b): int => $a[0] <=> $b[0]);
 
         return $found;
+    }
+
+    /**
+     * Every purpose passed to {@see TestCredentials} that is not a single plain lowercase word,
+     * as [byte offset, purpose].
+     *
+     * GitGuardian reads the string in `TestCredentials::password('smtp-new')` as the password
+     * itself, so a purpose like that turns a generated credential back into a reported one. A
+     * single word (`'user'`, `'wrong'`) was never reported across the 2026-10 sweep of 33 repos.
+     *
+     * @return list<array{int, string}>
+     */
+    public static function purposesIn(string $source): array
+    {
+        preg_match_all('/\bTestCredentials::(?:password|secret|key)\(\s*(?:purpose:\s*)?([\'"])(.*?)\1/', $source, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+
+        $found = [];
+        foreach ($matches as $match) {
+            [$purpose, $offset] = $match[2];
+
+            if (preg_match('/^[a-z]+$/', $purpose) !== 1) {
+                $found[] = [$offset, $purpose];
+            }
+        }
+
+        return $found;
+    }
+
+    /**
+     * Scan every PHP file under $dirs for purposes that are not single words.
+     *
+     * @param list<string> $dirs
+     *
+     * @return array{int, list<string>} the number of files scanned, and one `path:line 'purpose'`
+     *                                  line per offending purpose
+     */
+    public static function scanPurposes(array $dirs): array
+    {
+        $scanned = 0;
+        $offenders = [];
+
+        foreach ($dirs as $dir) {
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+                if ($file->getExtension() !== 'php') {
+                    continue;
+                }
+
+                $scanned++;
+                $source = (string) file_get_contents($file->getPathname());
+
+                foreach (self::purposesIn($source) as [$offset, $purpose]) {
+                    $offenders[] = sprintf("%s:%d '%s'", $file->getPathname(), substr_count($source, "\n", 0, $offset) + 1, $purpose);
+                }
+            }
+        }
+
+        return [$scanned, $offenders];
     }
 
     /**
@@ -174,18 +234,38 @@ final class CredentialLiterals
             && preg_match('/[A-Za-z0-9]/', $value) === 1
             && preg_match('/\s/', $value) === 0
             && ! str_contains($value, '|')
-            && preg_match('#^[\w.-]+/[\w./-]+$#', $value) === 0;
+            && preg_match('#^[\w.-]+/[\w./-]+$#', $value) === 0
+            // A route, rate-limiter or translation name: 'laranail-auth.password.request'.
+            && preg_match('/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/', $value) === 0
+            // An Eloquent cast: ['password' => 'hashed'].
+            && preg_match('/^(?:hashed|encrypted(?::[\w\\\\:]+)?)$/', $value) === 0
+            // A single validation rule: ['password' => 'required'].
+            && preg_match('/^(?:required|nullable|sometimes|confirmed|string|present|filled|accepted|current_password)$|^(?:min|max|size|between|digits|same|different|regex|in|not_in|exists|unique):/', $value) === 0;
+    }
+
+    /**
+     * Whether a name the pattern matched holds a credential. A dotted key is judged by its last
+     * segment, so `laranail.password-history.on_store_error` and a filename key such as
+     * `…_create_tokens_table.php` are not credentials, while `services.stripe.secret` is.
+     */
+    private static function namesACredential(string $name): bool
+    {
+        $segments = explode('.', $name);
+        $last = end($segments);
+
+        return preg_match('/password|passwd|secret|token|api_?key|private_?key/i', $last) === 1
+            && ! self::namesMetadata($last);
     }
 
     /**
      * Whether a credential-looking name holds something about a credential rather than the
-     * credential itself: `token_type` (`'Bearer'`), `password_field`, `api_key_header`, or
-     * Laravel's `passwords` broker name.
+     * credential itself: `token_type` (`'Bearer'`), `password_field`, `api_key_header`,
+     * `secret_ref` (a vault reference), or Laravel's `passwords` broker name.
      */
     private static function namesMetadata(string $name): bool
     {
         return strcasecmp($name, 'passwords') === 0
-            || preg_match('/[_.-](?:type|name|field|column|header|driver|table|broker|length|ttl|lifetime|expires?|url|uri|route|prefix|label|format|algo|algorithm|cost|rounds|rules?|message|mode|path|endpoint|placeholder)$/i', $name) === 1;
+            || preg_match('/[_.-](?:type|name|field|column|header|driver|table|broker|length|ttl|lifetime|expires?|url|uri|route|prefix|label|format|algo|algorithm|cost|rounds|rules?|message|mode|path|endpoint|placeholder|ref|reference|provider|id)$/i', $name) === 1;
     }
 
     /**

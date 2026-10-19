@@ -36,11 +36,31 @@ the same value, and the value changes from run to run. When two values must diff
 purposes, and assert that they differ:
 
 ```php
-$theirs = TestCredentials::password('existing-account');
-$ours   = TestCredentials::password('new-account');
+$theirs = TestCredentials::password('theirs');
+$ours   = TestCredentials::password('ours');
 
 expect($theirs)->not->toBe($ours);
 ```
+
+### Naming purposes
+
+A purpose is one plain lowercase word: `'user'`, `'wrong'`, `'renewed'`. Secret scanning reads
+the string passed to `password()` as the password itself when it looks like one. GitGuardian
+reported `TestCredentials::password('smtp-new')` and, next to `'username' => 'nope'`,
+`TestCredentials::password('unreachable-db')`. Across the 33-repo sweep of 2026-10, no
+single-word purpose was reported.
+
+- **When the value need not differ from another, pass no purpose at all.** Then nothing sits in
+  that position: `'password' => TestCredentials::password()`.
+- **Build a prefixed format or a URL with `sprintf`.** Never concatenate a literal onto a
+  generated value:
+
+  ```php
+  $key = sprintf('sk_test_%s', TestCredentials::secret('stripe'));
+  $dsn = sprintf('mysql://admin:%s@db.example.com/app', rawurlencode(TestCredentials::password('admin')));
+  ```
+
+`assertCredentialPurposesAreWordsIn()` enforces the naming rule. It is opt-in, below.
 
 A package with its own generator should use it instead, so test values pass the same rules
 production enforces (`laranail/db-console` uses `Password::generate()`).
@@ -67,11 +87,32 @@ It scans every PHP file under the directories it is given and reports three kind
 
 It leaves these alone, because they are not credentials:
 
-- the empty string;
-- prose (anything with whitespace);
-- validation rules (anything with `|`);
+- the empty string, and anything under four characters;
+- prose (anything with whitespace) and masks (`'••••••••'`);
+- validation rules: anything with `|`, or a single rule such as `'required'` or `'min:8'`;
+- an Eloquent cast (`['password' => 'hashed']`);
+- a dotted identifier such as a route or rate-limiter name (`'laranail-auth.password.request'`),
+  and a package name or path (`'illuminate/auth'`);
 - interpolated strings;
 - values passed positionally to a function.
+
+A dotted key counts as a credential's name only when its **last** segment is one.
+`config()->set('laranail.password-history.on_store_error', 'degrade')` sets an error mode, and a
+filename key like `'…_create_tokens_table.php'` names a file. A key ending in metadata is not a
+credential either, for example `token_type`, `password_field`, `secret_ref` or `api_key_provider`.
+
+A `password` key whose value is the word `password` **is** reported, even when it maps a form
+field to a column. A
+factory's default password has exactly the same syntax, and that default is the literal this
+guard exists to catch. Mark a genuine field map as exempt.
+
+To also enforce single-word purposes, add a second test:
+
+```php
+it('names every generated credential with a single word', function (): void {
+    $this->assertCredentialPurposesAreWordsIn(dirname(__DIR__), minFiles: 20);
+});
+```
 
 `minFiles` is a floor: a scan that inspects fewer files fails, rather than reporting a clean
 suite because a path was wrong. The failure message names the file, line and rule, and only the
@@ -85,7 +126,10 @@ Some tests must hold a value exactly:
 - a public key whose fingerprint is asserted;
 - a weak input fed to a password-strength rule.
 
-Mark the line, or the line above it, with the exemption and a reason:
+Mark the line above it with the exemption and a reason. The marker also works at the end of the
+literal's own line, but avoid that: editing that line puts the literal into the pull request's
+diff, where secret scanning reports it, even when the value was already on `main`. In
+`laranail/toolkit` that raised two GitGuardian incidents for config values no one had changed.
 
 ```php
 // @credential-literal-exempt: RFC 7677 test vector

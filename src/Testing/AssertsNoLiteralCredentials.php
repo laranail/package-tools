@@ -78,4 +78,36 @@ trait AssertsNoLiteralCredentials
             implode("\n  ", $offenders),
         ));
     }
+
+    /**
+     * Assert that every purpose passed to {@see TestCredentials} under $dirs is a single plain
+     * lowercase word. Opt in alongside {@see assertNoLiteralCredentialsIn()}: GitGuardian reads a
+     * compound purpose such as `'smtp-new'` as the password itself. What counts is
+     * {@see CredentialLiterals::purposesIn()}.
+     *
+     * @param string|list<string> $dirs
+     */
+    protected function assertCredentialPurposesAreWordsIn(string|array $dirs, int $minFiles = 1): void
+    {
+        $dirs = (array) $dirs;
+        foreach ($dirs as $dir) {
+            Assert::assertDirectoryExists($dir);
+        }
+
+        [$scanned, $offenders] = CredentialLiterals::scanPurposes($dirs);
+
+        Assert::assertGreaterThanOrEqual($minFiles, $scanned, sprintf(
+            'Only %d PHP file(s) were scanned, fewer than the floor of %d, so this assertion proved '
+            . 'little. Check the directories passed to it.',
+            $scanned,
+            $minFiles,
+        ));
+
+        Assert::assertSame([], $offenders, sprintf(
+            'These TestCredentials purposes are not single lowercase words, and secret scanning reads a '
+            . "compound one as the password itself. Use one plain word ('user', 'wrong', 'renewed'), or "
+            . "no purpose where the value need not differ from another:\n  %s",
+            implode("\n  ", $offenders),
+        ));
+    }
 }
