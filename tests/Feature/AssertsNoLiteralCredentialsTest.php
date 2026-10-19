@@ -119,6 +119,12 @@ it('leaves alone what is not a credential', function (string $source): void {
     'unrelated constant'   => "const RFC7677_SALT = 'W22ZaJ0SNY7soEsUEjb6gQ==';",
     'url without password' => "\$dsn = 'pgsql://db.example.com:5432/app';",
     'url from variables'   => '$dsn = "mysql://{$user}:{$pass}@host/db";',
+    'short placeholder'    => "['password' => 'x', 'api_key' => 'k'];",
+    'mask'                 => "['password' => '••••••••'];",
+    'package name'         => "['Password' => 'illuminate/auth'];",
+    'token type'           => "['token_type' => 'Bearer'];",
+    'field name'           => "['password_field' => 'secret_hash'];",
+    'broker name'          => "['passwords' => 'admins'];",
 ]);
 
 it('passes over a line marked as a deliberate fixed value, or the line below the marker', function (): void {

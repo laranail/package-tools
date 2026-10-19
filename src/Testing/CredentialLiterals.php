@@ -39,8 +39,8 @@ final class CredentialLiterals
      */
     public static function in(string $source): array
     {
-        $name = '[\w.-]*(?:password|passwd|secret|token|api_?key|private_?key)[\w.-]*';
-        $literal = '(?:\'((?:[^\'\\\\]|\\\\.)*)\'|"((?:[^"\\\\]|\\\\.)*)")';
+        $name = '(?<name>[\w.-]*(?:password|passwd|secret|token|api_?key|private_?key)[\w.-]*)';
+        $literal = '(?:\'(?<single>(?:[^\'\\\\]|\\\\.)*)\'|"(?<double>(?:[^"\\\\]|\\\\.)*)")';
 
         $named = [
             // 'password' => '…' (the key may be dotted: 'services.stripe.secret')
@@ -60,8 +60,8 @@ final class CredentialLiterals
         $found = [];
 
         foreach ($named as $pattern) {
-            foreach (self::literalMatches($pattern, $source) as [$offset, $value]) {
-                if (self::isCredentialShaped($value)) {
+            foreach (self::literalMatches($pattern, $source) as [$offset, $value, $key]) {
+                if (self::isCredentialShaped($value) && ! self::namesMetadata((string) $key)) {
                     $found[] = [$offset, 'named', $value];
                 }
             }
@@ -140,7 +140,8 @@ final class CredentialLiterals
     }
 
     /**
-     * @return list<array{int, string}> [offset, value] of each quoted literal the pattern captured
+     * @return list<array{int, string, ?string}> [offset, value, name] of each quoted literal the
+     *                                           pattern captured
      */
     private static function literalMatches(string $pattern, string $source): array
     {
@@ -148,25 +149,43 @@ final class CredentialLiterals
 
         $found = [];
         foreach ($matches as $match) {
-            // Group 1 is the single-quoted body, group 2 the double-quoted one.
-            $double = $match[2][0] !== null;
-            [$value, $offset] = $double ? $match[2] : $match[1];
+            $double = $match['double'][0] !== null;
+            [$value, $offset] = $double ? $match['double'] : $match['single'];
 
             if ($double && preg_match('/(?<!\\\\)\$/', (string) $value) === 1) {
                 continue; // interpolated: the value comes from code
             }
 
-            $found[] = [(int) $offset, (string) $value];
+            $found[] = [(int) $offset, (string) $value, $match['name'][0] ?? null];
         }
 
         return $found;
     }
 
+    /**
+     * Whether a literal could be a credential at all. Not one: anything under four characters
+     * (`'x'`, a placeholder no scanner reports), prose (whitespace), validation rules (`|`), a
+     * mask with no letter or digit (`'••••••••'`), and a package name or path
+     * (`'illuminate/auth'`).
+     */
     private static function isCredentialShaped(string $value): bool
     {
-        return $value !== ''
+        return strlen($value) >= 4
+            && preg_match('/[A-Za-z0-9]/', $value) === 1
             && preg_match('/\s/', $value) === 0
-            && ! str_contains($value, '|');
+            && ! str_contains($value, '|')
+            && preg_match('#^[\w.-]+/[\w./-]+$#', $value) === 0;
+    }
+
+    /**
+     * Whether a credential-looking name holds something about a credential rather than the
+     * credential itself: `token_type` (`'Bearer'`), `password_field`, `api_key_header`, or
+     * Laravel's `passwords` broker name.
+     */
+    private static function namesMetadata(string $name): bool
+    {
+        return strcasecmp($name, 'passwords') === 0
+            || preg_match('/[_.-](?:type|name|field|column|header|driver|table|broker|length|ttl|lifetime|expires?|url|uri|route|prefix|label|format|algo|algorithm|cost|rounds|rules?|message|mode|path|endpoint|placeholder)$/i', $name) === 1;
     }
 
     /**
