@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `bin/laranail-pint` runs Pint under its own interpreter (`PHP_BINARY`) instead of executing
+  `vendor/bin/pint`, whose `#!/usr/bin/env php` shebang took the first `php` on `PATH`. With an
+  older PHP there, Pint parsed 8.5 code under 8.4: chrono reported six parse errors in valid
+  files, and emojis failed a fixer, locally only. On Windows a shebang does not run at all.
+  Pinned by `LaranailPintScriptTest`, which fails with "Permission denied" (exit 126) against
+  the old wrapper.
+
 ## [0.1.10] - 2026-10-19
 
 ### Added

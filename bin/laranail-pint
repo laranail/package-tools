@@ -87,7 +87,13 @@ if ($pint === null) {
 }
 
 $arguments = array_slice($argv, 1);
-$command = array_map(escapeshellarg(...), [$pint, '--config', $config, ...$arguments]);
+
+// Run Pint under the interpreter running this wrapper. Executing vendor/bin/pint directly
+// goes through its `#!/usr/bin/env php` shebang, which picks whichever php is first on
+// PATH: with an older one there (MAMP's 8.4, while the suite targets 8.5), Pint parses
+// 8.5 syntax with 8.4 and reports parse errors in valid code. CI never sees it, because
+// there the two are the same binary. On Windows a shebang does not run at all.
+$command = array_map(escapeshellarg(...), [PHP_BINARY, $pint, '--config', $config, ...$arguments]);
 
 passthru(implode(' ', $command), $status);
 
