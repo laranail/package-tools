@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.12] - 2026-10-20
+
 ### Added
 
 - `CredentialLiterals::RULES_VERSION` (`0.1.10`), the release in which the scanner's rules last
@@ -657,7 +659,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial public release.
 
-[Unreleased]: https://github.com/laranail/package-tools/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/laranail/package-tools/compare/v0.1.12...HEAD
+[0.1.12]: https://github.com/laranail/package-tools/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/laranail/package-tools/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/laranail/package-tools/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/laranail/package-tools/compare/v0.1.8...v0.1.9
