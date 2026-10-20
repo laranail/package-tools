@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `CredentialLiterals::RULES_VERSION` (`0.1.10`), the release in which the scanner's rules last
+  changed. `CredentialLiteralsRulesVersionTest` pins a fingerprint of the scanner's source, so a
+  rule cannot change without the version moving.
+- `scripts/verify-credential-guard-copies.py`, run by the scheduled hygiene job over laranail and
+  simtabi. Every local port of the scanner must declare
+  `@credential-guard-copy reason=… mirrors=…`. The script fails a copy that is undeclared, whose
+  reason (`php-floor-below-package-tools` or `outside-laranail`) no longer holds, or that mirrors
+  older rules than `RULES_VERSION`. notifications' copy had fallen behind 0.1.10 unnoticed before
+  this existed.
+
 ## [0.1.11] - 2026-10-19
 
 ### Fixed
