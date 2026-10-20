@@ -140,6 +140,48 @@ Prefer a name that is not a credential's where the test allows it (`RFC7677_SALT
 `ADMIN_PASSWORD`). `exemptFiles` skips a whole file by basename. Use it sparingly: a file-wide
 skip also covers literals added to that file later.
 
+## Local copies
+
+A repository that cannot depend on package-tools carries a port of the scanner in its own
+`NoLiteralCredentialsTest.php`:
+- **notifications and enumerator** support PHP 8.3, below package-tools' floor.
+- **simtabi/sis-sdk and simtabi/lacommerce** stay independent of the laranail family.
+
+A copy declares itself in its docblock:
+
+```php
+/**
+ * @credential-guard-copy reason=php-floor-below-package-tools mirrors=0.1.10
+ */
+```
+
+`reason` is one of two slugs, each a fact about the repository's `composer.json`:
+
+| Slug | Holds when |
+|---|---|
+| `php-floor-below-package-tools` | `require.php` admits a version below package-tools' floor |
+| `outside-laranail` | the package name is not `laranail/*` |
+
+`mirrors` must equal `CredentialLiterals::RULES_VERSION`, the release in which the rules last
+changed. `scripts/verify-credential-guard-copies.py` checks every repository in the scheduled
+hygiene job. It fails a copy that is undeclared, behind, or whose reason no longer holds;
+when a reason stops holding, switch that repository to the shared guard.
+
+`CredentialLiteralsRulesVersionTest` pins a fingerprint of the scanner's source, so changing a
+rule without bumping `RULES_VERSION` fails package-tools' own suite.
+
+When you change a rule:
+1. Bump `RULES_VERSION` to the release you are cutting.
+2. Update both pins in that test.
+3. Port the change into each copy, and update its `mirrors=`.
+
+The hygiene job's token reads only public repositories, so a private copy (sis-sdk) is checked
+by running the script locally:
+
+```bash
+python3 scripts/verify-credential-guard-copies.py --from-checkout ../ --from-checkout ../../../simtabi/packages
+```
+
 ## Limits
 
 The guard reads PHP source only. Credentials in `phpunit.xml`, `.env.testing` or a workflow file

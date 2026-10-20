@@ -23,6 +23,8 @@ on:
       - 'scripts/verify-action-pins.py'
       - 'scripts/verify-tag-currency.sh'
       - 'scripts/verify-trait-copies.py'
+      - 'scripts/verify-credential-guard-copies.py'
+      - 'src/Testing/CredentialLiterals.php'
       - 'scripts/verify-vcs-urls.py'
 
 concurrency:
@@ -93,6 +95,16 @@ jobs:
 
       - name: Every trait copy declares a reason that still holds
         run: python3 scripts/verify-trait-copies.py --org ${{ github.repository_owner }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The same shape for the credential guard: a repository that cannot depend on
+      # package-tools carries a local port of CredentialLiterals, which must declare why and
+      # which RULES_VERSION it mirrors. notifications' copy fell two releases behind before
+      # this existed. simtabi is read too, for sis-sdk and lacommerce; GITHUB_TOKEN sees only
+      # public repositories there, so a private copy is checked by a local --from-checkout run.
+      - name: Every credential-guard copy declares a reason and mirrors the current rules
+        run: python3 scripts/verify-credential-guard-copies.py --org laranail --org simtabi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

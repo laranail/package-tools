@@ -23,6 +23,15 @@ final class CredentialLiterals
     public const string EXEMPTION = '@credential-literal-exempt';
 
     /**
+     * The package-tools release in which these rules last changed. A repository that cannot
+     * depend on package-tools ports them into a local copy, which declares the version it
+     * mirrors (`@credential-guard-copy reason=… mirrors=…`); scripts/verify-credential-guard-copies.py
+     * fails any copy behind this. Changing a rule without bumping this fails
+     * CredentialLiteralsRulesVersionTest, so the copies cannot be left behind silently.
+     */
+    public const string RULES_VERSION = '0.1.10';
+
+    /**
      * Every literal credential in $source, as [byte offset, rule, literal].
      *
      * Rules:
