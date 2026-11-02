@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# `gh` that cannot answer, for the form half of scripts/verify-action-pins.py.
+#
+# The form pass must report with no network at all, so the honesty and staleness passes have
+# to degrade to SKIPPED rather than to a failure or a crash. A stub that always fails with
+# something other than 404 is what drives them down that path, which makes the exit code in
+# these tests the form count and nothing else.
+echo "api error: could not resolve host (stub)" >&2
+exit 1
