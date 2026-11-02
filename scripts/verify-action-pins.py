@@ -7,12 +7,28 @@ step, so a hand-edited pin can claim one version and run another, and the
 comment is what a reviewer reads. This package shipped exactly that defect:
 a CodeQL pin labelled v3.28.0 whose SHA was a v4 commit.
 
-Three failure modes, all reported:
+Four failure modes, all reported:
 
+  FORM      the reference is the wrong shape for the rule: a first-party
+            action pinned to a SHA, a third-party one left on a tag, a pin
+            with no comment, or a comment naming a mutable major
   MISMATCH  the tag in the comment resolves to a different commit
   UNKNOWN   the tag does not exist upstream, so the comment is unverifiable
   STALE     a newer release has been out long enough that it should have been
             taken already
+
+FORM came last and matters most, because the other three only ever looked at
+references that were *already* SHA-pinned with a comment -- `PIN` below cannot
+match anything else. So the half of the rule that says first-party actions
+(actions/, docker/, github/) float on their current major, and third-party ones
+never sit on a tag, was unenforced everywhere this script runs. Measured
+2026-11-02 across the two in-scope trees: 85 references off that shape in six
+repositories, every one of them with a green hygiene run. Dependabot does not
+close the gap either -- it keeps whatever shape it finds current, so a
+first-party action wrongly pinned stays wrongly pinned for ever.
+
+The form pass needs no network, so it runs first and reports even when the API
+is unreachable.
 
 UNKNOWN is not pedantry. `shivammathur/setup-php` tags without a leading `v`,
 so a `# v2.34.1` comment on a correct SHA is unverifiable while looking fine.
@@ -45,6 +61,75 @@ from pathlib import Path
 PIN = re.compile(
     r"uses:\s*([\w.-]+)/([\w.-]+)((?:/[\w.-]+)*)@([0-9a-f]{40})\s*#\s*(\S+)"
 )
+
+# Every reference, whatever shape it is in, which is what the form pass needs: `PIN`
+# above matches only the ones that are already correct enough to be checkable.
+USES = re.compile(
+    r"uses:\s*([\w.-]+/[\w./-]+?)@([\w./-]+?)([ \t]*#[ \t]*(\S+))?\s*$", re.M
+)
+
+FIRST_PARTY = ("actions/", "docker/", "github/")
+
+# A trailing comment has to name the release the SHA resolves to. A bare major (`v2`, `4`)
+# names a tag its owner can move, which is the one thing the pin exists to escape, and it
+# is what a reviewer reads instead of the SHA.
+MUTABLE_COMMENT = re.compile(r"^v?\d+$")
+
+# Upstreams that publish no release at all, so there is no version for a comment to name
+# and a bare SHA is the most honest form available.
+#
+# Each entry is a ceiling, not a licence: it exempts the missing *comment* only, never the
+# SHA pin itself, and it is checked against the measurement below rather than assumed.
+#
+#   gh api repos/laranail/.github/releases --jq 'length'   -> 0   (2026-11-02)
+#
+# laranail/.github is where the shared reusable workflows and composite actions live. The
+# callers already pin it by SHA and move it by hand; see the comment on the hygiene job in
+# any caller's hygiene.yml.
+NO_RELEASES = {"laranail/.github"}
+
+# A workflows directory that has gone empty, or a glob that has stopped matching, must fail
+# rather than report a clean repository: that is the one way this script can lie.
+MIN_WORKFLOW_FILES = 1
+
+
+def form_failures(workflows: list[Path]) -> list[str]:
+    """Every reference whose shape is wrong for the rule, with no network at all.
+
+    Third-party actions carry the commit SHA of a named release; first-party ones
+    (actions/, docker/, github/) float on their current major. Local actions (`./…`)
+    and reusable-workflow calls are not actions and are skipped.
+    """
+    out: list[str] = []
+    for workflow in workflows:
+        for ref, at, _, comment in USES.findall(workflow.read_text()):
+            if ref.startswith("./") or "/.github/workflows/" in ref:
+                continue
+            owner_repo = "/".join(ref.split("/")[:2])
+            where = workflow.name
+            if ref.startswith(FIRST_PARTY):
+                if not re.fullmatch(r"v\d+", at) or comment:
+                    out.append(
+                        f"  FORM      {ref}@{at}: first-party, so float on a bare "
+                        f"major tag ({where})"
+                    )
+            elif not re.fullmatch(r"[0-9a-f]{40}", at):
+                out.append(
+                    f"  FORM      {ref}@{at}: third-party, so pin to a commit SHA "
+                    f"({where})"
+                )
+            elif not comment:
+                if owner_repo not in NO_RELEASES:
+                    out.append(
+                        f"  FORM      {ref}@{at[:12]}: no comment, so nothing says "
+                        f"which release this is ({where})"
+                    )
+            elif MUTABLE_COMMENT.match(comment):
+                out.append(
+                    f"  FORM      {ref}@{at[:12]} # {comment}: name the release, not a "
+                    f"mutable major ({where})"
+                )
+    return out
 
 def workflows_dir(argv: list[str]) -> Path:
     """Which `.github/workflows` to check.
@@ -160,16 +245,36 @@ def main() -> int:
         print(f"  No workflows directory at {workflows}.")
         return 1
 
+    # Both extensions: GitHub reads either, and globbing one silently skipped the other.
+    workflow_files = sorted(
+        p for p in workflows.iterdir() if p.suffix in (".yml", ".yaml")
+    )
+    if len(workflow_files) < MIN_WORKFLOW_FILES:
+        print(
+            f"  {len(workflow_files)} workflow files in {workflows}; floor is "
+            f"{MIN_WORKFLOW_FILES}. Refusing to report a clean repository."
+        )
+        return 1
+
+    # The shape of every reference, first and without the network, so this half still
+    # reports when the API is unreachable.
+    form = form_failures(workflow_files)
+    for line in form:
+        print(line)
+
     pins: dict[tuple[str, str, str, str, str], set[str]] = {}
-    for workflow in sorted(workflows.glob("*.yml")):
+    for workflow in workflow_files:
         for owner, repo, sub, sha, tag in PIN.findall(workflow.read_text()):
             pins.setdefault((owner, repo, sub, sha, tag), set()).add(workflow.name)
 
-    if not pins:
-        print("  No SHA-pinned actions found, which is itself suspicious.")
-        return 1
-
-    failures = 0
+    # A repository with no SHA-pinned action is now a normal outcome, not a suspicious
+    # one: once the first-party actions float, one whose only actions are first-party
+    # has nothing left to pin. The form pass above is what makes that safe to say, and
+    # the file floor is what catches the case this message used to catch by accident.
+    failures = len(form)
+    # `files` here is the set of workflow names carrying this one pin. It is deliberately not
+    # the repository's file list, which is `workflow_files`: binding both to `files` made the
+    # summary report the last pin's file count as the repository's.
     for (owner, repo, sub, sha, tag), files in sorted(pins.items()):
         name = f"{owner}/{repo}{sub}"
         where = ", ".join(sorted(files))
@@ -217,10 +322,13 @@ def main() -> int:
 
     print()
     if failures:
-        print(f"  {failures} pin(s) need attention.")
+        print(f"  {failures} reference(s) need attention.")
         return 1
 
-    print(f"  All {len(pins)} action pins are honest and current.")
+    print(
+        f"  {len(workflow_files)} workflow files: every reference matches the rule, and all "
+        f"{len(pins)} SHA pins are honest and current."
+    )
     return 0
 
 
