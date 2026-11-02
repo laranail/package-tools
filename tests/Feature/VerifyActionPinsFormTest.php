@@ -125,3 +125,28 @@ it('still reports the form half when gh cannot answer', function (): void {
         ->and($process->getOutput())->toContain('FORM')
         ->and($process->getOutput())->toContain('SKIPPED');
 })->skipOnWindows();
+
+it('counts the repository\'s workflow files, not the last pin\'s', function (): void {
+    // The success line once reported the file count of the last SHA pin, because the honesty
+    // loop binds `files` to that pin's workflow names and the repository list had the same
+    // name. Two files, one pin in both, is the smallest case that tells them apart.
+    $root = dirname(__DIR__, 2);
+    $repo = sys_get_temp_dir() . '/pin-form-' . bin2hex(random_bytes(6));
+    mkdir($repo . '/.github/workflows', 0o755, true);
+    foreach (['a.yml', 'b.yml'] as $name) {
+        file_put_contents(
+            $repo . '/.github/workflows/' . $name,
+            steps('anchore/sbom-action@' . SBOM_SHA . ' # v0.24.3'),
+        );
+    }
+
+    $process = new Process(
+        ['python3', $root . '/scripts/verify-action-pins.py', $repo],
+        null,
+        ['PATH' => $root . '/tests/fixtures/gh-unavailable' . PATH_SEPARATOR . getenv('PATH')],
+    );
+    $process->run();
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($process->getOutput())->toContain('2 workflow files:');
+})->skipOnWindows();

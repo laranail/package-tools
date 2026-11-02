@@ -246,24 +246,24 @@ def main() -> int:
         return 1
 
     # Both extensions: GitHub reads either, and globbing one silently skipped the other.
-    files = sorted(
+    workflow_files = sorted(
         p for p in workflows.iterdir() if p.suffix in (".yml", ".yaml")
     )
-    if len(files) < MIN_WORKFLOW_FILES:
+    if len(workflow_files) < MIN_WORKFLOW_FILES:
         print(
-            f"  {len(files)} workflow files in {workflows}; floor is "
+            f"  {len(workflow_files)} workflow files in {workflows}; floor is "
             f"{MIN_WORKFLOW_FILES}. Refusing to report a clean repository."
         )
         return 1
 
     # The shape of every reference, first and without the network, so this half still
     # reports when the API is unreachable.
-    form = form_failures(files)
+    form = form_failures(workflow_files)
     for line in form:
         print(line)
 
     pins: dict[tuple[str, str, str, str, str], set[str]] = {}
-    for workflow in files:
+    for workflow in workflow_files:
         for owner, repo, sub, sha, tag in PIN.findall(workflow.read_text()):
             pins.setdefault((owner, repo, sub, sha, tag), set()).add(workflow.name)
 
@@ -272,6 +272,9 @@ def main() -> int:
     # has nothing left to pin. The form pass above is what makes that safe to say, and
     # the file floor is what catches the case this message used to catch by accident.
     failures = len(form)
+    # `files` here is the set of workflow names carrying this one pin. It is deliberately not
+    # the repository's file list, which is `workflow_files`: binding both to `files` made the
+    # summary report the last pin's file count as the repository's.
     for (owner, repo, sub, sha, tag), files in sorted(pins.items()):
         name = f"{owner}/{repo}{sub}"
         where = ", ".join(sorted(files))
@@ -323,7 +326,7 @@ def main() -> int:
         return 1
 
     print(
-        f"  {len(files)} workflow files: every reference matches the rule, and all "
+        f"  {len(workflow_files)} workflow files: every reference matches the rule, and all "
         f"{len(pins)} SHA pins are honest and current."
     )
     return 0
