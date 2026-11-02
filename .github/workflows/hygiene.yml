@@ -61,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Verify the moving tag is on main
+      - name: Verify release currency (immutable tags; a due release warns)
         run: bash scripts/verify-tag-currency.sh ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,49 +1,38 @@
 #!/usr/bin/env bash
 #
-# While pre-1.0, laranail packages keep one tag per line and move it, and
-# consumers resolve `^0.1` to whatever it currently points at. That makes "the
-# tag is on main" an invariant rather than a preference: a tag left behind does
-# not mean consumers get older features, it means they get code without the
-# fixes.
+# Release tags are immutable. A public `vX.Y.Z` tag is cached for good by
+# Packagist, Go's proxy and npm the first time anything fetches it, so a tag is
+# never moved, deleted or reused: the next fix gets the next number. This check
+# follows that model, and nothing it prints suggests moving a tag.
 #
-# Three checks, because this package has now shipped every one of these failures.
+# What it reports, and how loudly:
 #
-#   1. CURRENCY — the tag constrained consumers resolve must be on main.
-#
-#      Anchored on `extra.branch-alias`, NOT on the highest tag. That
-#      distinction is the whole point of this rewrite. laranail/enumerator
-#      carried v0.1.0 through v0.4.0; v0.4.0 pointed at main HEAD, so a check
-#      that took the highest tag reported everything healthy — while all nine
-#      consumers, every one of them on `^0.1`, resolved v0.1.0 two commits
-#      behind and silently missed a preset and an ordering bugfix. `^0.1` on a
-#      0.x package means `>=0.1.0 <0.2.0`; a v0.4.0 they cannot reach says
-#      nothing about what they get.
-#
-#      The package's own `branch-alias` declares which line is live —
-#      `0.1.x-dev` here, `0.7.x-dev` in db-tools — so the check reads it rather
-#      than guessing.
-#
-#   2. REACHABILITY — every tag must be an ancestor of the default branch.
-#
-#      Composer's VCS driver reads tags, not reachability. This package
+#   1. REACHABILITY — every tag must be an ancestor of the default branch.
+#      ERROR. Composer's VCS driver reads tags, not reachability. This package
 #      advertised v0.2.0, v0.2.1 and v0.3.0 pointing at abandoned history, so
 #      anyone writing `^0.2` got code that had been discarded months earlier,
 #      with nothing anywhere saying so.
 #
-#   3. THE HIGHEST TAG — what an unconstrained `composer require` resolves.
+#   2. THE LIVE LINE — `extra.branch-alias` declares which line is live
+#      (`0.1.x-dev` here, `0.7.x-dev` in db-tools). A branch-alias line with no
+#      tag at all means `^0.1` resolves nothing. ERROR.
 #
-#      Anchoring on branch-alias alone traded one blind spot for another. This
-#      package kept v0.4.0 three commits behind main while v0.1.0 was current,
-#      and a check that only knew about the live line called that healthy — yet
-#      v0.4.0 is exactly what a new consumer who names no constraint installs.
-#      Both are checked. The third only reports when it names a different tag,
-#      so an ordinary single-tag package does not hear it twice.
+#      Anchored on the branch-alias, NOT on the highest tag: laranail/enumerator
+#      carried v0.1.0 through v0.4.0, and all nine consumers on `^0.1` resolved
+#      v0.1.0 while a check of the highest tag called everything healthy.
+#
+#   3. RELEASE DUE — the live line's newest tag, or the highest tag overall,
+#      trails the default branch by commits that ship code. WARNING, exit 0.
+#      Unreleased commits on main are the normal state between releases, not a
+#      defect: turning the default branch red for it held back branch cleanup
+#      and taught people to ignore red. The warning names the next patch to cut
+#      and is also written to the job summary.
+#
+#      Commits that touch only .github/ ship nothing (the directory is
+#      export-ignored), so they never make a release due.
 #
 # Runs against the remote rather than the local checkout, so a stale local tag
 # cannot make it pass, and so it needs no particular fetch depth in CI.
-#
-# Only meaningful pre-1.0. From 1.0 the tag is immutable by design and this
-# exits without an opinion.
 
 set -euo pipefail
 
@@ -56,6 +45,15 @@ if [ -z "${REPO}" ]; then
 fi
 
 fail() { printf '\033[31m  x %s\033[0m\n' "$1"; FAILED=1; }
+# A release that is due is not a defect: annotate it and summarise it, but never fail on it.
+due()  {
+  printf '\033[33m  ! %s\033[0m\n' "$1"
+  printf '::warning title=Release due::%s\n' "$1"
+  if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+    printf -- '- **Release due** for `%s`: %s\n' "${REPO}" "$1" >> "${GITHUB_STEP_SUMMARY}"
+  fi
+}
+next_patch() { printf '%s.%s' "${1%.*}" "$(( ${1##*.} + 1 ))"; }
 ok()   { printf '\033[32m  ok %s\033[0m\n' "$1"; }
 FAILED=0
 
@@ -88,15 +86,8 @@ tag_commit() {
 
 # A commit that touches only .github/ ships nothing (the directory is export-ignored), so it is not
 # unreleased code: a tag behind main by such commits still hands consumers exactly what main would.
-# Dependabot adds one weekly, so without this every package's scheduled check would go red on a
-# workflow bump. That holds for both tag models.
-#
-# When shipped code IS behind, the advice differs. A package on the moving-tag model holds exactly
-# one v* tag and moves it. A package that has cut a second tag is on real releases, and a published
-# release is immutable: moving it hands consumers who already resolved it different code under the
-# same name, so it gets a new patch instead. Called after ${tags} is read.
-released() { [ "$(printf '%s\n' "${tags}" | grep -c .)" -gt 1 ]; }
-
+# Dependabot adds one weekly, so without this every package's scheduled check would announce a
+# release on a workflow bump.
 ci_only() {
   local files
   files=$(gh api "repos/${REPO}/compare/$1...${head}" --jq '.files[].filename' 2>/dev/null) || return 1
@@ -188,7 +179,7 @@ if [ "${commit}" = "${head}" ]; then
       if ci_only "${hcommit}"; then
         ok "${highest} is behind ${BRANCH} only by ${hbehind} commit(s) that touch only .github/."
       else
-      fail "${highest} is the highest tag and is ${hbehind} commit(s) behind ${BRANCH}. An unconstrained \`composer require ${REPO}\` resolves it, so it must be current or it must not exist."
+        due "release due: cut $(next_patch "${highest}"). ${highest} is the highest tag, which an unconstrained \`composer require ${REPO}\` resolves, and ${hbehind} commit(s) on ${BRANCH} are unreleased."
       fi
     fi
   fi
@@ -202,10 +193,8 @@ else
 
   if ci_only "${commit}"; then
     ok "${current} is behind ${BRANCH} only by commits that touch only .github/, so nothing a consumer installs is unreleased."
-  elif released; then
-    fail "${current} is behind ${BRANCH}. It is a published release, so do not move it: cut ${current%.*}.$(( ${current##*.} + 1 ))."
   else
-    fail "${current} is behind ${BRANCH}. Move it (git tag -f ${current} ${BRANCH} && git push --force origin ${current}) or cut a new one."
+    due "release due: cut $(next_patch "${current}"); ${behind} commit(s) on ${BRANCH} are unreleased since ${current}."
   fi
 fi
 

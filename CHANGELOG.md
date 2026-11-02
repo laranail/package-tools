@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `scripts/verify-tag-currency.sh` follows the immutable-tag model. A live-line or highest tag that
+  trails `main` by shipped code is now a release that is due: the script prints a `::warning`
+  naming the next patch to cut, adds it to the job summary, and exits 0. It never suggests moving
+  or force-pushing a tag. A tag that is not an ancestor of the default branch, and a branch-alias
+  line with no tag, still fail. `VerifyTagCurrencyScriptTest` pins each outcome against a stub `gh`.
+
 ## [0.1.12] - 2026-10-20
 
 ### Added
