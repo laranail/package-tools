@@ -6,6 +6,7 @@ namespace Simtabi\Laranail\Package\Tools\Services\Database;
 
 use Throwable;
 use ReflectionClass;
+use ReflectionMethod;
 use Illuminate\Database\Seeder;
 use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Support\Facades\Cache;
@@ -376,7 +377,7 @@ final readonly class SeederExecutor
         $reflection = new ReflectionClass($class);
         $ctor = $reflection->getConstructor();
 
-        $seeder = $ctor === null || $ctor->getNumberOfParameters() === 0
+        $seeder = ! $ctor instanceof ReflectionMethod || $ctor->getNumberOfParameters() === 0
             ? $this->app->make($class)
             : $this->app->make($class, $parameters);
 

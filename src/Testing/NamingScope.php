@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Package\Tools\Testing;
 
 use Closure;
+use ReflectionClass;
 use ReflectionFunction;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -239,7 +240,7 @@ final readonly class NamingScope
         $function = new ReflectionFunction($closure);
         $scope = $function->getClosureScopeClass();
 
-        if ($scope !== null && $this->ownsClass($scope->getName())) {
+        if ($scope instanceof ReflectionClass && $this->ownsClass($scope->getName())) {
             return true;
         }
 
