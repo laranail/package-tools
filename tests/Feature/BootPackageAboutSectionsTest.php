@@ -29,7 +29,7 @@ final class AboutSectionsTestPackageProvider extends PackageServiceProvider
                     ->field('Enum', SeederExecutionMode::Queued)     // → "queued"
                     ->field('Bool', true)                            // → "true"
                     ->field('Missing', null)                         // → "null"
-                    ->field('Boom', fn () => throw new RuntimeException('unmigrated'))
+                    ->field('Boom', fn (): never => throw new RuntimeException('unmigrated'))
                     ->fallback('n/a (unavailable)'),
             )
             ->hasAboutSection(

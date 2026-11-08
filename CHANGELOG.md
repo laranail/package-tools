@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`scripts/verify-release-publish.py` — no workflow may leave a GitHub release as a draft.**
+  Deleting a tag does not delete its release, it reverts it to a *draft*: the release keeps its body
+  and assets and stops being visible, and the state outlives the tag — `laranail/validation` still
+  holds `v1.0.0` and `v1.0.1` as drafts from tags withdrawn on 2026-08-24, neither of which exists
+  on the remote any more. `gh release edit` leaves that flag exactly as it finds it, so an edit after
+  a tag is deleted and re-pushed republishes nothing on a run that still goes **green**. Nothing else
+  reports it: the tag resolves, `composer` installs, and `verify-tag-currency.sh` next door passes,
+  because none of them reads the release. Found by reading one, in `laranail/validation-js`, whose
+  release had to be published by hand. Measured 2026-11-08 across the 286 workflow files in
+  `laranail/packages`: four hand-rolled call sites in three repositories, all with green runs behind
+  them. The check takes the caller's path like `verify-action-pins.py`, so the reusable hygiene
+  workflow can point it at another repository, and it needs no network and no token.
+
+  **Most repositories pass by having no `gh release edit` at all** — `softprops/action-gh-release`
+  publishes an existing draft unless told to keep it — so "found nothing" is the normal result, and a
+  matcher that silently stopped matching would report the whole estate clean. The script therefore
+  drives its matcher against five built-in controls on every invocation and refuses to report
+  anything if one misbehaves, with the workflow-file floor covering a glob that goes empty.
+  `tests/Feature/VerifyReleasePublishScriptTest.php` sabotages the pattern in a copy of the script
+  and asserts the controls catch it.
+
 ### Changed
 
 - `scripts/verify-tag-currency.sh` follows the immutable-tag model. A live-line or highest tag that
