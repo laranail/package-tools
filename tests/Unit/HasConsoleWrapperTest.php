@@ -76,7 +76,7 @@ class HasConsoleWrapperTest extends TestCase
     public function it_handles_exceptions_gracefully(): void
     {
         $result = $this->shouldRunInConsole(
-            callback: fn () => throw new Exception('Test error'),
+            callback: fn (): never => throw new Exception('Test error'),
             expectReturn: true,
             default: 'fallback',
         );
