@@ -14,9 +14,9 @@ final class StateLeakTenant
 }
 
 /** Reads the tenant once, at construction, the way a service with a captured dependency does. */
-final class StateLeakReport
+final readonly class StateLeakReport
 {
-    public readonly string $title;
+    public string $title;
 
     public function __construct(StateLeakTenant $tenant)
     {

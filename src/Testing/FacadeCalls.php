@@ -60,7 +60,7 @@ final class FacadeCalls
         }
 
         $imports = self::imports($tokens);
-        $aliases = array_map('strtolower', array_keys(Facade::defaultAliases()->all()));
+        $aliases = array_map(strtolower(...), array_keys(Facade::defaultAliases()->all()));
         $lines = preg_split('/\R/', $source) ?: [];
         $found = [];
 
@@ -206,7 +206,7 @@ final class FacadeCalls
         foreach ($tokens as $i => $token) {
             if ($token->is(T_EXTENDS)) {
                 $parent = ltrim($tokens[$i + 1]->text ?? '', '\\');
-                if ($parent === 'Facade' || $parent === 'Illuminate\\Support\\Facades\\Facade') {
+                if ($parent === 'Facade' || $parent === Facade::class) {
                     return true;
                 }
             }
@@ -217,12 +217,12 @@ final class FacadeCalls
 
     private static function isDeclarationContext(?PhpToken $prev): bool
     {
-        return $prev !== null && $prev->is([T_NEW, T_INSTANCEOF]);
+        return $prev instanceof PhpToken && $prev->is([T_NEW, T_INSTANCEOF]);
     }
 
     private static function isMemberOrDeclaration(?PhpToken $prev): bool
     {
-        return $prev !== null && $prev->is([T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION, T_NEW, T_CONST]);
+        return $prev instanceof PhpToken && $prev->is([T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION, T_NEW, T_CONST]);
     }
 
     /** @param list<string> $lines */
