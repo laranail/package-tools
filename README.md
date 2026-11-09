@@ -87,6 +87,7 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Isolated testcase](docs/tools/isolated-testcase.md) — the testing harness
 - [Driver contract](docs/tools/driver-contract.md) — assert a driver name resolves and a config key is read where it is registered
 - [Test credentials](docs/tools/test-credentials.md) — generate test passwords and keys at run time, and fail on any literal left in the suite
+- [State and facade guards](docs/tools/state-and-facade-guards.md) — assert nothing survives from one request into the next, and no package class calls a facade
 - [Logging](docs/tools/logging.md) — per-package logging via `$package->log()`
 - [Namespace forms](docs/tools/namespace-forms.md) — views and translations under both `vendor/package` and `vendor-package`
 - [Naming assertions](docs/tools/naming-assertions.md) — every public name scoped, asserted against the live registries

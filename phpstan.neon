@@ -38,6 +38,10 @@ parameters:
         # AssertsNoLiteralCredentials likewise: a thin wrapper over CredentialLiterals, which PHPStan
         # does analyse; its consumer here is tests/Feature/AssertsNoLiteralCredentialsTest.php.
         - '#Trait Simtabi\\Laranail\\Package\\Tools\\Testing\\AssertsNoLiteralCredentials is used zero times#'
+        # AssertsNoFacadeCalls and AssertsNoStateLeak: thin wrappers over FacadeCalls and StateLeaks,
+        # which PHPStan analyses; their consumers are the matching tests/Feature/*Test.php files.
+        - '#Trait Simtabi\\Laranail\\Package\\Tools\\Testing\\AssertsNoFacadeCalls is used zero times#'
+        - '#Trait Simtabi\\Laranail\\Package\\Tools\\Testing\\AssertsNoStateLeak is used zero times#'
 
     # Required BECAUSE of the ignore above: only larastan 3.x emits that error, and `composer
     # update` on CI resolves a newer larastan than a long-lived local vendor/ has. With the
