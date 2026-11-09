@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`AssertsNoStateLeak` and `AssertsNoFacadeCalls` — the two rules of a framework-native package,
+  made checkable.** `assertNoStateLeaksBetweenRequests()` runs two requests in one container with
+  Octane's flush between them (`forgetScopedInstances()` and a fresh `request`) and fails when the
+  second still exposes the first request's marker; it also fails when the first result never held
+  its own marker, so a callback that observes nothing cannot pass. Testbench rebuilds the container
+  per test, so a singleton that captures a request passes every ordinary test and leaks only under
+  Octane. `assertNoFacadeCallsIn()` fails on facade static calls and service-locating helpers
+  (`app()`, `config()`, `cache()` …) in a package's own classes, skipping `Providers/` and facade
+  classes, with a file floor and a `@facade-call-exempt` line marker. Logic lives in `StateLeaks`
+  and `FacadeCalls`, which PHPStan analyses. Both assertions were proven red: a singleton capturing
+  the tenant fails the first, a `Cache::` call fails the second. Opt-in: this package's own `src/`
+  holds 336 such calls (measured 2026-11-09), so adopting the facade guard is a refactor.
+
 - **`scripts/verify-release-publish.py` — no workflow may leave a GitHub release as a draft.**
   Deleting a tag does not delete its release, it reverts it to a *draft*: the release keeps its body
   and assets and stops being visible, and the state outlives the tag — `laranail/validation` still
