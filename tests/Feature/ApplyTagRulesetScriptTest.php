@@ -90,5 +90,64 @@ it('applies both rulesets through one entry point that refuses a missing reposit
     $process->run();
 
     expect($process->getExitCode())->toBe(2)
-        ->and($process->getErrorOutput())->toContain('apply-rulesets.sh OWNER/REPO [--pr NUMBER] [--apply]');
+        ->and($process->getErrorOutput())->toContain('apply-rulesets.sh OWNER/REPO [--pr NUMBER] [--keep-branches] [--apply]');
+})->skipOnWindows();
+
+/*
+ * The wrapper's own work is the delete_branch_on_merge setting. A stub virtualenv stands in for
+ * the two ruleset scripts (tested above and in their own right), so only the wrapper's calls run.
+ */
+function runRulesetsWrapper(array $args): array
+{
+    $bin = sys_get_temp_dir() . '/rulesets-wrapper-' . bin2hex(random_bytes(6));
+    mkdir($bin . '/venv/bin', 0o755, true);
+    $log = $bin . '/calls.log';
+
+    file_put_contents($bin . '/gh', sprintf(<<<'SH'
+        #!/usr/bin/env bash
+        echo "gh $*" >> %s
+        echo true
+        SH, escapeshellarg($log)));
+    file_put_contents($bin . '/venv/bin/python', sprintf(<<<'SH'
+        #!/usr/bin/env bash
+        [ "$1" = -c ] && exit 0
+        echo "python $(basename "$1") ${*:2}" >> %s
+        SH, escapeshellarg($log)));
+    chmod($bin . '/gh', 0o755);
+    chmod($bin . '/venv/bin/python', 0o755);
+
+    $process = new Process(['bash', dirname(__DIR__, 2) . '/scripts/apply-rulesets.sh', ...$args], null, [
+        'PATH'                => $bin . ':' . getenv('PATH'),
+        'APPLY_RULESETS_VENV' => $bin . '/venv',
+    ]);
+    $process->run();
+
+    return [$process, is_file($log) ? (string) file_get_contents($log) : ''];
+}
+
+it('turns on delete_branch_on_merge by default when applying', function (): void {
+    [$process, $calls] = runRulesetsWrapper(['acme/widget', '--apply']);
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($process->getOutput())->toContain('acme/widget: delete_branch_on_merge=true')
+        ->and($calls)->toContain('gh api -X PATCH repos/acme/widget -F delete_branch_on_merge=true')
+        ->toContain('python apply-branch-ruleset.py acme/widget --apply')
+        ->toContain('python apply-tag-ruleset.py acme/widget --apply');
+})->skipOnWindows();
+
+it('turns delete_branch_on_merge off with --keep-branches, and passes the flag to neither script', function (): void {
+    [$process, $calls] = runRulesetsWrapper(['acme/widget', '--keep-branches', '--apply']);
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($calls)->toContain('gh api -X PATCH repos/acme/widget -F delete_branch_on_merge=false')
+        ->not->toContain('--keep-branches');
+})->skipOnWindows();
+
+it('only says what it would set on a dry run', function (): void {
+    [$process, $calls] = runRulesetsWrapper(['acme/widget', '--pr', '12']);
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($process->getOutput())->toContain('would set delete_branch_on_merge=true (dry run)')
+        ->and($calls)->not->toContain('gh ')
+        ->toContain('python apply-branch-ruleset.py acme/widget --pr 12');
 })->skipOnWindows();

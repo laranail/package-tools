@@ -1,7 +1,8 @@
 # Repository rulesets
 
-Two scripts protect any GitHub repository's default branch and its release tags, and one command
-applies both.
+Two scripts protect any GitHub repository's default branch and its release tags, one command
+applies both and turns on branch deletion after merge, and two more prune merged local branches
+and reset release tags on purpose.
 
 ## The two rulesets
 
@@ -38,6 +39,10 @@ placeholders: zsh reads `<owner>` as a redirect and stops with `parse error near
   into `~/.local/share/py-ruleset` (override with `APPLY_RULESETS_VENV`), never into the system
   Python.
 - **The personal `gh` login.** The GitHub App token cannot manage rulesets.
+- **Merged branches are deleted by default.** With `--apply` the wrapper also sets the
+  repository's `delete_branch_on_merge` to `true`, so GitHub deletes a pull request's branch once
+  it merges. Pass `--keep-branches` to set it to `false` instead. A dry run prints the value it
+  would set and changes nothing.
 
 Read the result back:
 
@@ -48,17 +53,77 @@ gh api repos/laranail/settings/rulesets --jq '.[] | "\(.id) \(.target) \(.enforc
 
 The branch must list `deletion`, `non_fast_forward`, `pull_request` and `required_status_checks`.
 
+## Deleting branches after merge
+
+`delete_branch_on_merge` is a repository setting, not a ruleset, so the wrapper sets it before the
+rulesets and it works on a free-plan private repository too. The branch ruleset only lets a pull
+request merge once its required checks pass, so on a repository carrying both, a branch is deleted
+only after a merge that passed validation and tests. Opt out per repository:
+
+```bash
+cd ~/Artisan/projects/opensource && laranail/packages/package-tools/scripts/apply-rulesets.sh laranail/settings --keep-branches --apply
+```
+
+GitHub deletes only the remote branch. `scripts/prune-merged-branches.sh` removes the local copy:
+
+```bash
+laranail/packages/package-tools/scripts/prune-merged-branches.sh laranail/packages/settings
+laranail/packages/package-tools/scripts/prune-merged-branches.sh laranail/packages/settings --apply
+```
+
+It runs `git fetch --prune`, then deletes a local branch only when its upstream is gone **and** its
+tip is on `origin/<default>` (or `git cherry` finds nothing missing from it), along with its
+`branch.<name>` config section. It keeps the current branch, the default branch, a branch that was
+never pushed, a branch whose upstream still exists, and a gone branch whose work is not on the
+default branch, and prints the reason for each. A squash-merged branch is kept, because its
+commits are not on the default branch. Without `--apply` it only prints.
+
 ## Private repositories
 
 Rulesets are unavailable on private repositories on the GitHub Free plan: the API answers `403
 Upgrade to GitHub Pro` and both scripts exit `3` with a message. Hold the same rules by practice
 there.
 
-## Moving a tag on purpose
+## Resetting tags on purpose
 
-The tag ruleset blocks every move, including a deliberate one. Disable it, move the tag, then run
-the wrapper again with `--apply` to restore it. A move is the owner's decision, after a checklist
-naming every cached copy of the old tag it will contradict.
+The tag ruleset blocks every move, including a deliberate one, because a published tag is already
+cached. `scripts/reset-release-tags.py` is the one sanctioned way through. Use it only for a planned
+history reset or re-tag that the owner explicitly approved, after reading what its dry run says the
+change contradicts.
+
+Re-point one tag (and its `src/` alias, if there is one) at a commit:
+
+```bash
+cd ~/Artisan/projects/opensource && laranail/packages/package-tools/scripts/reset-release-tags.py laranail/settings --move v0.1.0 --to 588b6b8
+```
+
+Replace every `v*` and `src/v*` tag, and their GitHub releases, with one fresh tag:
+
+```bash
+cd ~/Artisan/projects/opensource && laranail/packages/package-tools/scripts/reset-release-tags.py laranail/settings --fresh v0.1.0 --to 588b6b8
+```
+
+Both are dry runs. The dry run prints every tag it would move or delete with its current and new
+SHAs, every release it would delete, the tags it leaves alone (anything that is not `vX.Y.Z` or
+`src/vX.Y.Z`, such as `v1` or `latest`), and the cached copies that would then disagree with git:
+the Packagist listing (`https://repo.packagist.org/p2/laranail/settings.json` and its HTTP status),
+every Composer dist cache, which keeps the old archive until `composer clear-cache`, and the Go
+proxy when `src/v*` tags are involved. To carry it out, add `--apply` and the repository, typed
+exactly:
+
+```bash
+cd ~/Artisan/projects/opensource && laranail/packages/package-tools/scripts/reset-release-tags.py laranail/settings --fresh v0.1.0 --to 588b6b8 --apply --confirm laranail/settings
+```
+
+- **The commit must be on the default branch.** It is checked with GitHub's compare endpoint, and
+  anything ahead of or diverged from the default branch is refused.
+- **The ruleset is bracketed.** "Protect release tags" is set to `disabled` for the work and back
+  to `active` in a `finally`, even when a call fails part-way, and its state is printed at the end.
+- **`--move` updates the ref in place**, so the tag's GitHub release stays published instead of
+  reverting to a draft. `--fresh` deletes the releases, deletes the tags and creates one tag.
+- **The release workflow runs again by itself**, because the new tag arrives on GitHub as a push.
+- **Only version tags are ever deleted.**
+- **The personal `gh` login**, as for the rulesets.
 
 ## Inside a Claude Code sandbox
 
