@@ -18,12 +18,18 @@ are listed and left out, because a required check that never reports blocks ever
 ## Apply or update both
 
 ```bash
-laranail/packages/package-tools/scripts/apply-rulesets.sh <owner>/<repo>
-laranail/packages/package-tools/scripts/apply-rulesets.sh <owner>/<repo> --apply
+cd ~/Artisan/projects/opensource && laranail/packages/package-tools/scripts/apply-rulesets.sh laranail/settings
 ```
 
-- **Any repository, any directory.** The path is relative to `~/Artisan/projects/opensource`; the
-  repository is the argument. It works for any owner, not only laranail.
+```bash
+cd ~/Artisan/projects/opensource && laranail/packages/package-tools/scripts/apply-rulesets.sh laranail/settings --apply
+```
+
+Replace `laranail/settings` with the repository's own `owner/repo`. Do not type angle-bracket
+placeholders: zsh reads `<owner>` as a redirect and stops with `parse error near '\n'`.
+
+- **Any repository.** The repository is the only argument, and it works for any owner, not only
+  laranail.
 - **Dry run first.** Without `--apply` both scripts print their payload and change nothing.
 - **Updates in place.** Each ruleset is found by name and replaced, so re-running after a
   workflow is added or renamed is how the required checks are refreshed. `--pr <number>` picks
@@ -36,8 +42,8 @@ laranail/packages/package-tools/scripts/apply-rulesets.sh <owner>/<repo> --apply
 Read the result back:
 
 ```bash
-gh api repos/<owner>/<repo>/rules/branches/main --jq '[.[].type]'
-gh api repos/<owner>/<repo>/rulesets --jq '.[] | "\(.id) \(.target) \(.enforcement) \(.name)"'
+gh api repos/laranail/settings/rules/branches/main --jq '[.[].type]'
+gh api repos/laranail/settings/rulesets --jq '.[] | "\(.id) \(.target) \(.enforcement) \(.name)"'
 ```
 
 The branch must list `deletion`, `non_fast_forward`, `pull_request` and `required_status_checks`.
