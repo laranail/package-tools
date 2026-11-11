@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Merged branches are deleted by default, and release tags can be reset on purpose.**
+  `scripts/apply-rulesets.sh` now also sets `delete_branch_on_merge` to `true` with `--apply`
+  (`--keep-branches` sets it to `false`); with the branch ruleset requiring passing checks, a branch
+  is deleted only after a merge that passed them. `scripts/prune-merged-branches.sh [CHECKOUT]
+  [--apply]` removes the local copies: after `git fetch --prune` it deletes a branch only when its
+  upstream is gone and its tip is on the default branch, keeps the current, default, never-pushed
+  and unmerged ones with the reason printed, and removes each deleted branch's config section.
+  `scripts/reset-release-tags.py OWNER/REPO (--move | --fresh) vX.Y.Z --to SHA` moves one tag, or
+  replaces every `v*`/`src/v*` tag and release with one; it is a dry run listing every tag, release
+  and cached copy it contradicts (Packagist, Composer dist caches, the Go proxy), needs
+  `--apply --confirm OWNER/REPO` typed exactly, refuses a commit not on the default branch, never
+  deletes a non-version tag, and disables the "Protect release tags" ruleset only for the work,
+  re-enabling it in a `finally`. See `docs/tools/repository-rulesets.md`.
 - **`scripts/apply-tag-ruleset.py` and `scripts/apply-rulesets.sh` — branch and release-tag
   protection for any repository in one command.** The tag script creates or updates, by name, a
   ruleset blocking update and deletion of `v*` and `src/v*`; the wrapper runs it after
