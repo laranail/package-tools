@@ -182,3 +182,27 @@ it('refuses a malformed invocation', function (array $args): void {
     'not a sha'      => [['acme/widget', '--fresh', 'v0.1.0', '--to', 'main']],
     'unknown option' => [['acme/widget', '--fresh', 'v0.1.0', '--to', RESET_SHA, '--force']],
 ])->skipOnWindows();
+
+it('lifts every active tag ruleset whatever its name, and leaves branch and disabled rulesets alone', function (): void {
+    $fixture = resetFixture();
+    $fixture['api repos/acme/widget/rulesets?includes_parents=false'] = [
+        ['id' => 7, 'name' => 'release tags are final', 'target' => 'tag', 'enforcement' => 'active'],
+        ['id' => 8, 'name' => 'Protect release tags', 'target' => 'tag', 'enforcement' => 'active'],
+        ['id' => 9, 'name' => 'old tag rule', 'target' => 'tag', 'enforcement' => 'disabled'],
+        ['id' => 10, 'name' => 'default branch', 'target' => 'branch', 'enforcement' => 'active'],
+    ];
+    $fixture['api repos/acme/widget/rulesets/8'] = ['id' => 8, 'enforcement' => 'active'];
+    [$process, $calls] = runResetTags(['acme/widget', '--move', 'v0.1.0', '--to', RESET_SHA, '--apply', '--confirm', 'acme/widget'], $fixture);
+
+    $writes = resetWriteCalls($calls);
+    expect($process->getExitCode())->toBe(0)
+        ->and($writes[0])->toBe('api -X PUT repos/acme/widget/rulesets/7 {"enforcement": "disabled"}')
+        ->and($writes[1])->toBe('api -X PUT repos/acme/widget/rulesets/8 {"enforcement": "disabled"}')
+        ->and(array_slice($writes, -2))->toBe([
+            'api -X PUT repos/acme/widget/rulesets/7 {"enforcement": "active"}',
+            'api -X PUT repos/acme/widget/rulesets/8 {"enforcement": "active"}',
+        ])
+        ->and($calls)->not->toContain('rulesets/9 ')
+        ->not->toContain('rulesets/10 ')
+        ->and($process->getOutput())->toContain('Ruleset 7 (release tags are final): active');
+})->skipOnWindows();
