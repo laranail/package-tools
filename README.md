@@ -98,6 +98,7 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Public names](docs/tools/public-names.md) — why views take `vendor/package::` while Blade tags cannot
 - [Publishing](docs/tools/publishing.md) — publish tags, asset groups and orphan pruning
 - [Rate limiters](docs/tools/rate-limiters.md) — fluent rate limiters
+- [Repository rulesets](docs/tools/repository-rulesets.md) — one command to protect any repository's default branch and release tags
 - [Route name aliases](docs/tools/route-name-aliases.md) — deprecated bare route names that still resolve, and `has()` for them
 - [Resilience](docs/tools/resilience.md) — retries, backoff and circuit breaking
 - [Runtime services](docs/tools/runtime-services.md) — the services the toolkit resolves at runtime

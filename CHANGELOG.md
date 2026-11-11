@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`scripts/apply-tag-ruleset.py` and `scripts/apply-rulesets.sh` — branch and release-tag
+  protection for any repository in one command.** The tag script creates or updates, by name, a
+  ruleset blocking update and deletion of `v*` and `src/v*`; the wrapper runs it after
+  `apply-branch-ruleset.py`, works from any directory for any `owner/repo`, and installs PyYAML
+  once into its own environment instead of the system Python. Both dry-run unless `--apply`, and
+  exit 3 on a free-plan private repository. See `docs/tools/repository-rulesets.md`.
 - **`AssertsNoStateLeak` and `AssertsNoFacadeCalls` — the two rules of a framework-native package,
   made checkable.** `assertNoStateLeaksBetweenRequests()` runs two requests in one container with
   Octane's flush between them (`forgetScopedInstances()` and a fresh `request`) and fails when the
