@@ -45,7 +45,6 @@ import sys
 import urllib.error
 import urllib.request
 
-RULESET = "Protect release tags"
 VERSION_TAG = re.compile(r"^(src/)?v\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$")
 SHA = re.compile(r"^[0-9a-f]{7,40}$")
 
@@ -108,14 +107,15 @@ def packagist(repo: str) -> str:
         return f"unknown ({e})"
 
 
-def find_ruleset(repo: str) -> dict | None:
+def find_rulesets(repo: str) -> list[dict]:
+    """Every active tag ruleset, whatever its name: any of them can block the move or delete."""
     try:
         rulesets = json.loads(gh("api", f"repos/{repo}/rulesets?includes_parents=false"))
     except RuntimeError as e:
         if "403" in str(e) or "Upgrade to GitHub Pro" in str(e):
-            return None
+            return []
         raise
-    return next((r for r in rulesets if r["name"] == RULESET and r["target"] == "tag"), None)
+    return [r for r in rulesets if r["target"] == "tag" and r.get("enforcement", "active") == "active"]
 
 
 def set_enforcement(repo: str, ruleset_id: int, enforcement: str) -> None:
@@ -211,14 +211,16 @@ def main(argv: list[str]) -> int:
         print(f"\nDry run. Nothing changed. Re-run with --apply --confirm {repo}.")
         return 0
 
-    ruleset = find_ruleset(repo)
+    rulesets = find_rulesets(repo)
+    disabled: list[dict] = []
     failed = False
     try:
-        if ruleset:
+        if not rulesets:
+            print("\nNo active tag ruleset to disable.")
+        for ruleset in rulesets:
             set_enforcement(repo, ruleset["id"], "disabled")
-            print(f"\nDisabled ruleset {ruleset['id']} ({RULESET}).")
-        else:
-            print(f"\nNo {RULESET!r} ruleset to disable.")
+            disabled.append(ruleset)
+            print(f"\nDisabled ruleset {ruleset['id']} ({ruleset['name']}).")
         for n in moves:
             gh("api", "-X", "PATCH", f"repos/{repo}/git/refs/tags/{n}", "--input", "-",
                stdin=json.dumps({"sha": sha, "force": True}))
@@ -237,10 +239,10 @@ def main(argv: list[str]) -> int:
         failed = True
         print(f"Failed: {e}", file=sys.stderr)
     finally:
-        if ruleset:
+        for ruleset in disabled:
             set_enforcement(repo, ruleset["id"], "active")
             state = json.loads(gh("api", f"repos/{repo}/rulesets/{ruleset['id']}"))["enforcement"]
-            print(f"Ruleset {ruleset['id']} ({RULESET}): {state}")
+            print(f"Ruleset {ruleset['id']} ({ruleset['name']}): {state}")
     return 1 if failed else 0
 
 
