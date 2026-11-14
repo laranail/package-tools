@@ -129,9 +129,14 @@ def repo_slug_of(pkg: str, root: Path | None, org: str) -> str:
     """The package's real repository slug.
 
     In a checkout this is read from `origin`, never from the directory name:
-    seven directories in the tree are named differently from their repository
-    (`pdf-toolkit` is `laranail/pdf`), so trusting the name would report a SPLIT
+    six of laranail's 73 checkouts are named differently from their repository
+    (`env-tools` is `laranail/env-kit`), so trusting the name would report a SPLIT
     that is a local naming choice rather than a rename.
+
+    Measured 2026-11-13, comparing each `packages/*/` basename against
+    `git -C <dir> remote get-url origin`. It read seven until that day, when the
+    `laranail/pdf` checkout was renamed from `pdf-toolkit` to `pdf` and stopped
+    being one of them; the example moved with it.
     """
     if root is None:
         return pkg
