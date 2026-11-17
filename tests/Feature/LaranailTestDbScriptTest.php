@@ -201,3 +201,27 @@ it('prints its whole usage with --help', function (): void {
         ->toContain('env <connection> [--reveal]')
         ->toContain('up for the next run; `down` stops it and drops every run\'s password files with it.');
 });
+
+it('keeps every connection\'s output when redirected into a file with >', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['mysql', 'pgsql']]);
+    $log = $consumer . '/out.log';
+
+    // A truncating redirect is what lost the second run's output (laranail/settings, 2026-11-17):
+    // the helper handed its STDOUT/STDERR streams to proc_open, and PHP seeked each to a stale
+    // position, so the next writer overwrote what came before.
+    $process = Process::fromShellCommandline(
+        sprintf('%s %s > %s 2>&1', escapeshellarg(PHP_BINARY), escapeshellarg(dirname(__DIR__, 2) . '/bin/laranail-test-db'), escapeshellarg($log)),
+        $consumer,
+        ['DBPANTRY_DIR' => false, 'PHP' => PHP_BINARY],
+    );
+    $process->run();
+
+    $out = (string) file_get_contents($log);
+    expect($process->getExitCode())->toBe(0, $out)
+        ->and(substr_count($out, 'DB_CONNECTION=mysql '))->toBe(1)
+        ->and(substr_count($out, 'DB_CONNECTION=pgsql '))->toBe(1)
+        ->and($out)->toContain('database group on mysql')
+        ->toContain('database group on pgsql')
+        ->toContain('all connections passed')
+        ->toMatch('/group on mysql.*\nDB_CONNECTION=mysql .*\n.*group on pgsql.*\nDB_CONNECTION=pgsql .*\n.*all connections passed/s');
+});

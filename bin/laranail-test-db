@@ -252,7 +252,10 @@ foreach ($variables as $connection => $env) {
     say("{$config['group']} group on {$connection} ({$run}, port {$env['DB_PORT']})");
     $process = proc_open(
         array_merge([PHP_BINARY, $binary, '--group=' . $config['group']], $args),
-        [0 => STDIN, 1 => STDOUT, 2 => STDERR],
+        // No descriptors: the child inherits ours as they are. Passing STDOUT/STDERR made PHP
+        // cast each stream to its fd, seeking it to that stream's own (stale) position, so with
+        // `> file 2>&1` every run after the first wrote over earlier output.
+        [],
         $pipes,
         $root,
         array_merge(getenv(), $env),

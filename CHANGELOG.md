@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `laranail-test-db` lost every connection's output after the first when its output was redirected
+  into a file with `>` (truncate): it handed its `STDOUT`/`STDERR` streams to `proc_open`, PHP seeked
+  each to that stream's stale position, and the next run wrote over earlier output, so a log read as
+  if PostgreSQL never ran. The child now inherits the descriptors untouched. Reported by the
+  laranail/settings pilot; a test runs the helper through a real `> file 2>&1`.
+
 ### Changed
 
 - `laranail-test-db env <connection>` masks `DB_PASSWORD` (`***`) unless `--reveal` is given, as
