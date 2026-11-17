@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.14] - 2026-11-17
+
 ### Fixed
 
 - `laranail-test-db` lost every connection's output after the first when its output was redirected
@@ -752,7 +754,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial public release.
 
-[Unreleased]: https://github.com/laranail/package-tools/compare/v0.1.13...HEAD
+[Unreleased]: https://github.com/laranail/package-tools/compare/v0.1.14...HEAD
+[0.1.14]: https://github.com/laranail/package-tools/compare/v0.1.13...v0.1.14
 [0.1.13]: https://github.com/laranail/package-tools/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/laranail/package-tools/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/laranail/package-tools/compare/v0.1.10...v0.1.11
