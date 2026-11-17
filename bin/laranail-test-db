@@ -1,0 +1,261 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Run a package's database tests against real engines from simtabi/dbpantry, one isolated database
+ * per run.
+ *
+ *     vendor/bin/laranail-test-db [-- test args]   boot dbpantry's fixture, create this run's own
+ *                                                   databases, run the test group on each connection
+ *     vendor/bin/laranail-test-db env <connection>  create a run's database and print its DB_* variables
+ *     vendor/bin/laranail-test-db down              stop the fixture (it holds no data worth keeping)
+ *
+ * Configuration lives in the consuming package's composer.json:
+ *
+ *     "extra": { "laranail": { "test-db": {
+ *         "connections": ["mysql", "pgsql"],   required: Laravel connection names, run in this order
+ *         "group": "database",                 the test group to run (default: database)
+ *         "project": "settings"                the database name prefix (default: the package name)
+ *     } } }
+ *
+ * dbpantry is found through DBPANTRY_DIR, or else as simtabi/packages/dbpantry above this package.
+ * Its fixture runs beside its long-lived stack, on tmpfs with durability off, and publishes at
+ * MDB_FIXTURE_PORT_BASE (55000) + offset; it needs MDB_PUBLISH=direct in dbpantry's .env. Ports,
+ * users and password files come from `make endpoints`, never from a copy here.
+ *
+ * Each run creates its own project, <project>_r<8 hex>, so two runs never share a database: the
+ * laranail/settings pilot (2026-11-17) saw 121 failures when two runs shared one. The fixture stays
+ * up for the next run; `down` stops it and drops every run's password files with it.
+ */
+
+/** Laravel connection name => dbpantry engine. */
+const ENGINES = ['pgsql' => 'pg', 'mysql' => 'mysql', 'mariadb' => 'mariadb'];
+
+function fail(string $message): never
+{
+    fwrite(STDERR, 'laranail-test-db: ' . $message . "\n");
+    exit(1);
+}
+
+function say(string $message): void
+{
+    fwrite(STDERR, 'laranail-test-db: ' . $message . "\n");
+}
+
+/**
+ * The test-db block of the consuming package's composer.json.
+ *
+ * @return array{connections: list<string>, group: string, project: string}
+ */
+function config(string $root): array
+{
+    $file = $root . '/composer.json';
+    if (! is_file($file)) {
+        fail("no composer.json in {$root}; run this from the package root");
+    }
+    $composer = json_decode((string) file_get_contents($file), true);
+    if (! is_array($composer)) {
+        fail("{$file} is not valid JSON");
+    }
+    $block = $composer['extra']['laranail']['test-db'] ?? null;
+    if (! is_array($block) || ! isset($block['connections']) || ! is_array($block['connections']) || $block['connections'] === []) {
+        fail('composer.json has no extra.laranail.test-db.connections, e.g. ["mysql", "pgsql"]');
+    }
+    $connections = [];
+    foreach ($block['connections'] as $connection) {
+        if (! is_string($connection) || ! isset(ENGINES[$connection])) {
+            fail('unknown connection ' . json_encode($connection) . '; use ' . implode(', ', array_keys(ENGINES)));
+        }
+        $connections[] = $connection;
+    }
+    $name = is_string($composer['name'] ?? null) ? substr((string) strrchr('/' . $composer['name'], '/'), 1) : 'app';
+    $project = is_string($block['project'] ?? null) ? $block['project'] : $name;
+    $project = (string) preg_replace('/[^a-z0-9_]+/', '_', strtolower($project));
+    if (preg_match('/^[a-z]/', $project) !== 1) {
+        $project = 'p_' . $project;
+    }
+
+    return [
+        'connections' => $connections,
+        'group'       => is_string($block['group'] ?? null) ? $block['group'] : 'database',
+        // new-project allows 63 characters; leave room for _r + 8 hex.
+        'project' => substr($project, 0, 52),
+    ];
+}
+
+/** dbpantry's checkout: DBPANTRY_DIR, else simtabi/packages/dbpantry in an ancestor of $root. */
+function pantry(string $root): string
+{
+    $explicit = getenv('DBPANTRY_DIR');
+    if (is_string($explicit) && $explicit !== '') {
+        $dir = realpath($explicit);
+        if ($dir === false || ! is_file($dir . '/Makefile')) {
+            fail("DBPANTRY_DIR={$explicit} is not a dbpantry checkout");
+        }
+
+        return $dir;
+    }
+    for ($dir = $root; $dir !== dirname($dir); $dir = dirname($dir)) {
+        $candidate = $dir . '/simtabi/packages/dbpantry';
+        if (is_file($candidate . '/Makefile')) {
+            return (string) realpath($candidate);
+        }
+    }
+    fail('dbpantry not found: set DBPANTRY_DIR to its checkout');
+}
+
+/** Run make in dbpantry, failing with its output on a non-zero exit. Returns stdout. */
+function make(string $pantry, string ...$args): string
+{
+    $command = array_merge(['make', '-s', '-C', $pantry], $args);
+    $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+    if (! is_resource($process)) {
+        fail('could not run make');
+    }
+    $out = (string) stream_get_contents($pipes[1]);
+    $err = (string) stream_get_contents($pipes[2]);
+    if (proc_close($process) !== 0) {
+        fail('make ' . implode(' ', $args) . " failed:\n" . $err . $out);
+    }
+
+    return $out;
+}
+
+/** The engines for the configured connections, as dbpantry profiles. */
+function profiles(array $config): string
+{
+    return implode(',', array_values(array_unique(array_map(static fn (string $c): string => ENGINES[$c], $config['connections']))));
+}
+
+/**
+ * Boot the fixture and create a fresh project for this run on every engine. Returns the project
+ * name and, per connection, the DB_* variables.
+ *
+ * @return array{0: string, 1: array<string, array<string, string>>}
+ */
+function provision(string $pantry, array $config): array
+{
+    $profiles = profiles($config);
+    $run = $config['project'] . '_r' . bin2hex(random_bytes(4));
+
+    say("starting dbpantry's fixture ({$profiles})");
+    make($pantry, 'fixture-up', 'PROFILES=' . $profiles);
+    foreach (explode(',', $profiles) as $engine) {
+        say("creating {$run} on {$engine}");
+        make($pantry, 'new-project', 'NAME=' . $run, 'ENGINE=' . $engine, 'FIXTURE=1');
+    }
+
+    $document = json_decode(make($pantry, 'endpoints', 'OUTPUT=json', 'PROFILES=' . $profiles, 'PROJECT=' . $run, 'FIXTURE=1'), true);
+    if (! is_array($document) || ($document['fixture'] ?? false) !== true) {
+        fail('dbpantry endpoints did not describe the fixture; dbpantry needs fixture support (simtabi/dbpantry#37)');
+    }
+
+    $variables = [];
+    foreach ($config['connections'] as $connection) {
+        $engine = ENGINES[$connection];
+        $endpoint = null;
+        foreach ($document['endpoints'] ?? [] as $candidate) {
+            if (($candidate['engine'] ?? null) === $engine) {
+                $endpoint = $candidate;
+            }
+        }
+        $port = $endpoint['direct']['published']['port'] ?? null;
+        if (! is_int($port)) {
+            fail("dbpantry publishes no host port for {$engine}; set MDB_PUBLISH=direct in its .env");
+        }
+        $app = null;
+        foreach ($endpoint['principals'] ?? [] as $principal) {
+            if (($principal['role'] ?? null) === 'app') {
+                $app = $principal;
+            }
+        }
+        $secret = is_string($app['password_file'] ?? null) ? $app['password_file'] : '';
+        $secret = $pantry . '/secrets/' . preg_replace('#^/run/secrets/#', '', $secret);
+        if (! is_string($app['user'] ?? null) || ! is_readable($secret)) {
+            fail("no {$engine} project {$run} in dbpantry's fixture (looked for {$secret})");
+        }
+        $variables[$connection] = [
+            'DB_CONNECTION' => $connection,
+            'DB_HOST'       => '127.0.0.1',
+            'DB_PORT'       => (string) $port,
+            'DB_DATABASE'   => $run,
+            'DB_USERNAME'   => $app['user'],
+            'DB_PASSWORD'   => trim((string) file_get_contents($secret)),
+        ];
+    }
+
+    return [$run, $variables];
+}
+
+/** The consuming package's test runner: Pest when installed, else PHPUnit. */
+function runner(string $root): string
+{
+    foreach (['pest', 'phpunit'] as $binary) {
+        if (is_file($root . '/vendor/bin/' . $binary)) {
+            return $root . '/vendor/bin/' . $binary;
+        }
+    }
+    fail('neither vendor/bin/pest nor vendor/bin/phpunit exists; run composer install');
+}
+
+$root = (string) getcwd();
+$args = array_slice($argv, 1);
+$command = $args[0] ?? 'run';
+if ($command === '--') {
+    $command = 'run';
+} elseif (in_array($command, ['run', 'env', 'down'], true)) {
+    array_shift($args);
+} elseif (in_array($command, ['-h', '--help', 'help'], true)) {
+    $lines = file(__FILE__) ?: [];
+    echo preg_replace('/^ \* ?/m', '', implode('', array_slice($lines, 6, 24)));
+    exit(0);
+} else {
+    fail("unknown command {$command}; use run, env or down");
+}
+if (($args[0] ?? null) === '--') {
+    array_shift($args);
+}
+
+$config = config($root);
+$pantry = pantry($root);
+
+if ($command === 'down') {
+    make($pantry, 'fixture-down');
+    say('fixture stopped');
+    exit(0);
+}
+
+if ($command === 'env') {
+    $connection = $args[0] ?? fail('env needs a connection, e.g. env mysql');
+    if (! in_array($connection, $config['connections'], true)) {
+        fail("{$connection} is not in extra.laranail.test-db.connections");
+    }
+    [, $variables] = provision($pantry, $config);
+    foreach ($variables[$connection] as $key => $value) {
+        echo $key, '=', $value, "\n";
+    }
+    exit(0);
+}
+
+[$run, $variables] = provision($pantry, $config);
+$binary = runner($root);
+$failed = [];
+foreach ($variables as $connection => $env) {
+    say("{$config['group']} group on {$connection} ({$run}, port {$env['DB_PORT']})");
+    $process = proc_open(
+        array_merge([PHP_BINARY, $binary, '--group=' . $config['group']], $args),
+        [0 => STDIN, 1 => STDOUT, 2 => STDERR],
+        $pipes,
+        $root,
+        array_merge(getenv(), $env),
+    );
+    if (! is_resource($process) || proc_close($process) !== 0) {
+        $failed[] = $connection;
+    }
+}
+
+say($failed === [] ? 'all connections passed' : 'failed on: ' . implode(', ', $failed));
+say("{$run} stays in the fixture until `vendor/bin/laranail-test-db down`");
+exit($failed === [] ? 0 : 1);

@@ -104,6 +104,7 @@ Hosted at **[opensource.simtabi.com/documentation/laranail/package-tools](https:
 - [Runtime services](docs/tools/runtime-services.md) — the services the toolkit resolves at runtime
 - [Sbom](docs/tools/sbom.md) — provenance and SBOM generation
 - [Scheduling](docs/tools/scheduling.md) — declaring a command's cadence beside the command
+- [Database tests on dbpantry](docs/tools/test-db.md) — `laranail-test-db`: a package's database tests on real engines, one database per run
 
 ### Recipes
 
