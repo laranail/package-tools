@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `laranail-test-db env <connection>` masks `DB_PASSWORD` (`***`) unless `--reveal` is given, as
+  laranail/settings' `bin/test-db` did: `env` output lands in terminals, scrollback and pasted logs.
+  Reported by the settings pilot. `docs/release.md` no longer says Packagist syncs from the tag: the
+  package is consumed through its GitHub VCS repository while registry publishing is paused.
+- `laranail-test-db --help` prints its whole usage; it printed a fixed slice of lines, which cut the
+  text short once the usage grew.
+
 ## [0.1.13] - 2026-11-17
 
 ### Added
