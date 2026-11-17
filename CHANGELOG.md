@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`vendor/bin/laranail-test-db` runs a package's database tests on simtabi/dbpantry, one database
+  per run.** A package names its connections under `extra.laranail.test-db` in `composer.json`; the
+  helper boots dbpantry's fixture, creates a `<project>_r<8 hex>` project on each engine, reads ports
+  and credentials from `make endpoints`, and runs the test group once per connection. It generalises
+  laranail/settings' `bin/test-db` pilot. See `docs/tools/test-db.md`.
 - **Merged branches are deleted by default, and release tags can be reset on purpose.**
   `scripts/apply-rulesets.sh` now also sets `delete_branch_on_merge` to `true` with `--apply`
   (`--keep-branches` sets it to `false`); with the branch ruleset requiring passing checks, a branch

@@ -69,7 +69,8 @@
     },
     "bin": [
         "bin/laranail-dist-integrity",
-        "bin/laranail-pint"
+        "bin/laranail-pint",
+        "bin/laranail-test-db"
     ],
     "autoload": {
         "psr-4": {
