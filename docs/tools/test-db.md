@@ -31,6 +31,7 @@ Name the connections, in the order they run, in the package's `composer.json`:
 ```bash
 vendor/bin/laranail-test-db                       # every connection, the whole group
 vendor/bin/laranail-test-db -- --filter=Approvals # extra arguments go to Pest (or PHPUnit)
+vendor/bin/laranail-test-db --connection=pgsql    # one connection only (repeatable)
 vendor/bin/laranail-test-db env mysql             # create a run's database, print its DB_* (password masked)
 vendor/bin/laranail-test-db env mysql --reveal    # the same, with DB_PASSWORD in clear
 vendor/bin/laranail-test-db down                  # stop the fixture

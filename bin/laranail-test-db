@@ -7,8 +7,10 @@ declare(strict_types=1);
  * Run a package's database tests against real engines from simtabi/dbpantry, one isolated database
  * per run.
  *
- *     vendor/bin/laranail-test-db [-- test args]   boot dbpantry's fixture, create this run's own
- *                                                   databases, run the test group on each connection
+ *     vendor/bin/laranail-test-db [--connection=<name>] [-- test args]
+ *                                                   boot dbpantry's fixture, create this run's own
+ *                                                   databases, run the test group on each connection;
+ *                                                   --connection (repeatable) runs only the ones named
  *     vendor/bin/laranail-test-db env <connection> [--reveal]
  *                                                   create a run's database and print its DB_* variables;
  *                                                   DB_PASSWORD is masked unless --reveal is given
@@ -205,7 +207,7 @@ function runner(string $root): string
 $root = (string) getcwd();
 $args = array_slice($argv, 1);
 $command = $args[0] ?? 'run';
-if ($command === '--') {
+if ($command === '--' || str_starts_with($command, '--connection')) {
     $command = 'run';
 } elseif (in_array($command, ['run', 'env', 'down'], true)) {
     array_shift($args);
@@ -217,11 +219,33 @@ if ($command === '--') {
 } else {
     fail("unknown command {$command}; use run, env or down");
 }
+// --connection=<name> (repeatable, before --) narrows a run to the connections named, in the
+// configured order: to compare engines one at a time, or to rerun only the one that failed.
+$only = [];
+while (isset($args[0]) && str_starts_with($args[0], '--connection')) {
+    $option = (string) array_shift($args);
+    $value = str_contains($option, '=') ? substr($option, strlen('--connection=')) : (string) array_shift($args);
+    if ($value === '') {
+        fail('--connection needs a name, e.g. --connection=pgsql');
+    }
+    $only[] = $value;
+}
 if (($args[0] ?? null) === '--') {
     array_shift($args);
 }
 
 $config = config($root);
+if ($only !== []) {
+    if ($command !== 'run') {
+        fail('--connection applies to a run, not to ' . $command);
+    }
+    foreach ($only as $connection) {
+        if (! in_array($connection, $config['connections'], true)) {
+            fail("{$connection} is not in extra.laranail.test-db.connections");
+        }
+    }
+    $config['connections'] = array_values(array_filter($config['connections'], static fn (string $c): bool => in_array($c, $only, true)));
+}
 $pantry = pantry($root);
 
 if ($command === 'down') {

@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if PostgreSQL never ran. The child now inherits the descriptors untouched. Reported by the
   laranail/settings pilot; a test runs the helper through a real `> file 2>&1`.
 
+### Added
+
+- `laranail-test-db --connection=<name>` (repeatable) runs only the connections named, so engines can be
+  compared one at a time and a failed one rerun alone; it boots and provisions only those engines.
+  Asked for by the laranail/settings pilot.
+
 ### Changed
 
 - `laranail-test-db env <connection>` masks `DB_PASSWORD` (`***`) unless `--reveal` is given, as

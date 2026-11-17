@@ -225,3 +225,29 @@ it('keeps every connection\'s output when redirected into a file with >', functi
         ->toContain('all connections passed')
         ->toMatch('/group on mysql.*\nDB_CONNECTION=mysql .*\n.*group on pgsql.*\nDB_CONNECTION=pgsql .*\n.*all connections passed/s');
 });
+
+it('runs only the connections named with --connection', function (): void {
+    [, $pantry, $consumer] = laranailTestDbWorld(['connections' => ['mysql', 'pgsql']]);
+
+    $process = laranailTestDb($consumer, ['--connection=pgsql', '--', '--filter=Approvals']);
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput());
+    $lines = explode("\n", trim($process->getOutput()));
+    expect($lines)->toHaveCount(1)
+        ->and($lines[0])->toStartWith('DB_CONNECTION=pgsql ')
+        ->toEndWith('ARGS=--group=database --filter=Approvals');
+
+    // Only the named engine is booted and provisioned.
+    $calls = file($pantry . '/calls.log', FILE_IGNORE_NEW_LINES);
+    expect($calls[0])->toBe('fixture-up pg')
+        ->and(implode("\n", $calls))->not->toContain(' mysql ');
+});
+
+it('refuses a --connection that is not configured', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['pgsql']]);
+
+    $process = laranailTestDb($consumer, ['--connection', 'mysql']);
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getErrorOutput())->toContain('mysql is not in extra.laranail.test-db.connections');
+});
