@@ -20,8 +20,15 @@ declare(strict_types=1);
  *
  *     "extra": { "laranail": { "test-db": {
  *         "connections": ["mysql", "pgsql"],   required: Laravel connection names, run in this order
- *         "group": "database",                 the test group to run (default: database)
- *         "project": "settings"                the database name prefix (default: the package name)
+ *         "group": "database",                 the test group (default: database; null runs every test)
+ *         "args": ["tests/Feature/A.php"],     arguments always passed to the runner, before yours
+ *         "project": "settings",               the database name prefix (default: the package name)
+ *         "principal": "app",                  app (the project's owner role) or admin (the engine's)
+ *         "together": false,                   true: one run with every connection's variables at once
+ *         "env": {"DB_PORT": "{port}"}         the variables a run gets (default: DB_CONNECTION, DB_HOST,
+ *                                              DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD); names and
+ *                                              values take {connection} {CONNECTION} {engine} {host} {port}
+ *                                              {database} {user} {password}
  *     } } }
  *
  * dbpantry is found through DBPANTRY_DIR, or else as simtabi/packages/dbpantry above this package.
@@ -37,6 +44,16 @@ declare(strict_types=1);
 /** Laravel connection name => dbpantry engine. */
 const ENGINES = ['pgsql' => 'pg', 'mysql' => 'mysql', 'mariadb' => 'mariadb'];
 
+/** The variables a run gets when the package names none: Laravel's own. */
+const DEFAULT_ENV = [
+    'DB_CONNECTION' => '{connection}',
+    'DB_HOST'       => '{host}',
+    'DB_PORT'       => '{port}',
+    'DB_DATABASE'   => '{database}',
+    'DB_USERNAME'   => '{user}',
+    'DB_PASSWORD'   => '{password}',
+];
+
 function fail(string $message): never
 {
     fwrite(STDERR, 'laranail-test-db: ' . $message . "\n");
@@ -51,7 +68,7 @@ function say(string $message): void
 /**
  * The test-db block of the consuming package's composer.json.
  *
- * @return array{connections: list<string>, group: string, project: string}
+ * @return array{connections: list<string>, group: ?string, args: list<string>, project: string, principal: string, together: bool, env: array<string, string>}
  */
 function config(string $root): array
 {
@@ -81,11 +98,46 @@ function config(string $root): array
         $project = 'p_' . $project;
     }
 
+    // group: absent means "database"; null means no --group, so the whole suite (or args) runs.
+    $group = array_key_exists('group', $block) ? $block['group'] : 'database';
+    if ($group !== null && (! is_string($group) || $group === '')) {
+        fail('extra.laranail.test-db.group must be a group name or null');
+    }
+    $args = $block['args'] ?? [];
+    if (! is_array($args) || array_filter($args, static fn (mixed $a): bool => ! is_string($a)) !== []) {
+        fail('extra.laranail.test-db.args must be a list of strings');
+    }
+    $principal = $block['principal'] ?? 'app';
+    if (! in_array($principal, ['app', 'admin'], true)) {
+        fail('extra.laranail.test-db.principal must be app or admin');
+    }
+    $together = $block['together'] ?? false;
+    if (! is_bool($together)) {
+        fail('extra.laranail.test-db.together must be true or false');
+    }
+    $env = $block['env'] ?? DEFAULT_ENV;
+    if (! is_array($env) || $env === [] || array_filter($env, static fn (mixed $v): bool => ! is_string($v)) !== []) {
+        fail('extra.laranail.test-db.env must map variable names to string templates');
+    }
+    // One run with several connections needs a variable name per connection, or the second
+    // connection's values silently replace the first's.
+    if ($together && count($connections) > 1) {
+        foreach (array_keys($env) as $name) {
+            if (! preg_match('/\{(connection|CONNECTION|engine)\}/', (string) $name)) {
+                fail("with together, every env name must contain {CONNECTION} (or {connection}, {engine}); {$name} does not");
+            }
+        }
+    }
+
     return [
         'connections' => $connections,
-        'group'       => is_string($block['group'] ?? null) ? $block['group'] : 'database',
+        'group'       => $group,
+        'args'        => array_values($args),
         // new-project allows 63 characters; leave room for _r + 8 hex.
-        'project' => substr($project, 0, 52),
+        'project'   => substr($project, 0, 52),
+        'principal' => $principal,
+        'together'  => $together,
+        'env'       => $env,
     ];
 }
 
@@ -135,7 +187,7 @@ function profiles(array $config): string
 
 /**
  * Boot the fixture and create a fresh project for this run on every engine. Returns the project
- * name and, per connection, the DB_* variables.
+ * name and, per connection, the values the env templates read.
  *
  * @return array{0: string, 1: array<string, array<string, string>>}
  */
@@ -156,7 +208,7 @@ function provision(string $pantry, array $config): array
         fail('dbpantry endpoints did not describe the fixture; dbpantry needs fixture support (simtabi/dbpantry#37)');
     }
 
-    $variables = [];
+    $values = [];
     foreach ($config['connections'] as $connection) {
         $engine = ENGINES[$connection];
         $endpoint = null;
@@ -169,28 +221,58 @@ function provision(string $pantry, array $config): array
         if (! is_int($port)) {
             fail("dbpantry publishes no host port for {$engine}; set MDB_PUBLISH=direct in its .env");
         }
-        $app = null;
+        $chosen = null;
         foreach ($endpoint['principals'] ?? [] as $principal) {
-            if (($principal['role'] ?? null) === 'app') {
-                $app = $principal;
+            if (($principal['role'] ?? null) === $config['principal']) {
+                $chosen = $principal;
             }
         }
-        $secret = is_string($app['password_file'] ?? null) ? $app['password_file'] : '';
+        $secret = is_string($chosen['password_file'] ?? null) ? $chosen['password_file'] : '';
         $secret = $pantry . '/secrets/' . preg_replace('#^/run/secrets/#', '', $secret);
-        if (! is_string($app['user'] ?? null) || ! is_readable($secret)) {
-            fail("no {$engine} project {$run} in dbpantry's fixture (looked for {$secret})");
+        if (! is_string($chosen['user'] ?? null)) {
+            fail($config['principal'] === 'admin'
+                ? "dbpantry's endpoints name no admin user for {$engine}; principal admin needs a dbpantry that reports it"
+                : "no {$engine} project {$run} in dbpantry's fixture");
         }
-        $variables[$connection] = [
-            'DB_CONNECTION' => $connection,
-            'DB_HOST'       => '127.0.0.1',
-            'DB_PORT'       => (string) $port,
-            'DB_DATABASE'   => $run,
-            'DB_USERNAME'   => $app['user'],
-            'DB_PASSWORD'   => trim((string) file_get_contents($secret)),
+        if (! is_readable($secret)) {
+            fail("no password file for the {$config['principal']} principal on {$engine} (looked for {$secret})");
+        }
+        $values[$connection] = [
+            'connection' => $connection,
+            'CONNECTION' => strtoupper($connection),
+            'engine'     => $engine,
+            'host'       => '127.0.0.1',
+            'port'       => (string) $port,
+            'database'   => $run,
+            'user'       => $chosen['user'],
+            'password'   => trim((string) file_get_contents($secret)),
         ];
     }
 
-    return [$run, $variables];
+    return [$run, $values];
+}
+
+/**
+ * The env templates for one connection, with every {placeholder} filled in. A value whose template
+ * holds {password} is masked unless $reveal.
+ *
+ * @param array<string, string> $templates
+ * @param array<string, string> $values
+ *
+ * @return array<string, string>
+ */
+function render(array $templates, array $values, bool $reveal = true): array
+{
+    $fill = static fn (string $t): string => strtr($t, array_combine(
+        array_map(static fn (string $k): string => '{' . $k . '}', array_keys($values)),
+        array_values($values),
+    ));
+    $out = [];
+    foreach ($templates as $name => $template) {
+        $out[$fill((string) $name)] = ! $reveal && str_contains($template, '{password}') ? '***' : $fill($template);
+    }
+
+    return $out;
 }
 
 /** The consuming package's test runner: Pest when installed, else PHPUnit. */
@@ -262,20 +344,37 @@ if ($command === 'env') {
     // Masked by default, as settings' bin/test-db masked it: `env` output lands in
     // terminals, scrollback and pasted logs. --reveal prints it for `export $(...)`.
     $reveal = in_array('--reveal', array_slice($args, 1), true);
-    [, $variables] = provision($pantry, $config);
-    foreach ($variables[$connection] as $key => $value) {
-        echo $key, '=', ($key === 'DB_PASSWORD' && ! $reveal ? '***' : $value), "\n";
+    [, $values] = provision($pantry, $config);
+    foreach (render($config['env'], $values[$connection], $reveal) as $key => $value) {
+        echo $key, '=', $value, "\n";
     }
     exit(0);
 }
 
-[$run, $variables] = provision($pantry, $config);
+[$run, $values] = provision($pantry, $config);
 $binary = runner($root);
+$runnerArgs = array_merge($config['group'] === null ? [] : ['--group=' . $config['group']], $config['args'], $args);
+$scope = $config['group'] === null ? 'tests' : "{$config['group']} group";
+
+// together: one run that gets every connection's variables; otherwise one run per connection.
+$runs = [];
+if ($config['together']) {
+    $env = [];
+    foreach ($values as $connection => $v) {
+        $env += render($config['env'], $v);
+    }
+    $runs[implode('+', array_keys($values))] = $env;
+} else {
+    foreach ($values as $connection => $v) {
+        $runs[$connection] = render($config['env'], $v);
+    }
+}
+
 $failed = [];
-foreach ($variables as $connection => $env) {
-    say("{$config['group']} group on {$connection} ({$run}, port {$env['DB_PORT']})");
+foreach ($runs as $label => $env) {
+    say("{$scope} on {$label} ({$run})");
     $process = proc_open(
-        array_merge([PHP_BINARY, $binary, '--group=' . $config['group']], $args),
+        array_merge([PHP_BINARY, $binary], $runnerArgs),
         // No descriptors: the child inherits ours as they are. Passing STDOUT/STDERR made PHP
         // cast each stream to its fd, seeking it to that stream's own (stale) position, so with
         // `> file 2>&1` every run after the first wrote over earlier output.
@@ -285,7 +384,7 @@ foreach ($variables as $connection => $env) {
         array_merge(getenv(), $env),
     );
     if (! is_resource($process) || proc_close($process) !== 0) {
-        $failed[] = $connection;
+        $failed[] = $label;
     }
 }
 

@@ -25,6 +25,44 @@ Name the connections, in the order they run, in the package's `composer.json`:
 | `connections` | yes | Laravel connection names: `mysql`, `pgsql`, `mariadb` |
 | `group` | no | the test group to run (default `database`) |
 | `project` | no | the database name prefix (default: the package name, lowercased, `_` for other characters) |
+| `group` = `null` | no | run every test (or only `args`), with no `--group` |
+| `args` | no | arguments always passed to the runner, before the ones you give after `--` |
+| `principal` | no | `app` (the project's owner role, the default) or `admin` (the engine's superuser) |
+| `together` | no | `true`: one run that gets every connection's variables at once |
+| `env` | no | the variables a run gets, as `NAME: template`; default is Laravel's `DB_*` set |
+
+## Variable templates
+
+`env` names and values take `{connection}` (`pgsql`), `{CONNECTION}` (`PGSQL`), `{engine}` (`pg`),
+`{host}`, `{port}`, `{database}`, `{user}` and `{password}`. A package that reads its own names
+lists them; the default `DB_*` set is replaced, not added to:
+
+```json
+"env": {
+    "IMPERSONATOR_TEST_DB": "{connection}",
+    "IMPERSONATOR_TEST_DB_HOST": "{host}",
+    "IMPERSONATOR_TEST_DB_NAME": "{database}",
+    "IMPERSONATOR_TEST_DB_USER": "{user}",
+    "IMPERSONATOR_TEST_DB_PASSWORD": "{password}"
+}
+```
+
+With `together`, every name must contain `{CONNECTION}` (or `{connection}`, `{engine}`), so each
+engine's variables stay apart in the one run; the helper refuses a name that does not:
+
+```json
+"together": true,
+"principal": "admin",
+"env": {
+    "DB_CONSOLE_LIVE_{CONNECTION}_PORT": "{port}",
+    "DB_CONSOLE_LIVE_{CONNECTION}_ADMIN_USER": "{user}",
+    "DB_CONSOLE_LIVE_{CONNECTION}_ADMIN_PASSWORD": "{password}"
+}
+```
+
+`principal: admin` needs a dbpantry whose `endpoints` names each engine's admin user; until then the
+helper refuses it and says so. `env` masks every variable whose template holds `{password}` unless
+`--reveal` is given.
 
 ## Running it
 

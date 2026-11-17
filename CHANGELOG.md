@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `laranail-test-db` fits suites that do not read Laravel's `DB_*` or run one group: `env` maps the
+  variables a run gets (`{connection}` `{CONNECTION}` `{engine}` `{host}` `{port}` `{database}` `{user}`
+  `{password}` in names and values), `together` gives one run every connection's variables (names
+  must name the connection), `group: null` and `args` run every test or a fixed list, and
+  `principal: admin` uses the engine's superuser where dbpantry's `endpoints` names it. Callers:
+  impersonator, waitlist-kit, db-console-webui and db-tools, whose CI read `IMPERSONATOR_TEST_DB_*`,
+  `WAITLIST_KIT_TEST_*`, `DB_CONSOLE_LIVE_*` and `DB_MYSQL_*`/`DB_PGSQL_*`.
+
 ## [0.1.14] - 2026-11-17
 
 ### Fixed
