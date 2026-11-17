@@ -9,7 +9,9 @@ declare(strict_types=1);
  *
  *     vendor/bin/laranail-test-db [-- test args]   boot dbpantry's fixture, create this run's own
  *                                                   databases, run the test group on each connection
- *     vendor/bin/laranail-test-db env <connection>  create a run's database and print its DB_* variables
+ *     vendor/bin/laranail-test-db env <connection> [--reveal]
+ *                                                   create a run's database and print its DB_* variables;
+ *                                                   DB_PASSWORD is masked unless --reveal is given
  *     vendor/bin/laranail-test-db down              stop the fixture (it holds no data worth keeping)
  *
  * Configuration lives in the consuming package's composer.json:
@@ -208,8 +210,9 @@ if ($command === '--') {
 } elseif (in_array($command, ['run', 'env', 'down'], true)) {
     array_shift($args);
 } elseif (in_array($command, ['-h', '--help', 'help'], true)) {
-    $lines = file(__FILE__) ?: [];
-    echo preg_replace('/^ \* ?/m', '', implode('', array_slice($lines, 6, 24)));
+    // The doc block at the top of this file, whole: a fixed line slice cut it short once it grew.
+    preg_match('#/\*\*\n(.*?)\n \*/#s', (string) file_get_contents(__FILE__), $doc);
+    echo preg_replace('/^ \* ?/m', '', $doc[1] ?? ''), "\n";
     exit(0);
 } else {
     fail("unknown command {$command}; use run, env or down");
@@ -232,9 +235,12 @@ if ($command === 'env') {
     if (! in_array($connection, $config['connections'], true)) {
         fail("{$connection} is not in extra.laranail.test-db.connections");
     }
+    // Masked by default, as settings' bin/test-db masked it: `env` output lands in
+    // terminals, scrollback and pasted logs. --reveal prints it for `export $(...)`.
+    $reveal = in_array('--reveal', array_slice($args, 1), true);
     [, $variables] = provision($pantry, $config);
     foreach ($variables[$connection] as $key => $value) {
-        echo $key, '=', $value, "\n";
+        echo $key, '=', ($key === 'DB_PASSWORD' && ! $reveal ? '***' : $value), "\n";
     }
     exit(0);
 }

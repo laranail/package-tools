@@ -125,13 +125,22 @@ it('fails, and says which connection failed, when the tests fail on one', functi
         ->and($process->getErrorOutput())->toContain('failed on: pgsql');
 });
 
-it('prints one connection\'s variables with env', function (): void {
+it('prints one connection\'s variables with env, the password masked', function (): void {
     [, , $consumer] = laranailTestDbWorld(['connections' => ['mysql', 'pgsql'], 'project' => 'My-Shop']);
 
     $process = laranailTestDb($consumer, ['env', 'pgsql']);
 
     expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
-        ->and($process->getOutput())->toMatch('/^DB_CONNECTION=pgsql\nDB_HOST=127\.0\.0\.1\nDB_PORT=55000\nDB_DATABASE=my_shop_r[0-9a-f]{8}\n/');
+        ->and($process->getOutput())->toMatch('/^DB_CONNECTION=pgsql\nDB_HOST=127\.0\.0\.1\nDB_PORT=55000\nDB_DATABASE=my_shop_r[0-9a-f]{8}\nDB_USERNAME=my_shop_r[0-9a-f]{8}_user\nDB_PASSWORD=\*\*\*\n$/');
+});
+
+it('prints the password with env --reveal', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['pgsql']]);
+
+    $process = laranailTestDb($consumer, ['env', 'pgsql', '--reveal']);
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
+        ->and($process->getOutput())->toMatch('/\nDB_PASSWORD=pw-shop_r[0-9a-f]{8}-pg\n$/');
 });
 
 it('stops the fixture with down', function (): void {
@@ -180,4 +189,15 @@ it('says how to point at dbpantry when it cannot find it', function (): void {
 
     expect($process->getExitCode())->toBe(1)
         ->and($process->getErrorOutput())->toContain('set DBPANTRY_DIR');
+});
+
+it('prints its whole usage with --help', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['pgsql']]);
+
+    $process = laranailTestDb($consumer, ['--help']);
+
+    expect($process->getExitCode())->toBe(0)
+        ->and($process->getOutput())->toStartWith('Run a package\'s database tests')
+        ->toContain('env <connection> [--reveal]')
+        ->toContain('up for the next run; `down` stops it and drops every run\'s password files with it.');
 });

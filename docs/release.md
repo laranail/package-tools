@@ -1,6 +1,6 @@
 # Release process
 
-`laranail/package-tools` is released **tag-driven**: pushing a `vX.Y.Z` tag triggers the release workflow, which publishes the GitHub Release (with the `package-tools.cdx.json` CycloneDX SBOM attached) and Packagist updates from the tag automatically.
+`laranail/package-tools` is released **tag-driven**: pushing a `vX.Y.Z` tag triggers the release workflow, which publishes the GitHub Release (with the `package-tools.cdx.json` CycloneDX SBOM attached). The package is not on Packagist while registry publishing is paused: consumers require it through the GitHub VCS repository, which resolves the new tag directly.
 
 ## Versioning & stability
 
@@ -28,7 +28,7 @@ The package follows [Semantic Versioning](https://semver.org). Bug fixes are a p
    gh release create vX.Y.Z --title "vX.Y.Z" --notes-file <(awk '/^## \[X.Y.Z\]/{f=1;next} /^## \[/{f=0} f' CHANGELOG.md) --generate-notes
    ```
 
-5. Packagist syncs from the tag automatically; verify with `composer show laranail/package-tools --available`.
+5. Verify the GitHub release (not a draft, CHANGELOG body, SBOM attached) and that a consumer resolves the tag: `composer update laranail/package-tools` in one, through its VCS repository. Packagist answers 404 for this package (checked 2026-11-17 for 0.1.13); do not wait on it.
 
 ## Consumers to reconcile after a breaking release
 
