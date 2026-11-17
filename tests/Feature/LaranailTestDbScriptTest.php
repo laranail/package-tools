@@ -32,6 +32,11 @@ function laranailTestDbWorld(array $testDb): array
             default => $target,
         };
         file_put_contents(__DIR__ . '/calls.log', $call . "\n", FILE_APPEND);
+        if ($target === 'fixture-up') {
+            foreach (['pg', 'mysql'] as $e) {
+                file_put_contents(__DIR__ . "/secrets/{$e}_root.txt", "root-{$e}\n");
+            }
+        }
         if ($target === 'new-project') {
             file_put_contents(__DIR__ . "/secrets/fixture/{$engine}_{$name}_user_password.txt", "pw-{$name}-{$engine}\n");
         }
@@ -41,7 +46,10 @@ function laranailTestDbWorld(array $testDb): array
                 $endpoints[] = [
                     'engine' => $e,
                     'direct' => ['published' => getenv('FAKE_PUBLISH') === 'none' ? null : ['port' => $port]],
-                    'principals' => [['role' => 'app', 'user' => "{$project}_user", 'password_file' => "/run/secrets/fixture/{$e}_{$project}_user_password.txt"]],
+                    'principals' => [
+                        array_filter(['role' => 'admin', 'user' => getenv('FAKE_ADMIN_USER') === false ? null : getenv('FAKE_ADMIN_USER') . "-{$e}", 'password_file' => "/run/secrets/{$e}_root.txt"]),
+                        ['role' => 'app', 'user' => "{$project}_user", 'password_file' => "/run/secrets/fixture/{$e}_{$project}_user_password.txt"],
+                    ],
                 ];
             }
             echo json_encode(['fixture' => true, 'endpoints' => $endpoints]);
@@ -58,6 +66,11 @@ function laranailTestDbWorld(array $testDb): array
         $vars = [];
         foreach (['DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD'] as $k) {
             $vars[] = $k . '=' . getenv($k);
+        }
+        $extra = array_filter(getenv(), static fn (string $k): bool => str_starts_with($k, 'APP_TEST_'), ARRAY_FILTER_USE_KEY);
+        ksort($extra);
+        foreach ($extra as $k => $v) {
+            $vars[] = $k . '=' . $v;
         }
         echo implode(' ', $vars), ' ARGS=', implode(' ', array_slice($argv, 1)), "\n";
         exit(getenv('DB_CONNECTION') === getenv('STUB_FAIL_ON') ? 1 : 0);
@@ -250,4 +263,84 @@ it('refuses a --connection that is not configured', function (): void {
 
     expect($process->getExitCode())->toBe(1)
         ->and($process->getErrorOutput())->toContain('mysql is not in extra.laranail.test-db.connections');
+});
+
+it('renders custom variable names and values from env templates', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['pgsql'], 'env' => [
+        'APP_TEST_DB'      => '{connection}',
+        'APP_TEST_DB_PORT' => '{port}',
+        'APP_TEST_DB_NAME' => '{database}',
+        'APP_TEST_DB_USER' => '{user}',
+    ]]);
+
+    $process = laranailTestDb($consumer);
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
+        ->and($process->getOutput())->toMatch('/APP_TEST_DB=pgsql APP_TEST_DB_NAME=(shop_r[0-9a-f]{8}) APP_TEST_DB_PORT=55000 APP_TEST_DB_USER=\\1_user /')
+        // Only the named variables: the default DB_* set is replaced, not added to (DB_* the
+        // test runner itself exports still pass through untouched).
+        ->and($process->getOutput())->not->toMatch('/(^| )DB_PORT=55000/')
+        ->not->toMatch('/(^| )DB_USERNAME=shop_r/');
+});
+
+it('runs every connection at once with together', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['mysql', 'pgsql'], 'together' => true, 'env' => [
+        'APP_TEST_{CONNECTION}_PORT'     => '{port}',
+        'APP_TEST_{CONNECTION}_PASSWORD' => '{password}',
+    ]]);
+
+    $process = laranailTestDb($consumer);
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput());
+    $lines = explode("\n", trim($process->getOutput()));
+    expect($lines)->toHaveCount(1)
+        ->and($lines[0])->toMatch('/APP_TEST_MYSQL_PASSWORD=pw-shop_r[0-9a-f]{8}-mysql APP_TEST_MYSQL_PORT=55001 APP_TEST_PGSQL_PASSWORD=pw-shop_r[0-9a-f]{8}-pg APP_TEST_PGSQL_PORT=55000 /')
+        ->and($process->getErrorOutput())->toContain('on mysql+pgsql');
+});
+
+it('refuses together when a variable name does not name its connection', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['mysql', 'pgsql'], 'together' => true]);
+
+    $process = laranailTestDb($consumer);
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getErrorOutput())->toContain('every env name must contain {CONNECTION}');
+});
+
+it('runs every test with group null, and passes the configured args first', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['pgsql'], 'group' => null, 'args' => ['tests/Feature/SchemaTest.php']]);
+
+    $process = laranailTestDb($consumer, ['--', '--ci']);
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
+        ->and($process->getOutput())->toContain('ARGS=tests/Feature/SchemaTest.php --ci')
+        ->not->toContain('--group')
+        ->and($process->getErrorOutput())->toContain('tests on pgsql');
+});
+
+it('uses the engine admin with principal admin', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['pgsql'], 'principal' => 'admin']);
+
+    $process = laranailTestDb($consumer, [], ['FAKE_ADMIN_USER' => 'super']);
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
+        ->and($process->getOutput())->toContain('DB_USERNAME=super-pg DB_PASSWORD=root-pg');
+});
+
+it('refuses principal admin when dbpantry names no admin user', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['pgsql'], 'principal' => 'admin']);
+
+    $process = laranailTestDb($consumer);
+
+    expect($process->getExitCode())->toBe(1)
+        ->and($process->getErrorOutput())->toContain('name no admin user for pg');
+});
+
+it('masks every password-bearing template in env', function (): void {
+    [, , $consumer] = laranailTestDbWorld(['connections' => ['pgsql'], 'env' => ['APP_TEST_LINE' => 'login {user} {password}', 'APP_TEST_PORT' => '{port}']]);
+
+    $process = laranailTestDb($consumer, ['env', 'pgsql']);
+
+    expect($process->getExitCode())->toBe(0, $process->getErrorOutput())
+        ->and($process->getOutput())->toBe("APP_TEST_LINE=***\nAPP_TEST_PORT=55000\n");
 });
