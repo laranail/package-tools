@@ -46,7 +46,10 @@ jobs:
         id: changelog
         run: |
           version="${GITHUB_REF_NAME#v}"
-          notes=$(awk -v v="$version" '
+          # A pre-release (vX.Y.Z-rc.N, -beta.N, -alpha.N) takes the notes of the X.Y.Z it previews:
+          # the release train's cut writes that section before the first rc is tagged.
+          section="${version%%-*}"
+          notes=$(awk -v v="$section" '
             $0 ~ "^## \\[" v "\\]" { f=1; next }
             f && /^## \[/ { exit }
             f { print }
@@ -66,4 +69,7 @@ jobs:
         with:
           generate_release_notes: true
           body: ${{ steps.changelog.outputs.body }}
+          # Any `-` suffix is a pre-release and never becomes "Latest" (releases.md).
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          make_latest: ${{ !contains(github.ref_name, '-') }}
           files: package-tools.cdx.json
